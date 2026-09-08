@@ -1,3 +1,35 @@
+# benable-brand-prototype-v47 — Campaign Pulse + the roster (direction E)
+
+**v47 (Sep 8) — fresh iteration base, snapshot of v46 + direction E.** Dev: launch
+`brand-prototype-v47`, port 5225. Live:
+https://juliabenable.github.io/benable-brand-prototype-v47/
+Deploy: `bash scripts/ship.sh "msg"`. v46 stays frozen at its own URL.
+
+## /nf/roster — direction E, the always-on roster (Sep 8 2026)
+
+From the study "October, On Track" (selling-months-study/, Sep 8): no campaigns as
+a brand-facing object; the brand holds a monthly creator count, the brief stands,
+creators are matched continuously, and creators who delivered can apply to come
+back. Hosted in the real captured chrome (NF_SHELL header + sidebar, content
+mounted inside production's .workspace-content-shell). Sidebar patched in place:
+"Campaigns" -> "Creators" (active), "Content" + "Brief" inserted.
+- `src/pages/NfRoster.jsx` = shell + fork bar + a second black bar (six "today"
+  snapshots: Sep 8 signed / Sep 10 matching / Sep 26 first month / Dec 12 steady /
+  Jan 9 behind / Feb 3 paused). `src/roster/rosterEngine.js` = the vanilla render
+  engine, same code as `selling-months-study/proto-e.html` (keep in step).
+  `src/styles/roster.css` scoped under `.nf .nf-roster`.
+- Fork bar gained MODEL (Campaigns | Roster): Roster routes to /nf/roster, Campaigns
+  back to the overview. Stored in the shared forks store as `model`.
+- The early-brief queue (Julia, Sep 8: "start their brief for November super early
+  in September"): every month tile except the current one carries "Plan {month}"
+  (or "Add a note for {month}" once creators are lined up). One click opens an
+  inline plan: "Same products as {this month}" on by default, an optional note,
+  Save. The tile turns planned (check + "creators see it from {prev month} 1").
+  "Plan further ahead" reveals three more months. Plans live in engine state only.
+- Working: Set up your brief (advances signed -> matching), Approve / Pass,
+  Invite again, Show all, applications switch, Plan / Save / Edit / Cancel.
+  Inert with a toast: Content, Brief, product picker in the plan form.
+
 # benable-brand-prototype-v46 — Campaign Pulse
 
 **v46 (Aug 18) — fresh iteration base, snapshot of v45** (three-pane review

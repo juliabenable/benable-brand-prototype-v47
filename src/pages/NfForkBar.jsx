@@ -18,6 +18,8 @@ export default function NfForkBar({ go }) {
     forks.set(key, v);
     // collab type re-roots the demo into that flow's overview
     if (key === 'type') go(v === 'local' ? 'gc-overview' : 'overview');
+    // the model fork swaps the whole portal: roster page vs campaigns overview
+    if (key === 'model') go(v === 'roster' ? 'roster' : (forks.get('type') === 'local' ? 'gc-overview' : 'overview'));
   };
 
   const seg = (def) => def.options.map(([val, label]) => (
@@ -31,7 +33,7 @@ export default function NfForkBar({ go }) {
     </button>
   ));
 
-  const bar = FORK_DEFS.filter((d) => d.key !== 'rui'); // review UI lives in the drawer only
+  const bar = FORK_DEFS.filter((d) => d.key !== 'rui' && d.key !== 'fulfill'); // review UI + fulfillment live in the drawer only (bar width)
 
   return (
     <>

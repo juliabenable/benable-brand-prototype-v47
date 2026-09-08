@@ -19,6 +19,7 @@ import GlowLoveWrap from './components/glowlove/GlowLoveWrap.jsx';
 import WrapPage from './pages/WrapPage.jsx';
 import NewFlow from './pages/NewFlow.jsx';
 import NfTrack from './pages/NfTrack.jsx';
+import NfRoster from './pages/NfRoster.jsx';
 
 export default function App() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -38,6 +39,8 @@ export default function App() {
       {/* First-part flow on the NEW production chrome (Aug 18 capture) */}
       <Route path="/nf" element={<NewFlow />} />
       <Route path="/nf/track" element={<NfTrack />} />
+      {/* Direction E: the always-on roster (Sep 8 study), same chrome, no campaigns */}
+      <Route path="/nf/roster" element={<NfRoster />} />
       <Route path="/nf/:screen" element={<NewFlow />} />
       <Route path="/brand/login" element={<LoginPage />} />
       <Route path="/brand/tonypikora" element={withShell(<CampaignsListPage />)} />
