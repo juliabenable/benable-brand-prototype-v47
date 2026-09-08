@@ -13,16 +13,17 @@ import '../styles/months.css';
  * count of promised and a pace line, and the tracker with the pace line as its
  * hero. Same captured chrome as the rest of /nf (NF_SHELL header + sidebar,
  * content inside production's .workspace-content-shell). Fully wired:
- * "Plan November" / "Start planning" hands off to the REAL wizard (/nf/step1),
- * whose copy NewFlow patches in months mode, and the wizard's back links and
- * the launch screen's "Campaigns" return here. The engine is the same code as
- * selling-months-study/proto-ac.html.
+ * "Start my campaign" / "Launch now" hand off to the REAL wizard at setup
+ * (/nf/step2, the intro screen is skipped per Tony), whose copy NewFlow patches
+ * in months mode; the wizard's back links and the launch screen's "Campaigns"
+ * return here. V1 as settled on the Sep 8 Tony call: same blocks, new syntax,
+ * one date (first content expected), a Campaign timeline box, no lateness states.
  */
 export default function NfMonths({ screen = 'overview' }) {
   const navigate = useNavigate();
   const mountRef = useRef(null);
   const engineRef = useRef(null);
-  const [day, setDayState] = useState('ontrack');
+  const [day, setDayState] = useState('week4');
 
   const go = (next) => navigate('/nf/' + next);
 
@@ -34,9 +35,10 @@ export default function NfMonths({ screen = 'overview' }) {
       onOpen: () => navigate('/nf/months/track'),
       onBack: () => navigate('/nf/months'),
       onPlan: (month) => {
-        // the real captured wizard, with its copy patched for this month (NewFlow.jsx)
+        // the real captured wizard, intro screen skipped (Tony, Sep 8): straight to setup,
+        // already named for the month (NewFlow.jsx patches the copy)
         if (typeof window !== 'undefined' && window.__nfLive) window.__nfLive.monthsTarget = month;
-        navigate('/nf/step1');
+        navigate('/nf/step2');
       },
     });
     engineRef.current = engine;
@@ -93,7 +95,7 @@ export default function NfMonths({ screen = 'overview' }) {
             key={key}
             type="button"
             className={day === key ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'}
-            onClick={() => { engineRef.current?.setDay(key); if (key === 'day0' && screen === 'track') navigate('/nf/months'); }}
+            onClick={() => { engineRef.current?.setDay(key); if (key === 'signed' && screen === 'track') navigate('/nf/months'); }}
           >
             {label}
           </button>

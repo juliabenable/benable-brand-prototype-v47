@@ -16,7 +16,7 @@
 .nf .nf-months button { font: inherit; cursor: pointer; }
 
 /* overview page frame (the captured page carries these paddings on .campaign-overview) */
-.nf .nf-months .nfm-overview { padding: 104px 32px 56px; max-width: 1180px; }
+.nf .nf-months .campaign-overview.nfm-overview { padding: 104px 32px 56px !important; max-width: 1180px; } /* production's .campaign-overview padding wins on order; the bar sits over the title without this */
 .nf .nf-months .nfm-plan-line { color: var(--nfm-muted); font-size: 13px; padding-bottom: 9px; }
 .nf .nf-months .nfm-plan-line b { color: var(--nfm-text-2); font-weight: 600; }
 
@@ -130,8 +130,43 @@
 .nf .nf-months-launchpace .dates div b { display: block; color: #1c1c1c; font-weight: 600; font-size: 12px; }
 .nf .nf-months-launchpace .dates div.done { border-top-color: #00b44e; }
 
+/* the campaign page: creators on the left, the timeline box top right (Tony, Sep 8) */
+.nf .nf-months .nfm-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; margin-top: 16px; }
+.nf .nf-months .nfm-grid .nfm-panel { margin-top: 0; }
+.nf .nf-months .nfm-rail { display: flex; flex-direction: column; gap: 16px; }
+.nf .nf-months .nfm-timeline { padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(228, 228, 228, .95); background: #fff; box-shadow: 0 14px 40px rgba(23, 23, 23, .06); }
+.nf .nf-months .nfm-timeline__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nf .nf-months .nfm-timeline__head h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--nfm-text); }
+.nf .nf-months .nfm-info { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--nfm-muted); font-size: 12px; font-weight: 500; padding: 4px 6px; border-radius: 8px; }
+.nf .nf-months .nfm-info:hover { color: var(--nfm-text); background: var(--nfm-pill); }
+.nf .nf-months .nfm-timeline__week { margin-top: 10px; font-size: 13px; color: var(--nfm-text-2); }
+.nf .nf-months .nfm-timeline__week b { color: var(--nfm-text); font-weight: 600; }
+.nf .nf-months .nfm-timeline__bar { height: 8px; border-radius: 999px; background: var(--nfm-track); overflow: hidden; margin-top: 8px; }
+.nf .nf-months .nfm-timeline__bar span { display: block; height: 100%; border-radius: inherit; background: var(--nfm-accent); opacity: .7; }
+.nf .nf-months .nfm-timeline__first { margin-top: 14px; font-size: 15px; color: var(--nfm-text-2); line-height: 1.35; }
+.nf .nf-months .nfm-timeline__first b { color: var(--nfm-text); font-weight: 700; }
+.nf .nf-months .nfm-timeline__sub { margin-top: 6px; font-size: 12.5px; color: var(--nfm-muted); line-height: 1.4; }
+.nf .nf-months .nfm-railcard { padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(228, 228, 228, .95); background: #fff; box-shadow: 0 14px 40px rgba(23, 23, 23, .06); }
+.nf .nf-months .nfm-railcard h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--nfm-text); }
+.nf .nf-months .nfm-railcard p { margin: 0; font-size: 13px; color: #555; line-height: 1.5; }
+.nf .nf-months .campaign-card__progress.nfm-weeks span { background: var(--nfm-accent); opacity: .55; }
+
+/* the (i) popup */
+.nf .nf-months .nfm-scrim { position: fixed; inset: 0; z-index: 310; background: rgba(17, 17, 20, .45); display: grid; place-items: center; padding: 24px; }
+.nf .nf-months .nfm-pop { width: min(560px, 100%); max-height: 85vh; overflow: auto; background: #fff; border-radius: 20px; padding: 22px 24px; box-shadow: 0 20px 48px rgba(0, 0, 0, .18); font-family: Inter, -apple-system, sans-serif; }
+.nf .nf-months .nfm-pop__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.nf .nf-months .nfm-pop__head h3 { margin: 0; font-size: 18px; font-weight: 700; color: var(--nfm-text); }
+.nf .nf-months .nfm-pop__close { border: 0; background: var(--nfm-pill); width: 32px; height: 32px; border-radius: 50%; font-size: 13px; color: var(--nfm-text-2); }
+.nf .nf-months .nfm-pop p { margin: 0 0 14px; font-size: 14px; color: var(--nfm-text-2); line-height: 1.5; }
+.nf .nf-months .nfm-pop__tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.nf .nf-months .nfm-pop__tbl th { text-align: left; width: 120px; font-weight: 600; color: var(--nfm-text); padding: 9px 12px 9px 0; border-bottom: 1px solid #ebebeb; vertical-align: top; white-space: nowrap; }
+.nf .nf-months .nfm-pop__tbl td { padding: 9px 0; border-bottom: 1px solid #ebebeb; color: var(--nfm-text-2); }
+.nf .nf-months .nfm-pop__tbl tr:last-child th, .nf .nf-months .nfm-pop__tbl tr:last-child td { border-bottom: 0; }
+
+@media (max-width: 1100px) { .nf .nf-months .nfm-grid { grid-template-columns: 1fr; } }
+
 @media (max-width: 900px) {
-  .nf .nf-months .nfm-overview { padding: 104px 16px 48px; }
+  .nf .nf-months .campaign-overview.nfm-overview { padding: 104px 16px 48px !important; }
   .nf .nf-months .nfm-more { grid-template-columns: 1fr; }
   .nf .nf-months .nfm-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }

@@ -5,32 +5,38 @@
 https://juliabenable.github.io/benable-brand-prototype-v47/
 Deploy: `bash scripts/ship.sh "msg"`. v46 stays frozen at its own URL.
 
-## /nf/months + /nf/months/track — directions A + C, fully wired (Sep 8 2026)
+## /nf/months + /nf/months/track — the Months version, V1 per the Sep 8 Tony call
 
-"Same screens, new clock" + "the pace line" from the study, in the real chrome and
-wired into the REAL captured wizard. `src/pages/NfMonths.jsx` (shell + fork bar +
-three-day bar: Sep 8 signed / Oct 5 on track / Oct 12 behind), engine
-`src/months/monthsEngine.js` (ported from `selling-months-study/proto-ac.html`; this one is canonical, the standalone keeps its own hand-built chrome),
-`src/styles/months.css` scoped `.nf .nf-months`. The overview REUSES production's
-own classes with their svelte hashes (`campaign-card svelte-1fvpax8`,
-`opportunity svelte-75h9ek`, `overview-* svelte-9w8so5`) so the cards are
-production's, flowed instead of absolutely positioned; the tracker reuses the
-launch screen's `workflow-header` / `phase-pill` / `workflow-dashboard-tab`.
-- Month card: month pill where "Campaign N" was, status dot, "2 of 10 live"
-  where the percent was, the pace line, production's green bar. Click -> the
-  tracker (pace card = two dates + 7-step ladder + Katie's why + creators table).
-- Next-month tile: "Launch by Oct 7" / "At risk · 5 days past Oct 7"; "Plan
-  November" / "Start planning" sets `LIVE.monthsTarget` and navigates to the REAL
-  /nf/step1. In months mode NewFlow patches the wizard (`enhanceMonthsCopy`):
-  step1 "Content in days, not weeks" -> "First content in about six weeks" + hero
-  "Your November content starts here."; step2 "Set up your campaign" -> "Plan your
-  November content" + "Launch by Oct 19 and this stays November content"; the
-  launch screen gets a pace panel (first post by / all 10 by + 3 dated steps).
-  Back to Campaigns (step1) and the launch screen's "Campaigns" return to
-  /nf/months in months mode; so does the sidebar.
-- Nothing is locked (Rule 4): months further out are dashed "Queue December"
-  tiles with an inline form; queued months show their three dates; "Plan further
-  ahead" reveals three more.
+Settled on the 7:30pm call "Selling Months not Campaigns, first pass" (Julia + Tony,
+Sep 8): keep the existing blocks, change the syntax. `src/pages/NfMonths.jsx` (shell +
+fork bar + three-day bar: Sep 8 signed / Oct 5 week 4 of 8 / Nov 10 first content in),
+engine `src/months/monthsEngine.js`, `src/styles/months.css` scoped `.nf .nf-months`.
+The overview REUSES production's own classes with svelte hashes (`campaign-card
+svelte-1fvpax8`, `opportunity svelte-75h9ek` incl. the real locked gradient tile,
+`overview-* svelte-9w8so5`); the campaign page reuses the launch screen's
+`workflow-header` / `phase-pill` / `workflow-dashboard-tab`.
+- THE RULE (in `timeline()`): first_content_expected = launch + 56 days shown as
+  "week of {Monday}"; week_of_8 = floor(days/7)+1 ("Week 9 · long tail" after);
+  content_month = month of first_content_expected. One date only, no "all by".
+- Overview card: "November content · launched Sep 10" pill, production subtitle =
+  what is happening now, progress copy "Week 4 of 8" (soft accent bar) before first
+  content and "3 of 10 live" (green) after, line "First content expected the week of
+  Nov 9". Next tile: production's ready ("Launch now") or locked ("unlocks in N
+  days", untouched cadence) tiles labeled by month. First campaign: "Start my
+  campaign" opens setup DIRECTLY (/nf/step2; the intro screen is skipped, Tony).
+- Campaign page: creators table left, right rail = "Campaign timeline" box
+  ("Currently week 4 of 8", bar, "First content expected week of Nov 9", (i) More
+  info -> popup with the 8-week explainer + 7-row week table; Esc/scrim closes) and
+  an "Up next" card. No pace-vs-plan, no behind/at-risk, no reds (Tony: keep
+  lateness out for now; revisit in 2-3 weeks for PCA's November deadline).
+- NewFlow months mode (`enhanceMonthsCopy`, when forks.model === 'months'): step2
+  "Set up your November campaign" + "First content is expected about eight weeks
+  after you launch..."; launch screen gets the Campaign timeline line ("Week 1 of 8
+  · first content expected week of ...") and "November content · {campaign}"; step1
+  (reachable only by URL now) says "First content in about eight weeks". Back links
+  and the sidebar return to /nf/months in months mode.
+- Not built on purpose: queueing months ahead (unlocks unchanged), fast mode (rush
+  fee + auto-approve, Tony's later idea), lateness states.
 - MODEL fork = Campaigns | Months | Roster.
 
 ## /nf/roster — direction E, the always-on roster (Sep 8 2026)

@@ -148,26 +148,24 @@ const monthsMode = () => forks.get('model') === 'months';
 function enhanceMonthsCopy(root, screen) {
   if (!root || !monthsMode()) return;
   const month = LIVE.monthsTarget || 'November';
-  const prev = MONTH_NAMES[(MONTH_NAMES.indexOf(month) + 11) % 12];
-  const cutoff = `${prev.slice(0, 3)} 19`;
-  const firstBy = `${month.slice(0, 3)} 12`;
-  const allBy = `${month.slice(0, 3)} 26`;
+  // 8-week baseline (Tony, Sep 8): first content expected 56 days after launch
+  const d = new Date(); d.setDate(d.getDate() + 56); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const firstWeek = `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()]} ${d.getDate()}`;
   if (screen === 'step1') {
+    // the intro is skipped in months mode (the overview tile is the start); kept honest if reached directly
     const feat = [...root.querySelectorAll('.intro-feature strong')].find((s) => /Content in days/.test(s.textContent));
     if (feat) {
-      feat.textContent = 'First content in about six weeks';
+      feat.textContent = 'First content in about eight weeks';
       const p = feat.parentElement && feat.parentElement.querySelector('p');
-      if (p) p.textContent = 'The industry takes ten. Your first post date is on your dashboard from the day you launch.';
+      if (p) p.textContent = 'The industry benchmark is eight to ten. Your first-content date is on your campaign page from the day you launch.';
     }
-    const h1 = root.querySelector('.flow-heading--hero');
-    if (h1) h1.textContent = `Your ${month} content starts here.`;
   }
   if (screen === 'step2') {
     const h1 = root.querySelector('.flow-heading--setup');
     if (h1) {
-      h1.textContent = `Plan your ${month} content`;
+      h1.textContent = `Set up your ${month} campaign`;
       const p = h1.nextElementSibling;
-      if (p && p.tagName === 'P') p.textContent = `Launch by ${cutoff} and this stays ${month} content. Choose the type of content and how you'd like to reward creators.`;
+      if (p && p.tagName === 'P') p.textContent = `First content is expected about eight weeks after you launch. Choose the type of content and how you'd like to reward creators.`;
     }
   }
   if (screen === 'launched' && !root.querySelector('.nf-months-launchpace')) {
@@ -177,9 +175,9 @@ function enhanceMonthsCopy(root, screen) {
     if (copy && !/content ·/.test(copy.textContent)) copy.textContent = `${month} content · ${copy.textContent}`;
     const el = document.createElement('section');
     el.className = 'nf-months-launchpace';
-    el.setAttribute('aria-label', 'Pace');
-    el.innerHTML = `<div class="k">On pace</div><div class="v">First post by <b>${firstBy}</b> · all 10 live by <b>${allBy}</b></div>`
-      + `<div class="dates"><div class="done"><b>Matches</b>within 1 business day</div><div><b>Invites out</b>within 5 days</div><div><b>Product shipped</b>within 12 days</div></div>`;
+    el.setAttribute('aria-label', 'Campaign timeline');
+    el.innerHTML = `<div class="k">Campaign timeline</div><div class="v">Week 1 of 8 · first content expected <b>week of ${firstWeek}</b></div>`
+      + `<div class="dates"><div class="done"><b>Week 1</b>we match, you approve</div><div><b>Weeks 2 to 3</b>invites, product ships</div><div><b>Weeks 7 to 8</b>first posts go live</div></div>`;
     hero.insertAdjacentElement('afterend', el);
   }
 }
