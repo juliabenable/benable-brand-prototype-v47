@@ -1,0 +1,309 @@
+# benable-brand-prototype-v46 — Campaign Pulse
+
+**v46 (Aug 18) — fresh iteration base, snapshot of v45** (three-pane review
+shell + all polish rounds + Option-A flagged-row faces, kept in lockstep with
+v45 through Julia's review night). v45 stays frozen at its own URL; new work
+goes here. Dev: launch `brand-prototype-v46`, port 5224. Live:
+https://juliabenable.github.io/benable-brand-prototype-v46/
+Deploy: `bash scripts/ship.sh "msg"`. Everything below is inherited history.
+
+## /nf — the NEW brand-portal first-part flow (Aug 18-19 2026 capture)
+
+**What:** production's REDESIGNED brand portal (new chrome: Inter, card
+overview, banked "Launch now", create wizard, AI brief, creator matching),
+captured live from benable.com as `benable-collab-studio` and rebuilt as a
+fully interactive prototype. 26 captured states in `captures/sources-aug18/`
+(each `NN-name.html` = full doc; extracted by `scripts/extract_newflow.py`
+into `src/data/newFlowHtml.js` NF_SHELL + NF_STATES{main,modal}).
+The old-chrome prototype (`/brand/tonypikora/...`) is untouched; `/nf` and
+`/nf/:screen` are additive routes. Entry: `/nf` → campaigns overview.
+
+**Gift-card campaign type (Aug 19 evening, captures 35-48):** Julia flipped the
+demo account to gift-card mode on production; the wizard becomes Gift Card →
+location ("Which location is this for?", Tokyo/Paris demo restaurants) →
+amount ($50/$100 Best/$150/Other w/ black card art) → gift brief whose
+receive-Edit opens a card-value MODAL (Update; .draft-gift-card-* classes —
+NOT the wizard's .gift-card-*), and the campaigns overview grows location
+filter pills + location-grouped campaign stacks. Prototype routes: gc-overview
+/ gc-overview-tokyo / gc-step2 / gc-location / gc-amount / gc-brief;
+LIVE.gcMode steers step1/generating/sidebar between flows. Product step2 was
+upgraded to capture 36 (adds "UGC for Your Brand" + "Hybrid" coming-soon
+cards). DEMO-ONLY deviation: the other reward type's disabled card on each
+step2 is re-enabled as a flow crossover (production enables one per account).
+Capture 35 also fixed product options: clicking a SELECTED variant product
+REOPENS its modal w/ saved chips + "Remove product"/"Save" footer; chip edits
+commit on Save only. Amount parsing gotcha: "$50.00" labels — parse the first
+digit group, never strip-all-digits (5000!).
+
+**/nf/track — the v45 tracker merged in (Aug 19 night):** clicking any
+campaign card on either /nf overview opens the FULL v45 tracker (Campaign
+Pulse: stat row + Amine rail + creators table + review shell + wrap-up)
+hosted under the NEW-chrome sidebar. `NfTrack.jsx` = grid of [.nf-scoped
+sidebar cell | UNSCOPED old-chrome document] — the tracker content must
+never sit inside .nf (both CSS worlds own .workflow-header/.workspace-grid
+etc.). Clicked card's name patches the tracker h1 (sessionStorage
+nfTrackTitle); back-link + sidebar are intercepted in the capture phase and
+route mode-aware (/nf/overview vs /nf/gc-overview). FORK SWITCHBOARD:
+`src/components/pulse/forks.js` = shared store (localStorage nfForks) +
+FORK_DEFS registry; the pulse's black cp-mode bar now reads/writes it
+(collab type, who reviews, declined, review UI), and `NfForkBar.jsx` mirrors
+the same bar across all /nf pages with a ⚙ "All forks" admin drawer (one
+row per FORK_DEFS entry — the extensible home for every future fork;
+Julia will spec richer logic). Collab type = the master fork: flips
+overview families, wizard, brief AND tracker stage model (product shipping
+vs local Confirmed/Visited). Old-chrome routes untouched (regression-checked).
+
+**Screens:** overview / overview-completed / overview-after · step1 → step2 →
+step3 (product grid) · adv (advanced sets builder) + m-add modal + options
+modal · generating (interstitial) · brief (AI campaign brief, inline editing)
+· draft-resume · match + match-how · launch-t0 → launched / launched-content.
+
+**Architecture (`src/pages/NewFlow.jsx`):** base page (captured `<main>` via
+dangerouslySetInnerHTML) + modal overlays (captured body-tail fragments) —
+opening a modal never swaps the page behind it. A live-interaction layer
+(enhance*) mutates the captured DOM directly: product selection w/ check
+indicators, variant chips, LIVE.sets-driven sets builder (cards + rail
+templated at runtime from captured fragments via frag()/pick()), who-gets
+menus, pick-count + creator-count steppers, tier radios, search filters,
+select-all, brief Edit/Done section swaps (capture 15↔16/17) with
+contenteditable + persisted text. Router click-handler = NAVIGATION ONLY
+(text-matched per-screen tables); interactive elements stopPropagation.
+`window.__nfLive` = debug handle. CSS: `newflow-production.css` (~7.1k rules,
+20 route files scoped under `.nf` by the extractor) + `newflow-extra.css`
+(loads FIRST so production wins specificity ties; kills page-entry animations;
+`.nf.nf.nf` structural pins for height/scroll).
+
+**Gotchas:**
+- overrides.css's `:has(.draft-review-root)` page-scroll unlock (review-shell
+  work) also matches the captured brief page inside .nf — the `.nf.nf.nf`
+  !important pins in newflow-extra.css restore the inner-scroll chain
+  (dashboard 100vh → body → workspace-content-shell auto → workflow-page 100%
+  → workspace-grid scrolls). Don't weaken them.
+- The set-card "Add Products" tile is ITSELF a `__product-entry` wrapping
+  `.product-set-card__add-products` — entry wipes must skip it.
+- Brief sections: `data-edit-section` markers live on SUBsections; always
+  anchor swaps on `section.draft-card`, and pick capture-16/17's card by its
+  Done button. draft-resume/match use generic in-place editing only (their
+  content ≠ capture 15).
+- Variant data: Sunlit (Shade) + Moonmilk (Tint) are real production options;
+  other products' options in VARIANTS are plausible demo values.
+- Aug 19 re-login capture round (states 27–34) CLOSED the inert list:
+  postRequirements/guidelines edit modes are the real captured editors
+  (platform radio cards, ✕-dismissible idea/do rows, "+ Add" appends),
+  receive's Edit navigates to the product picker (that's production's real
+  behavior), About-edit "Add post" opens the captured URL modal, Settings is
+  a real page (sidebar active-state synced from capture 31), the account
+  menu pops from capture 32's sidebar, and the launched "Shopify fulfillment"
+  chip is a working visual toggle. Done ALWAYS restores the pre-edit
+  original node (never a capture-15 clone), so brief and draft-resume each
+  keep their own content. Still inert on purpose: sidebar Soon items
+  (production's /ugc etc. just fall through to the consumer site — verified),
+  Log out, and Settings' Reconnect/Disconnect buttons.
+  ⚠ Capture etiquette learned the hard way: the fulfillment chip on a REAL
+  campaign is a live setting — clicking it during capture flipped campaign
+  94's fulfillment off for ~1 min (restored + verified). Probe unknown
+  controls on drafts, never launched campaigns.
+- Captured pages carry `benable-collab-studio` real demo data (Shopify CDN
+  product images, brand logo) — remote assets, need network.
+
+**v45 (Aug 18) — fresh iteration base, snapshot of v43 at v43.2** (Amine's
+review modal default + Tony's flag-an-issue copy merged). v43 stays frozen at
+its own URL as the shared ship; new work goes here. Dev: launch
+`brand-prototype-v45`, port 5223. Live: https://juliabenable.github.io/benable-brand-prototype-v45/
+Deploy: `bash scripts/ship.sh "msg"`. Everything below is inherited v43 history.
+
+**ENGINEERING DECISIONS (Julia, Aug 20, from the edge-case audit — mirrored
+from v45):** (1) Review deadline = SLACK ESCALATION TO KATIE at 2/3/4+
+business days unreviewed (ops-side). (2) No undo — approve/flag terminal.
+(3) Tony (Slack, Aug 18): don't hard-code the post-flag path — Katie decides
+per case whether the creator posts directly or it goes BACK TO THE BRAND for
+final approve; schema needs both endings (publish_directly default,
+back_to_review = asset returns to pending as a new version). (4) Approved
+siblings may publish while a flag is open; the row stays at the laggard's
+stage. (5) Stage not renamed — resolved rows wear the stage WORD "Resolved"
+(row cell + drawer step 4); rail columns unchanged. (7) CHAT DIRECTION
+RETIRED — reviewChat.jsx deleted, REVIEW UI pill gone (the rui fork key is
+now unused), QUICK_FIXES removed; "our team"/"Katie's team" voice split
+accepted. KATIE'S ADMIN FLOW (Aug 20): flag → Slack ping to Katie + admin
+entry; three buttons (send feedback as-is / edit then send / mark resolved);
+send = FIX AGREED, mark = RESOLVED, post-detection AUTO-RESOLVES; brand gets
+one email at resolved; back-to-brand re-review stays manual per Tony. Stage
+word for resolved rows = "Draft Issue Resolved". WRAP RULE for the spec:
+the prototype day-30 shortcut is demo scaffolding — in production the wrap
+derives from actual creator states, never the calendar (open flags /
+unreviewed drafts keep their faces on the wrap roster).
+
+**v45 REVIEW SHELL (Julia's mock, Aug 18) — reviewModal.jsx rebuilt as a
+three-pane workspace** (solves "confusing to go from one creator to another
+and through one creator's drafts"): header "Approve Content" + live sub ·
+CREATORS sidebar (photo rows, per-creator lines "2 drafts to review" → "1 of
+2 reviewed" → "Reviewed — issue flagged"/"Reviewed", amber dot → stamp,
+active row lavender + accent bar; click = jump to that creator's first
+pending draft) · gradient stage with a "Draft n of N · {kind}" glass pill
+(‹ › arrows + decision stamp) + the shared 9:16 player + a white CAPTION
+card · right panel ("Pre-approved, ready for your final review" / "Approved
+🎉" / "Issue flagged" heading variants, pre-check card, "Your note to our
+team" feedback list, approve/flag footnote, footer CTAs → decided rails).
+DECISION CHOREOGRAPHY: commit → check FLASH over the stage (1.15s, green
+approve / amber flag, rvm-flash-*) → draft slides OUT left (320ms) → next
+undecided draft slides IN from the right (this creator first, then next
+creator w/ pending, wrapping) → else confetti celebration. Amine's 1s
+skeletons + drafts thumbnail carousel + creator pager retired in the shell
+(sidebar + pill replace them); the old two-pane rvm- classes remain in
+reviewModal.css for reference. Flag sheet = Tony's v43.2 copy, anchored
+392px over the right panel. Keyboard: Esc (sheet→shell, blocked mid-flash),
+←/→ drafts. Entry lands on first undecided; "See what you sent ↗" drawer
+door reopens decided states. POLISH ROUND (Julia, Aug 18 night): sidebar
+active-row accent bar removed (looked detached), rows tightened 10/12;
+flash card enlarged (340–380px, 72px check, 19px title); STAGE RESTRUCTURED
+— the player owns a flex slot (flex:1 + aspect-ratio; percentage heights die
+in indefinite flex slots, use flex-grow) and the caption a FIXED 118px
+reserve, so caption length never resizes or shifts the video; flag sheet
+CENTERED over the shell (grid scrim, card position:relative — static sent
+the absolute close-✕ to the scrim corner), content-sized, body 46/36/26,
+textarea 96px, sub max-width 360. GOTCHA: the Claude browser pane can
+collapse to a 0×0 viewport — every 100vw/getBoundingClientRect reads garbage;
+verify layout in Playwright at 1512×960 instead. ROUND 2 (Julia, Aug 18
+late, after comparing with Tony's second-shot mock): sidebar rows get 6px
+air (adjacent highlights collided); TONY-SCALE TYPE — header 21/14, side
+names 15/13, panel head 18/14, pre-check card 14 title + 13.5 items (scoped
+`.rvm-shell .rvm-precheck*`), footnote 13.5, footer buttons h46; sidebar
+stamps rebuilt as SINGLE soft circles (22px #d7f3e3 + brighter #12A150
+inline-SVG tick · amber ! for flagged — the ring-in-a-ring draft-approved.svg
+read weird) in a fixed 22px slot so tick and amber dot share an axis; flag
+sheet now centers in the RIGHT-HAND PANEL BOX (grid scrim align-center
+justify-end pr16 + pt76 header offset, card 368px) — not the whole shell —
+and the footer rail line/tint before "Send to our team" is gone. ROUND 3
+(Julia, Aug 18 latest): header hierarchy fixed (title lh26 + 4px to the
+14/18 sub, head 80px, sidebar padding 16 so title/label-text/avatars all sit
+on the 28px left axis) · "Every draft reviewed" CELEBRATION REMOVED — the
+last decision's flash closes the shell and the table's derived states carry
+the ending (celebrate/confetti CSS pruned) · flag sheet rides LOW in the
+panel (align-end + 16px insets) · the opening draft appears IN PLACE — the
+slide-in is gated behind an rvm-anim class set only on draft/creator changes
+(lastKey ref; the first mount arriving from the side read as a loading
+state) · media pre-warmed (posters from the dashboard, clips preload=auto on
+mount) · self-check extras: pill arrows only render when a creator has >1
+draft, and the pill's decision stamp is the same single-circle tick language
+as the sidebar (ring-in-ring img retired everywhere). FLAGGED-ROW TRACKER
+FACE (Option A, Julia-approved Aug 18): the old "✏️ One tweak sent — she's
+re-editing" claimed creator behavior and the wrong recipient under Tony's
+flag model — now flagged rows read as motion in KATIE'S TEAM's hands, never
+amber, no CTA: all-flagged "🚩 Issue flagged — Katie's team is on it",
+mixed "🚩 Issue on her story — reel approved" (reviewRowFace); stage stays
+Visited; drawer stage-4 next-hint for flagged rows = "We're resolving your
+flag — then she posts" (tableFix); the drawer's "See what you sent ↗" stays
+the door. Header light goes green when only flags remain (ball is with
+Benable). NOT built: the resolution return-state (new draft back in →
+amber review face again) — no demo data for it yet. Tracker speaks
+"Katie's team" while Tony's modal says "our team" — flagged to Julia,
+left as-is.
+
+
+**v43.1 (Aug 17) — review direction C: AMINE'S MODAL, the new default.** The
+designer redid the review design (private repo `AmineBenjil/brand-portal-review-content`,
+his v6.1 Figma build) and Julia asked for it ported wholesale: the demo pill's
+REVIEW UI group is now **Modal | Chat | Sheet** (modal = default; deep-links
+`?rui=modal|chat|sheet`). `reviewModal.jsx` (`rvm-` CSS in
+`src/styles/reviewModal.css`) is a 1:1 JSX port of his ReviewModal + VideoPane +
+CelebrationModal — gradient stage, real 8s AI-UGC 9:16 videos (play/scrub/mute),
+creator pager ‹ n/N ›, drafts carousel (type labels, lavender selection ring,
+decision stamps, >4-drafts paging), toned caption (@mention blue / #hashtag
+purple), Katie's-team pre-check grey card, footer CTAs → decided status rails,
+slide-up request-changes sheet (chips FILL starter sentences, ⓘ one change
+round, Enter sends), 2.5s animated-check overlay, 1s skeletons, end-of-queue
+confetti celebration with the approved/changes tally. WIRED TO v43's DATA, not
+his: the queue = the table's `draftIn` rows, decisions land on the REVIEW
+asset objects (`a.state`, module-persisted) and notes on `a.notes`, so the
+tracker/chips/row-faces/partial states derive exactly as for Chat/Sheet.
+`pulseData.js` REVIEW assets gained `src`/`poster`/`capLines` (footage +
+posters + icons + gradient copied into `public/review/`; Inter self-hosted in
+src/styles — the modal is set in Inter per his Figma, the captured chrome stays
+National 2). EVERY ported class/keyframe is `rvm-` prefixed and his tokens are
+scoped under `.rvm` — the captured production CSS already owns `.panel-footer`
+/ `.review-stage`, unprefixed names collide. CampaignPulse's day-scrubber
+arrow keys yield while `.rvm` is open (the modal owns arrows for drafts).
+Deliberate deltas from his repo: his Dashboard/data stay behind (v43's table
+is the dashboard), his 5-draft Emery carousel demo has no v43 data twin (max
+2 drafts/creator), celebration counts derive from asset states.
+
+**v43.1 review round (Julia, Aug 17, same day):** the **SHEET direction
+REMOVED** — REVIEW UI is now **Modal | Chat** (`?rui=modal|chat`; the v42
+sheet lives on in frozen v42). review.jsx keeps the shared MODEL layer
+(QUICK_FIXES, who-reviews config, assetsOf/rowReviewState/reviewNeeds/
+reviewRowFace) + the login **ReviewPopup** — removed then RESTORED the same
+day (Julia); its rv-pop CSS is back in pulse.css. The modal's
+request-changes sheet lost ALL its suggestion chips (Julia) — the note box
+stands alone, card min-height 532→460; `clip.suggestions` still feed the
+Chat composer. Sheet-only rv- CSS stays pruned. Decided rows keep NO cta (unchanged), but
+the row drawer's current stage-history step now carries a quiet
+**"See what you sent ↗"** tf-histlink (renders once ≥1 asset is decided;
+reopens the modal read-only w/ status rails + feedback). Design-QA pass ran
+the designer's repo LIVE side-by-side (scratchpad clone, computed-style diff):
+three port bugs found + fixed — (1) the scoped element resets (`.rvm button`
+etc.) out-ranked component classes and stripped the purple Approve fill, the
+sheet textarea border and the chip borders → resets now ride at ZERO
+specificity via `.rvm :where(button/img/textarea)`; (2) the captured
+production CSS's bare `p { color: rgb(122,64,64); font-size: 13px }`
+(production.css:4628) leaked into unclassed modal paragraphs (red captions) →
+`.rvm :where(p, span, li, …) { color: inherit; font-size: inherit }` guard;
+(3) `.rvm-chev`/`.rvm-chev-left` had no CSS (they live in his dashboard.css,
+never ported) → helpers added, prev arrow rotates again. Gradient verified
+IDENTICAL to his build (rel -323,-319 @ 1649×1226, natural 3114×2062,
+max-width none). Adversarial-review fixes: closes are blocked during the 2.5s
+confirm overlay (Esc/scrim would cancel the deferred commit — his original
+had the same bug), change notes land at COMMIT time (no orphan notes),
+re-entry seeks the first undecided draft, arrow disabled-guards use >=/<=
+with an index re-seat effect, `body:has(.rvm)` scroll lock. Modal font stays
+Inter (a National 2 Narrow toggle was built and REVERTED same hour — Julia).
+The stat row's "🚀 Campaign on schedule, up to 4 weeks faster than industry
+average" is v33 Tony copy (Jul 27), not from this round.
+
+**v43.2 (Aug 18) — Tony's FLAG-AN-ISSUE copy (PR #2 from brianbenable,
+squash-merged; PR #1 was a duplicate, closed).** The modal's negative path is
+no longer a change request to the creator — it's an issue report to Benable:
+footer CTA "Flag an issue", sheet title "Sorry about that, let's make it
+right", sub says the note goes to the Benable team (NOT the creator) who will
+"work out the best solution with the creator directly", CTA "Send to our
+team", decided rail "Issue flagged for our team — we'll review and keep you
+posted." The ⓘ one-change-round line and the re-film education are gone.
+⚠ MODEL CHANGE, flagged to Julia at merge time: this reverses the Aug 10
+decided rules "feedback goes straight to the creator · one included change
+round" for the modal UI — Chat still speaks the straight-to-her model.
+
+**v43 (Aug 10) — review direction B: THE CONVERSATION.** Iterated from v42 right after its Amine handoff (v42 stays frozen on direction A, the sheet). v43 explores Julia's "Insense-style" idea: the review is a chat with the creator — her post arrives as a message (9:16 card + caption in a creator bubble), Katie's team's brief check is a system line, and **the brand's reply IS the decision**: the composer opens pre-written with a warm acceptance (per-asset `accept` in REVIEW data) — "Approve & send" ships it as-is (editing it just personalizes it); picking a suggestion chip (or "Ask for a change instead") flips the same message into her ONE change round, button becomes "Send to {name}". All decided rules hold (no reject · nudges only · straight to her · can't send empty · edits-not-reshoots via the Katie line). `reviewChat.jsx` (`rvc-` CSS); demo pill gains **REVIEW UI · Chat | Sheet** (chat = v43 default, deep-link `?rui=sheet` for direction A; module-persisted). Thread auto-scrolls; decided posts show the sent purple bubble + status line; per-creator threads chain via "Next: Jade's tiktok →".
+
+**v42 (Aug 10) — fresh iteration base, snapshot of v41.** v41 was the Nisarg handoff pack (docs/HANDOFF.md + spec v2 + v37 migration notes) and stays frozen at its own URL — the docs/ files intentionally keep their v41 links. New work goes here.
+
+**v42 · Brand content review (Aug 10, Trilogy model — study at brand-content-review-study/ port 4218, grounded in the Julia × Amine Aug 10 call + her same-day notes):** Day 16 (BOTH collab types) is the review scene. **WHO REVIEWS is a per-brand config** — demo pill gains a `WHO REVIEWS · Benable | Brand` toggle (module-persisted in review.jsx, deep-link `?review=brand`; default Benable = Katie's team approves, the product default). Decided config for brand mode (Julia): **nudges only** (silence never approves — no auto-approve timer anywhere) · feedback goes **straight to the creator** (the coached composer is the guardrail) · **no reject button** (Katie's team is the escape hatch) · **one included change round** · **edits-first** (quick-fix chips: caption / cover frame / trim / text-on-screen; re-filming is framed as the big ask it is — local: "another visit", product: "re-film from scratch" — and routes to Katie's team personally). **Several posts per creator**: `REVIEW[mode][name].assets[]` in pulseData (local: Maya reel+story, Jade TikTok; product: Jade reel, Priya story) — every asset is **9:16** (player + pop-up tiles use `aspect-ratio: 9/16`), each is decided on its own via a chip filmstrip w/ state dots, the row AGGREGATES (`reviewRowFace`: pending "Her 2 posts are in" → partial "👀 1 of 2 posts reviewed" + Finish review → changes "✏️ One tweak sent" (stays Visited) → approved "🎉 going live soon" (derives stage 4)). **Derivation, not mutation of presentation**: rows carry only `draftIn: true` + Katie-flavored base statuses; decisions land on asset objects (`a.state`); `isReviewRow`/`rowReviewState`/`reviewNeeds` in review.jsx drive stageOf(c, day, mode), amFunnel needs/badges, the header light, and the derived row face — so flipping the toggle back to Benable restores the Katie-checks world untouched. Day-16 recap/upNext are `byReview` containers (benable|brand variants, resolved in CampaignPulse's `pickR`). Pieces: `review.jsx` (`rv-` CSS) — `ReviewSheet` (queue "Post 1 of 3" chained across creators' assets, 9:16 player + caption left, pre-check receipts right, Approve-this-reel = green celebration + optional nice-word note, change composer = "What should change?" head + quick-fix chips + one-line placeholder + full-width send + "Goes straight to her · one change round included" + compressed reshoot-edu footer) + `ReviewPopup` (login pop-up: one blurred 9:16 tile per creator w/ name·kind chip, count CTA "Review the 3 posts", once per session, never in ?embed).
+
+**v40 (Jul 29) — FINAL PICKS LOCKED, switchers removed (Julia):** header tint Grey (#f8f9fa) · ship flow IN the card header · table K (single slot, ghost buttons on the dot axis, moment band folded into the header) · solid green wrap ring. The demo pill keeps only COLLAB TYPE + the day scrubber; deep-links (?table=…&head=…&ship=…&ring=…) still override for the states gallery (public/states.html). The F–K letter exploration lives in v39. Everything below documents the inherited behavior.
+
+**Inherited from v39 (Jul 28), which locked Julia's creators-table picks — no more switchers:** FixedTable only (AmineTable removed from the shell), rail A (split cards), STAGE = ramp dot + word (3A), ACTIONS = calm (4C: gold text + pill, no wash), ICONS off (titles-only cards), no column strip, header tint #f8f9fa on pane #f9fafb, white download button. Undecided dims baked in `F_OPTS` (CampaignPulse.jsx): edu footnote (B) · late quiet (7A) · amber buttons. Two dims stay OPEN as toggles in the demo pill (Julia, Jul 28): HEADER Grey/White + SHIP Band/Header. Also: the download button never swaps to "Get the sheet again" — same button before/after download, only the steps tick — and live (thanks) rows carry NO warm wash (calm everywhere). Demo pill = COLLAB TYPE + HEADER + SHIP + TABLE F/G + day scrubber. The full option exploration lives in v38. **Jul 28 late polish:** tracker empty slabs plain #eef0f1 (no stripes) · badge count centered (border-box+grid) · done stages = lone muted ✓ #7fa892 + hint "All N moved ahead" · invite-day header sub = green dot + "6 invited · 0 of 6 spots filled" · grey HEADER variant tints rail card headers too (.tf-heads-grey) · stage-history aligned to the tracker (labels = stagesFor(mode) names, now-step green #17864f w/ whisper halo, ping ring removed) · **TABLE G letter** = dedicated status column (ramp dot + word, amber dot when the row waits on the brand, 'Match found' on rematch rows) + dedicated action column (white ghost .tf-gbtn buttons — Add tracking / Confirm visit / Review matches / Say thanks —, quiet — when none, 'See her post ↗' at wrap) · ship band/header only renders when the visible rows hold the orders (rows.some(c.ship)) — hidden when focused on e.g. Sourcing. · **TABLE H letter** = G with the two columns swapped (action before status). · **Local stage histories** (`LOCAL.timelines` in pulseData, grounded in the Steph Khalil / Trilogy spas call Jul 28 — Granola ac5470fc): visits, never products — creator emails the brand to book, weekday visits only, massage-or-facial picks, practitioner-consent filming, draft ~7-10 days after the visit; tableFix picks LOCAL.timelines[name] in local mode. · Late-night Jul 28 batch: ship steps band keeps its 3 steps after download (step ① just ticks, black done-text, pale tick chip) · row drawer animates open/close via grid-rows 0fr→1fr (.tf-drawer, always mounted) · stage history has all 7 stages incl. Thanked (synthetic step; states derive from stageOf, wrap = all done) · Live! label + 'See the live post ↗' link once reached · shipped/delivered steps carry arrival ETAs / delivery dates · amber dot lives INSIDE the ghost action button (.tf-btndot; status dot back to ramp fill) · **TABLE I letter** = no action column, the ghost button replaces the status dot in the single slot. TABLE toggle = F/G/H/I/J/K (J = I with button dot/text on the status dot/text axes via .tf-gbtn--flush; K = J with the moment band folded into the header — sub carries the went-live line, faces in head-right, no Send-yours). Say-thanks button wears a pink pulsing ♥ (#e25c74, tf-heartpulse) on the dot axis. Ship CTA = 'Ship and add tracking'; ship modal asks 'Have you shipped …?'. Shipped+arriving live on ONE status line ('Shipped Tuesday — arriving Thursday'); stage-2 timeline details = product pick only. Copy: quality checks only (no disclosure/brand-safety), day-16 statuses reworked knowable-only, NEXT_HINTS[5]='Post goes live — we track how it's doing for you!'. Day-30 wrap band has a green '🎁 See your wrap-up' CTA (.tf-wrapbtn); RING toggle = wrap avatar ring variants Grad/Solid(default)/Soft/Halo/Badge. Spots rule = light ⓘ tooltip beside '0 of 6 spots filled' (.tf-inf/.tf-tip; footnote retired). Needs-you rows: amber dot on BOTH the status and inside the ghost button (.tf-btndot). Row drawers animate via .tf-drawer. · **Timeline honesty rules (Julia, Jul 28):** a step only claims what Benable can KNOW (tracking events, creator confirmations, public posts, deadlines we set) — no creator feelings/quotes, no off-platform scenes; future steps NEVER show past facts — they render `NEXT_HINTS[mode][stage]` (pulseData) or the step's own `next` override.
+
+Brand-portal prototype: captured production HTML + React overlays. v37 = Julia's Jul 27 feedback round (from her Katie calls): **stage renames** (Order shipped / Order delivered / Draft approved — approved only when Katie's team approves, subtitle "Creator will post soon"), **past stages** = pale-green slab + green `✓ N/N` or lone ✓; future = hatched grey slabs (stripes removed Jul 28, restored same day — plain grey blended into the pane), **COLLAB TYPE toggle** (product | local) fixed top-center — local swaps order stages for Confirmed/Visited (visit-date confirm popup, no shipping copy anywhere), **Day 10 · You ship** productOnly scene (non-Shopify CSV: header Download-orders CSV button + per-row Mark-shipped → tracking-number popup), **D11 rematch row** = "New match found / To fill your campaign" + "Review matches" pill replacing stage dashes (never a name), **spots note** in table header while invites await replies, **thank-you nudge** (published-unthanked rows always carry Say-thanks action + header "Deepen the relationship and brand love. Send thank yous!"), **no link metrics anywhere**, views only >1k, comment quotes only >50 likes, top post = likes+comments. Rematch trigger: `invites − creator declines − admin declines < spots`. **Engineer spec: `docs/states-and-logic.md` (for Nisarg) — keep it in sync with every state/logic change.**
+
+## Architecture
+- Captured page HTML lives in `src/data/capturedHtml.js` (huge — grep, never read whole).
+- Pages render captured HTML via `dangerouslySetInnerHTML`, then mount React overlays into injected host divs with their own `createRoot` + a MutationObserver re-mount (pattern in `CampaignDetailPage.jsx` / `CampaignsListPage.jsx`).
+- Campaign page overlay: `src/components/pulse/` — ONE experience (v33's C, the polishing base; the A-D/W/Y/Z/0 exploration lives in v33 + git history):
+  - `amine.jsx` — the whole page, values from Amine's build (repo AmineBenjil/benable-cohort-funnel, his V2 "stage rail" Figma 11638:139353). `AmineProgress2` = stat row ("N% through your campaign" green + "🚀 Campaign on schedule, up to 4 weeks faster than industry average"; day 30 = "🎉 Wrapped 37 days ahead of average") + `AmineRailBar` (equal-width 40px slabs, 4px gaps, 74/100px outer corners, his green ramp #b9dfcb→#124a33 w/ AA contrast fixes; label = what happened, hint = what's happening now, empty stages hatched grey w/ muted 0 + forward-looking hint (hatch restored Jul 28); done stages pale-green #eff5f1 w/ green ✓ N/N; leading "Sourcing…" column #dbeee3 while sourcing; 20px amber badge = clickable Needs-you filter; columns click-to-filter — no hover tooltips (Julia removed them, Jul 27)). `AmineTable` = creators card (16px radius, #fafafa column strip, verified badge, 7 purple stage dashes, ⚑ orange flag rows, rows expand to the cp-hist timeline (no Request-more button — removed Jul 27); subtitle "N on this campaign" / "N of M on this campaign" when filtered). `AmineRail` = 370px right rail (While you were away / Up next / The pace w/ #815aff & #c4c4c4 meters + pace-strip.jpg caption strip). `amFunnel` derives every number from CREW; `stageOf` maps crew stage 0-5 (day 30 = Thanked). No banner, no lead headline — the page opens on the progress row; the badge carries attention. Katie's welcome card renders on day 1. Assets in `public/labs/` are Amine's Figma exports.
+  - `pulseData.js` — ALL demo content (DAYS day-states w/ recap/upNext/race, CREW per-day rows, TIMELINES w/ calendar dates Jul 16–Aug 6, PCT, SPOTS). Copy tweaks go here. v37: `LOCAL` = local-collab overrides (crew/upNext/recap per day) + `crewFor(day, mode)`; DAYS entries can be `productOnly` (day 10); CREW rows can carry `ship` (CSV Mark-shipped), `confirmEmail` (local Confirm), `action: {cta}` (in-row button), `product` (CSV column).
+  - `LiveStatus.jsx` — motion registers: shimmer = machine working now · katie = human present (typing, never a spinner) · heartbeat = watching (breathe, one still sentence) · celebrate = go-live (emoji bounces, words still) · facts/static = quiet. Every animation is a claim — only emit from real signals in production.
+  - `CampaignPulse.jsx` — shell: day scrubber (opens Day 9), stage filtering, grey #f9fafb pane (`cp-labs-pane`), scroll unlock lives in overrides.css (`:has(.cp-root)`).
+  - Pre-campaign phases (Julia, Jul 27 — "day 1 would never look like a dashboard"): DAYS entries carry `phase`. Day 1 `'sourcing'` = Figma 7199:20453 "Stay Tuned!" (illustration `public/labs/stay-tuned.png`, 22px bold + 18px body, white pane); Day 3 `'review'` = Figma 7199:21448 "We Found N creators who are a great fit" (80px blurred-avatar circle, purple bold count, 48px purple Review Creators pill). During phases the grey pane is skipped (white bg) and the captured header's `.phase-pill` is patched to amber "Recruiting" (#fff0ce/#a85321); Active restores after. Cohort review NEVER renders in the creators table — it's these dedicated states.
+  - Day 11 · Rematch found — when a mid-campaign rematch is FOUND it becomes an ACTION ITEM (Julia): CREW row `{ mystery: true, found: true }` → rail's leading column keeps the green #dbeee3 slab — NO orange on the bar, the badge IS the notification (Julia) — label "Matches found · New profiles to review" w/ clickable badge → needs filter; table row = blurred tease photo (`am-avatar--blur`), title "New match found" · subtitle "To fill your campaign" (NEVER a creator name — invites can exceed spots + decline privacy), ⚑ "Review new matches", a purple "Review matches" pill (`am-row-cta`) replaces the stage dashes, no expansion, action rows SORT TO TOP of the table. `amFunnel` counts `found` into `flagged`.
+- Brand overview overlay: `BrandPulse.jsx` (lifetime totals, milestone tracker, insight cards) mounted before `.campaigns-section`.
+- CSS: `src/styles/pulse.css` only — `cp-` campaign page, `bp-` brand overview. Keep it pruned; don't append dead styles.
+
+**F · Table fixes letter (Jul 28, default):** `tableFix.jsx` (`tf-` CSS) — the creators-table study's picks (creators-table-study/, port 4205) as a switchable TABLE letter (A = AmineTable untouched, F = FixedTable; TABLE A/F group in the demo pill, module-persisted). F: NO column strip (CREATOR/LATEST UPDATE/STAGE removed — double header with the status-light sub, Julia Jul 28); header sub = status light (amber "N waiting on you" — thanks never counts in — / green-dot all-clear sentence); day-4 spots education: the ⓘ chip (2A) was REJECTED (Julia, Jul 28) — an EDU option in the F-options switcher picks B footnote under the table / C dismissable 🎟️ system row / D Katie cursive note in the rail (`KatieSpotsNote`) / E one-time coach mark (dark popover + "Got it", module-persisted dismissals); purple stage dashes → rail chips (exact AM2_RAIL fills, click-to-filter; Sourcing grey); one amber action anatomy (edge+wash+gold status+amber pill in the STAGE slot) worn by Add tracking (renamed from Mark shipped) / Confirm visit / Review matches (purple pill retired); day-10 steps band ① Download order sheet (lone dark button) ② ship ③ add tracking w/ half-strength row pills until `sheetDone`; published-unthanked rows = warm wash + a NORMAL amber "Say thanks" button (postcard rejected, Jul 28) + moment band above the strip (faces + "went live 🎉 — a thank-you lands deepest" education, "Send yours" amber button); day 30 = wrap roster (green band "All 6 live — every thank-you sent", avatar rings, Thanked chips + 💌 Sent stamps — "thank-you sent" stripped from status —, chevron → "See her post ↗"). F-options switcher (second demo row, module-persisted): EDU B/C/D/E · STAGE Chips (3B rail chips) / Dot (3A ramp dot + stage word) · ACTIONS Rows (4A amber anatomy) / Group (4D "Waiting on you" amber band + "Moving on their own" green band, rows calm) · LATE Quiet (7A) / Groups (7B "Still in motion" + "Live this week 🎉" sections). Laws: amber = ball in your court · rail ramp = the one progress language · no red, no purple pills · thanks never counts into the amber light.
+
+## Copy rules
+- Operational claims say "Katie's team" (never solo Katie); Katie's first-person voice only in her signed cursive notes.
+- No struggle updates; rematches framed as reassurance. Emoji stripped in crew statuses except celebrate.
+- A tile row never shows a zero — it shows a sentence about what's happening.
+
+## Dev + ship
+- Dev: launch.json name `brand-prototype-v46`, port 5224. Demo page: `/brand/tonypikora/campaigns/46` (campaign) and `/brand/tonypikora/campaigns` (brand overview).
+- Deploy: `bash scripts/ship.sh "commit message"` — builds, commits, pushes, watches the Pages run, curls the live URL.
+- Live: https://juliabenable.github.io/benable-brand-prototype-v46/
