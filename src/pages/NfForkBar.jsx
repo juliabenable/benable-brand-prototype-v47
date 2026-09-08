@@ -19,7 +19,7 @@ export default function NfForkBar({ go }) {
     // collab type re-roots the demo into that flow's overview
     if (key === 'type') go(v === 'local' ? 'gc-overview' : 'overview');
     // the model fork swaps the whole portal: roster page vs campaigns overview
-    if (key === 'model') go(v === 'roster' ? 'roster' : (forks.get('type') === 'local' ? 'gc-overview' : 'overview'));
+    if (key === 'model') go(v === 'roster' ? 'roster' : v === 'months' ? 'months' : (forks.get('type') === 'local' ? 'gc-overview' : 'overview'));
   };
 
   const seg = (def) => def.options.map(([val, label]) => (

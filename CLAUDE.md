@@ -1,9 +1,37 @@
-# benable-brand-prototype-v47 — Campaign Pulse + the roster (direction E)
+# benable-brand-prototype-v47 — Campaign Pulse + months (A + C) + the roster (E)
 
-**v47 (Sep 8) — fresh iteration base, snapshot of v46 + direction E.** Dev: launch
+**v47 (Sep 8) — fresh iteration base, snapshot of v46 + directions A + C at /nf/months and E at /nf/roster.** Dev: launch
 `brand-prototype-v47`, port 5225. Live:
 https://juliabenable.github.io/benable-brand-prototype-v47/
 Deploy: `bash scripts/ship.sh "msg"`. v46 stays frozen at its own URL.
+
+## /nf/months + /nf/months/track — directions A + C, fully wired (Sep 8 2026)
+
+"Same screens, new clock" + "the pace line" from the study, in the real chrome and
+wired into the REAL captured wizard. `src/pages/NfMonths.jsx` (shell + fork bar +
+three-day bar: Sep 8 signed / Oct 5 on track / Oct 12 behind), engine
+`src/months/monthsEngine.js` (ported from `selling-months-study/proto-ac.html`; this one is canonical, the standalone keeps its own hand-built chrome),
+`src/styles/months.css` scoped `.nf .nf-months`. The overview REUSES production's
+own classes with their svelte hashes (`campaign-card svelte-1fvpax8`,
+`opportunity svelte-75h9ek`, `overview-* svelte-9w8so5`) so the cards are
+production's, flowed instead of absolutely positioned; the tracker reuses the
+launch screen's `workflow-header` / `phase-pill` / `workflow-dashboard-tab`.
+- Month card: month pill where "Campaign N" was, status dot, "2 of 10 live"
+  where the percent was, the pace line, production's green bar. Click -> the
+  tracker (pace card = two dates + 7-step ladder + Katie's why + creators table).
+- Next-month tile: "Launch by Oct 7" / "At risk · 5 days past Oct 7"; "Plan
+  November" / "Start planning" sets `LIVE.monthsTarget` and navigates to the REAL
+  /nf/step1. In months mode NewFlow patches the wizard (`enhanceMonthsCopy`):
+  step1 "Content in days, not weeks" -> "First content in about six weeks" + hero
+  "Your November content starts here."; step2 "Set up your campaign" -> "Plan your
+  November content" + "Launch by Oct 19 and this stays November content"; the
+  launch screen gets a pace panel (first post by / all 10 by + 3 dated steps).
+  Back to Campaigns (step1) and the launch screen's "Campaigns" return to
+  /nf/months in months mode; so does the sidebar.
+- Nothing is locked (Rule 4): months further out are dashed "Queue December"
+  tiles with an inline form; queued months show their three dates; "Plan further
+  ahead" reveals three more.
+- MODEL fork = Campaigns | Months | Roster.
 
 ## /nf/roster — direction E, the always-on roster (Sep 8 2026)
 

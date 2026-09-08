@@ -138,6 +138,52 @@ const ADV_FAMILY = new Set(['adv', 'adv-set1', 'adv-2sets', 'adv-who']);
 const GC_FAMILY = new Set(['gc-overview', 'gc-overview-tokyo', 'gc-step2', 'gc-location', 'gc-amount', 'gc-brief']);
 const LAUNCHED_FAMILY = new Set(['launched', 'launched-content', 'overview-after', 'launch-t0']);
 
+/* ---------------- months mode (directions A + C, Sep 8 study) ----------------
+   When the MODEL fork is 'months', the captured wizard keeps its screens and
+   changes its clock: the intro stops promising "content in days", the setup
+   screen names the month being planned, and the launch confirmation carries the
+   two pace dates. The month comes from the /nf/months overview (LIVE.monthsTarget). */
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthsMode = () => forks.get('model') === 'months';
+function enhanceMonthsCopy(root, screen) {
+  if (!root || !monthsMode()) return;
+  const month = LIVE.monthsTarget || 'November';
+  const prev = MONTH_NAMES[(MONTH_NAMES.indexOf(month) + 11) % 12];
+  const cutoff = `${prev.slice(0, 3)} 19`;
+  const firstBy = `${month.slice(0, 3)} 12`;
+  const allBy = `${month.slice(0, 3)} 26`;
+  if (screen === 'step1') {
+    const feat = [...root.querySelectorAll('.intro-feature strong')].find((s) => /Content in days/.test(s.textContent));
+    if (feat) {
+      feat.textContent = 'First content in about six weeks';
+      const p = feat.parentElement && feat.parentElement.querySelector('p');
+      if (p) p.textContent = 'The industry takes ten. Your first post date is on your dashboard from the day you launch.';
+    }
+    const h1 = root.querySelector('.flow-heading--hero');
+    if (h1) h1.textContent = `Your ${month} content starts here.`;
+  }
+  if (screen === 'step2') {
+    const h1 = root.querySelector('.flow-heading--setup');
+    if (h1) {
+      h1.textContent = `Plan your ${month} content`;
+      const p = h1.nextElementSibling;
+      if (p && p.tagName === 'P') p.textContent = `Launch by ${cutoff} and this stays ${month} content. Choose the type of content and how you'd like to reward creators.`;
+    }
+  }
+  if (screen === 'launched' && !root.querySelector('.nf-months-launchpace')) {
+    const hero = root.querySelector('.sourcing-queue-confirmation-hero');
+    if (!hero) return;
+    const copy = hero.querySelector('.sourcing-queue-confirmation-copy p');
+    if (copy && !/content ·/.test(copy.textContent)) copy.textContent = `${month} content · ${copy.textContent}`;
+    const el = document.createElement('section');
+    el.className = 'nf-months-launchpace';
+    el.setAttribute('aria-label', 'Pace');
+    el.innerHTML = `<div class="k">On pace</div><div class="v">First post by <b>${firstBy}</b> · all 10 live by <b>${allBy}</b></div>`
+      + `<div class="dates"><div class="done"><b>Matches</b>within 1 business day</div><div><b>Invites out</b>within 5 days</div><div><b>Product shipped</b>within 12 days</div></div>`;
+    hero.insertAdjacentElement('afterend', el);
+  }
+}
+
 /* ---------------- generic DOM helpers ---------------- */
 
 function on(el, fn) {
@@ -1067,6 +1113,7 @@ export default function NewFlow() {
       });
     }
     if (pageScreen === 'overview-completed' && mainEl) enhanceCompletedTab(mainEl);
+    if (mainEl) enhanceMonthsCopy(mainEl, pageScreen);
     if ((pageScreen === 'gc-overview' || pageScreen === 'gc-overview-tokyo') && mainEl) enhanceGcOverview(mainEl);
     if (pageScreen === 'gc-location' && mainEl) enhanceGcLocation(mainEl);
     if (pageScreen === 'gc-amount' && mainEl) enhanceGcAmount(mainEl);
@@ -1164,6 +1211,7 @@ export default function NewFlow() {
     // sidebar / logo
     if (el.closest('aside') || el.closest('.mobile-header')) {
       if (txt === 'Campaigns' || aria.toLowerCase().includes('home')) {
+        if (monthsMode()) { go('months'); return; }
         go(LAUNCHED_FAMILY.has(screen) ? 'overview-after' : LIVE.gcMode ? 'gc-overview' : 'overview');
       } else if (txt === 'Settings') {
         go('settings');
@@ -1189,7 +1237,7 @@ export default function NewFlow() {
       ],
       step1: [
         [() => txt.includes('Get Started'), () => go(LIVE.gcMode ? 'gc-step2' : 'step2')],
-        [() => txt.includes('Back to Campaigns'), () => go(LIVE.gcMode ? 'gc-overview' : 'overview')],
+        [() => txt.includes('Back to Campaigns'), () => go(monthsMode() ? 'months' : LIVE.gcMode ? 'gc-overview' : 'overview')],
       ],
       'gc-overview': [
         [() => txt === 'Completed', 'overview-completed'],
@@ -1248,12 +1296,12 @@ export default function NewFlow() {
       ],
       launched: [
         [() => txt === 'Content', 'launched-content'],
-        [() => txt === 'Campaigns', 'overview-after'],
+        [() => txt === 'Campaigns', () => go(monthsMode() ? 'months' : 'overview-after')],
         [() => txt.includes('Edit Campaign'), 'brief'], // production behavior unverified (login lost) — brief is the sensible target
       ],
       'launched-content': [
         [() => txt === 'Dashboard', 'launched'],
-        [() => txt === 'Campaigns', 'overview-after'],
+        [() => txt === 'Campaigns', () => go(monthsMode() ? 'months' : 'overview-after')],
         [() => txt.includes('Edit Campaign'), 'brief'],
       ],
     };

@@ -16,7 +16,7 @@
 .nf .nf-roster * { box-sizing: border-box; }
 .nf .nf-roster button { font: inherit; color: inherit; cursor: pointer; }
 .nf .nf-roster .num { font-variant-numeric: tabular-nums; }
-.nf .nf-roster .page { padding: 72px 32px 56px; max-width: 1180px; }
+.nf .nf-roster .page { padding: 104px 32px 56px; max-width: 1180px; }
 
 .nf .nf-roster .overview-header h1 { margin: 0; font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -.3px; color: var(--rp-text); }
 .nf .nf-roster .overview-header p { margin: 6px 0 0; color: var(--rp-muted); font-size: 14px; line-height: 1.45; max-width: 66ch; }
@@ -154,7 +154,7 @@
   .nf .nf-roster .strip, .nf .nf-roster .strip.first, .nf .nf-roster .strip-more { grid-template-columns: 1fr; grid-template-rows: none; }
   .nf .nf-roster .strip.first .mt:first-child { grid-row: auto; }
   .nf .nf-roster .app-row { grid-template-columns: 1fr; }
-  .nf .nf-roster .page { padding: 72px 16px 48px; }
+  .nf .nf-roster .page { padding: 104px 16px 48px; }
 }
 
 /* the roster's own day bar sits under the fork bar */

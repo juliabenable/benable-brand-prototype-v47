@@ -30,7 +30,7 @@ export const forks = {
 };
 
 export const FORK_DEFS = [
-  { key: 'model', label: 'Model', hint: 'What the brand buys: monthly campaign runs (today) vs an always-on creator roster (direction E from the Sep 8 study)', options: [['campaigns', 'Campaigns'], ['roster', 'Roster']] },
+  { key: 'model', label: 'Model', hint: 'What the brand buys: campaigns as today, months of content (directions A + C: same screens, new clock + the pace line), or an always-on creator roster (direction E)', options: [['campaigns', 'Campaigns'], ['months', 'Months'], ['roster', 'Roster']] },
   { key: 'type', label: 'Collab type', hint: 'Product shipping vs local gift-card visit — forks the wizard, brief and tracker', options: [['product', 'Product'], ['local', 'Local']] },
   { key: 'review', label: 'Who reviews', hint: 'Content pre-check owner: Benable team vs the brand (Trilogy model)', options: [['benable', 'Benable'], ['brand', 'Brand']] },
   { key: 'fulfill', label: 'Fulfillment', hint: 'Product campaigns: Shopify places orders automatically vs the brand ships from a CSV order sheet (Day-10 machinery)', options: [['shopify', 'Shopify'], ['csv', 'CSV']] },

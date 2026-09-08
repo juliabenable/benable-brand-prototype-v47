@@ -81,7 +81,10 @@ export default function NfRoster() {
   };
 
   // the fork bar's MODEL group can send us back to campaigns
-  useEffect(() => forks.sub((s) => { if (s.model === 'campaigns') navigate(forks.get('type') === 'local' ? '/nf/gc-overview' : '/nf/overview'); }), [navigate]);
+  useEffect(() => forks.sub((s) => {
+    if (s.model === 'campaigns') navigate(forks.get('type') === 'local' ? '/nf/gc-overview' : '/nf/overview');
+    if (s.model === 'months') navigate('/nf/months');
+  }), [navigate]);
   useEffect(() => { if (forks.get('model') !== 'roster') forks.set('model', 'roster'); }, []);
 
   return (

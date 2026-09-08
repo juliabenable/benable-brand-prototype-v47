@@ -20,6 +20,7 @@ import WrapPage from './pages/WrapPage.jsx';
 import NewFlow from './pages/NewFlow.jsx';
 import NfTrack from './pages/NfTrack.jsx';
 import NfRoster from './pages/NfRoster.jsx';
+import NfMonths from './pages/NfMonths.jsx';
 
 export default function App() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -41,6 +42,9 @@ export default function App() {
       <Route path="/nf/track" element={<NfTrack />} />
       {/* Direction E: the always-on roster (Sep 8 study), same chrome, no campaigns */}
       <Route path="/nf/roster" element={<NfRoster />} />
+      {/* Directions A + C: the month overview + pace tracker, wired into the real wizard */}
+      <Route path="/nf/months" element={<NfMonths screen="overview" />} />
+      <Route path="/nf/months/track" element={<NfMonths screen="track" />} />
       <Route path="/nf/:screen" element={<NewFlow />} />
       <Route path="/brand/login" element={<LoginPage />} />
       <Route path="/brand/tonypikora" element={withShell(<CampaignsListPage />)} />

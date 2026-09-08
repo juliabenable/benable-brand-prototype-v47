@@ -1,0 +1,137 @@
+/* Directions A + C inside the /nf production chrome. The overview and tracker
+   reuse production's own classes (campaign-card, opportunity, workflow-header,
+   phase-pill, dashboard tabs); everything added is nfm- and scoped here. */
+.nf .nf-months {
+  --nfm-text: #1c1c1c; --nfm-text-2: #5b5b5b; --nfm-muted: #717171;
+  --nfm-accent: #7a5cfa; --nfm-accent-wash: #f5f3ff; --nfm-ring: rgba(122, 92, 250, .28);
+  --nfm-tint-a: rgba(122, 92, 250, .05); --nfm-tint-b: rgba(122, 92, 250, .11);
+  --nfm-border: #e3e3e3; --nfm-pill: #f7f7f7; --nfm-track: #f1f3f4;
+  --nfm-ok: #167245; --nfm-ok-b: #00b44e; --nfm-ok-wash: #ebf7ef; --nfm-info: #0c8ee9;
+  --nfm-warn: #a85321; --nfm-warn-wash: #fff0ce;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--nfm-text);
+  min-height: 100%;
+}
+.nf .nf-months * { box-sizing: border-box; }
+.nf .nf-months button { font: inherit; cursor: pointer; }
+
+/* overview page frame (the captured page carries these paddings on .campaign-overview) */
+.nf .nf-months .nfm-overview { padding: 104px 32px 56px; max-width: 1180px; }
+.nf .nf-months .nfm-plan-line { color: var(--nfm-muted); font-size: 13px; padding-bottom: 9px; }
+.nf .nf-months .nfm-plan-line b { color: var(--nfm-text-2); font-weight: 600; }
+
+/* production card, flowed instead of absolutely positioned so the pace line fits */
+.nf .nf-months .campaign-card { display: flex; flex-direction: column; gap: 0; min-height: 0; padding: 20px 64px 20px 20px; }
+.nf .nf-months .campaign-card .campaign-card__progress-copy,
+.nf .nf-months .campaign-card .campaign-card__progress { position: static; right: auto; left: auto; bottom: auto; }
+.nf .nf-months .campaign-card .nfm-bottom { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+.nf .nf-months .campaign-card .campaign-card__progress { margin-top: 4px; }
+.nf .nf-months .campaign-card .campaign-card__subtitle { max-width: none; }
+.nf .nf-months .nfm-status { display: inline-flex; align-items: center; gap: 6px; }
+.nf .nf-months .nfm-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--nfm-info); flex: 0 0 auto; }
+.nf .nf-months .nfm-status.ok::before { background: var(--nfm-ok); }
+.nf .nf-months .nfm-status.warn { color: var(--nfm-warn); }
+.nf .nf-months .nfm-status.warn::before { background: var(--nfm-warn); }
+.nf .nf-months .nfm-pace { color: var(--nfm-muted); font-size: 13px; line-height: 1.35; }
+.nf .nf-months .nfm-pace b { color: var(--nfm-text-2); font-weight: 600; }
+.nf .nf-months .nfm-pace.warn, .nf .nf-months .nfm-pace.warn b { color: var(--nfm-warn); }
+.nf .nf-months .campaign-card__open svg { width: 20px; height: 20px; }
+
+/* badges on the next-month tile */
+.nf .nf-months .nfm-badge { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: 8px; font-size: 12px; font-weight: 600; line-height: 1; }
+.nf .nf-months .nfm-badge.open { background: var(--nfm-accent-wash); color: var(--nfm-accent); }
+.nf .nf-months .nfm-badge.warn { background: var(--nfm-warn-wash); color: var(--nfm-warn); }
+.nf .nf-months .nfm-badge.ok { background: var(--nfm-ok-wash); color: var(--nfm-ok); }
+.nf .nf-months .opportunity__action-copy > p b { color: var(--nfm-text-2); font-weight: 600; }
+
+/* queueable months (nothing is locked) */
+.nf .nf-months .opportunity.nfm-queue { border-style: dashed; background: var(--nfm-pill); }
+.nf .nf-months .opportunity.nfm-queued { border-color: var(--nfm-ring); background: linear-gradient(135deg, var(--nfm-tint-a), var(--nfm-tint-b)); }
+.nf .nf-months .opportunity.nfm-compact { padding: 14px 16px; }
+.nf .nf-months .opportunity.nfm-compact h2 { font-size: 18px; }
+.nf .nf-months .opportunity.nfm-compact p { font-size: 13px; margin-top: 6px; }
+.nf .nf-months .opportunity.nfm-compact .opportunity__action { min-width: 0; min-height: 36px; font-size: 13px; padding: 0 16px; }
+.nf .nf-months .opportunity__action { border: 0; cursor: pointer; }
+.nf .nf-months .opportunity__action.nfm-ghost { background: #fff; color: var(--nfm-text); border: 1px solid var(--nfm-border); }
+.nf .nf-months .nfm-qnote { display: block; margin-top: 6px; color: var(--nfm-text); font-size: 14px; }
+.nf .nf-months .nfm-queue-form { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; max-width: 62ch; }
+.nf .nf-months .nfm-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.nf .nf-months .nfm-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border: 1px solid var(--nfm-border); border-radius: 999px; background: #fff; color: var(--nfm-text-2); font-size: 12px; font-weight: 500; }
+.nf .nf-months .nfm-chip.on { border-color: var(--nfm-accent); background: var(--nfm-accent-wash); color: var(--nfm-accent); }
+.nf .nf-months .nfm-chip.on::before { content: "\2713"; font-weight: 700; }
+.nf .nf-months .nfm-note { width: 100%; border: 1px solid var(--nfm-border); border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 13px; color: var(--nfm-text); background: #fff; resize: vertical; min-height: 44px; }
+.nf .nf-months .nfm-note:focus { outline: 3px solid var(--nfm-ring); outline-offset: 1px; border-color: var(--nfm-accent); }
+.nf .nf-months .nfm-actions { display: flex; align-items: center; gap: 8px; }
+.nf .nf-months .nfm-btn { border: 0; border-radius: 999px; background: var(--nfm-accent); color: #fff; font-size: 12px; font-weight: 700; padding: 9px 14px; line-height: 1.2; white-space: nowrap; }
+.nf .nf-months .nfm-txt { border: 0; background: transparent; color: var(--nfm-muted); font-size: 13px; font-weight: 500; padding: 8px 6px; }
+.nf .nf-months .nfm-txt:hover { color: var(--nfm-text); }
+.nf .nf-months .nfm-txt.accent { color: var(--nfm-accent); font-weight: 600; padding-left: 0; }
+.nf .nf-months .nfm-more { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.nf .nf-months .nfm-more-toggle { margin-top: 4px; }
+
+/* tracker: production header + the pace card */
+.nf .nf-months .nfm-track { padding: 60px 0 0; height: auto; min-height: 100%; overflow: visible; }
+.nf .nf-months .nfm-track .workspace-grid { overflow: visible; }
+.nf .nf-months .nfm-track .workflow-header { padding: 12px 20px 0; }
+.nf .nf-months .nfm-monthpill { margin-right: 4px; }
+.nf .nf-months .workflow-header-backlink .icon svg { display: block; }
+.nf .nf-months .nfm-pace-card { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px; border-radius: 20px; border: 1px solid var(--nfm-ring); background: linear-gradient(135deg, var(--nfm-tint-a), var(--nfm-tint-b)); }
+.nf .nf-months .nfm-pace-card.warn { border-color: rgba(168, 83, 33, .25); background: linear-gradient(135deg, rgba(255, 240, 206, .45), rgba(255, 240, 206, .9)); }
+.nf .nf-months .nfm-pace-top { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.nf .nf-months .nfm-stat .k { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--nfm-muted); }
+.nf .nf-months .nfm-stat .v { font-size: 24px; font-weight: 800; letter-spacing: -.3px; line-height: 1.15; margin-top: 4px; color: var(--nfm-text); }
+.nf .nf-months .nfm-stat .v.ok { color: var(--nfm-ok); }
+.nf .nf-months .nfm-stat .v.warn { color: var(--nfm-warn); }
+.nf .nf-months .nfm-stat .s { font-size: 13px; color: var(--nfm-muted); margin-top: 4px; }
+.nf .nf-months .nfm-stat .s b { color: var(--nfm-text-2); font-weight: 600; }
+.nf .nf-months .nfm-steps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.nf .nf-months .nfm-step { border-top: 3px solid var(--nfm-track); padding-top: 8px; min-width: 0; }
+.nf .nf-months .nfm-step b { display: block; font-size: 12px; font-weight: 600; color: var(--nfm-text); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nf .nf-months .nfm-step span { display: block; font-size: 12px; color: var(--nfm-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nf .nf-months .nfm-step.done { border-top-color: var(--nfm-ok-b); }
+.nf .nf-months .nfm-step.now { border-top-color: var(--nfm-text); }
+.nf .nf-months .nfm-step.late { border-top-color: var(--nfm-warn); }
+.nf .nf-months .nfm-step.late span { color: var(--nfm-warn); }
+.nf .nf-months .nfm-why { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; background: rgba(255, 255, 255, .7); font-size: 13px; color: #555; line-height: 1.5; }
+.nf .nf-months .nfm-why b { color: var(--nfm-text); font-weight: 600; }
+.nf .nf-months .nfm-av { width: 28px; height: 28px; border-radius: 50%; background: var(--nfm-pill); color: var(--nfm-text-2); font-weight: 600; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; border: 1px solid #ebebeb; }
+.nf .nf-months .nfm-av.k { background: var(--nfm-accent-wash); color: var(--nfm-accent); border-color: transparent; font-weight: 700; font-size: 12px; }
+.nf .nf-months .nfm-panel { margin-top: 16px; padding: 24px; border-radius: 20px; border: 1px solid rgba(228, 228, 228, .95); background: #fff; box-shadow: 0 14px 40px rgba(23, 23, 23, .06); }
+.nf .nf-months .nfm-panel h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--nfm-text); }
+.nf .nf-months .nfm-panel .sub { margin: 0 0 12px; font-size: 13px; color: var(--nfm-muted); }
+.nf .nf-months .nfm-tbl-wrap { overflow-x: auto; }
+.nf .nf-months .nfm-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.nf .nf-months .nfm-tbl th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--nfm-muted); padding: 0 10px 10px 0; border-bottom: 1px solid #ebebeb; }
+.nf .nf-months .nfm-tbl td { padding: 10px 10px 10px 0; border-bottom: 1px solid #ebebeb; vertical-align: middle; }
+.nf .nf-months .nfm-tbl tr:last-child td { border-bottom: 0; }
+.nf .nf-months .nfm-tbl td.r, .nf .nf-months .nfm-tbl th.r { text-align: right; }
+.nf .nf-months .nfm-who { display: flex; align-items: center; gap: 10px; }
+.nf .nf-months .nfm-who b { font-weight: 600; color: var(--nfm-text); }
+.nf .nf-months .nfm-who span { color: var(--nfm-muted); font-size: 12px; }
+.nf .nf-months .nfm-st { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+.nf .nf-months .nfm-st::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--nfm-muted); }
+.nf .nf-months .nfm-st.done::before { background: var(--nfm-ok-b); }
+.nf .nf-months .nfm-st.now::before { background: var(--nfm-info); }
+.nf .nf-months .nfm-st.late { color: var(--nfm-warn); }
+.nf .nf-months .nfm-st.late::before { background: var(--nfm-warn); }
+.nf .nf-months .nfm-when { color: var(--nfm-muted); font-variant-numeric: tabular-nums; }
+.nf .nf-months .nfm-when.warn { color: var(--nfm-warn); font-weight: 500; }
+
+.nf .nf-months .nfm-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(8px); z-index: 320; background: #111114; color: #e6e6ea; font-size: 13px; padding: 10px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease; max-width: min(90vw, 520px); }
+.nf .nf-months .nfm-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* the launch screen's pace panel, injected by NewFlow in months mode */
+.nf .nf-months-launchpace { width: 100%; box-sizing: border-box; padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(122, 92, 250, .28); background: linear-gradient(135deg, rgba(122, 92, 250, .05), rgba(122, 92, 250, .11)); font-family: Inter, -apple-system, sans-serif; }
+.nf .nf-months-launchpace .k { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #717171; }
+.nf .nf-months-launchpace .v { font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: #1c1c1c; margin-top: 4px; }
+.nf .nf-months-launchpace .v b { color: #167245; }
+.nf .nf-months-launchpace .dates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.nf .nf-months-launchpace .dates div { font-size: 12px; color: #717171; border-top: 3px solid #f1f3f4; padding-top: 6px; }
+.nf .nf-months-launchpace .dates div b { display: block; color: #1c1c1c; font-weight: 600; font-size: 12px; }
+.nf .nf-months-launchpace .dates div.done { border-top-color: #00b44e; }
+
+@media (max-width: 900px) {
+  .nf .nf-months .nfm-overview { padding: 104px 16px 48px; }
+  .nf .nf-months .nfm-more { grid-template-columns: 1fr; }
+  .nf .nf-months .nfm-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
