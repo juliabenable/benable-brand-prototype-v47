@@ -55,17 +55,29 @@ const CREATORS = [
   ['Sofia Bell', '@sofiabell.skin'], ['Harper Wu', '@harperwu'],
 ];
 const creator = (i, stage, when) => ({ name: CREATORS[i][0], handle: CREATORS[i][1], stage, when });
+/* December's ten are a new set: each month is its own cast */
+const CREATORS_2 = [
+  ['Ava Chen', '@avachen.skin'], ['Lena Park', '@lena.glowup'], ['Mia Torres', '@miat.daily'], ['Zoe Grant', '@zoegrant'],
+  ['Rina Sato', '@rina.routine'], ['Amara Obi', '@amara.obi'], ['Lucy Hart', '@lucyhart.skin'], ['Nadia Karim', '@nadia.k'],
+  ['Grace Lin', '@gracelin.co'], ['Talia Stone', '@talia.stone'],
+];
+const creator2 = (i, stage, when) => ({ name: CREATORS_2[i][0], handle: CREATORS_2[i][1], stage, when });
 
 const RUN = { id: 88, title: 'Fall Campaign', launchISO: '2026-09-10', promised: 10 };
+const RUN2 = { id: 89, title: 'Holiday Campaign', launchISO: '2026-10-12', promised: 10 };
+
+/* Next-month tiles carry no hand-typed month: the label comes from the same
+   8-week rule as the cards. A ready tile is named for launching today, a locked
+   one for launching the day it unlocks (so Nov 10 reads January, not December). */
 
 const DB = {
   signed: {
     todayISO: '2026-09-08', today: 'Sep 8',
     runs: [],
     opportunities: [
-      { content_month: 'November', state: 'available', cta: 'Start my campaign',
-        copy: 'Your first campaign is <b>November content</b>: first content is expected about eight weeks after you launch, and the campaign runs on from there.' },
-      { content_month: 'December', state: 'locked', unlocks: 'Oct 8', in_days: 30 },
+      { state: 'available', cta: 'Start my campaign',
+        copy: 'Your first campaign is <b>{month} content</b>: first content is expected about eight weeks after you launch, and the campaign runs on from there.' },
+      { state: 'locked', unlockISO: '2026-10-08' },
     ],
   },
   week4: {
@@ -81,7 +93,7 @@ const DB = {
       upNext: 'Drafts start arriving around week 5. We review each one for quality before it goes live.',
     })],
     opportunities: [
-      { content_month: 'December', state: 'locked', unlocks: 'Oct 8', in_days: 3 },
+      { state: 'locked', unlockISO: '2026-10-08' },
     ],
   },
   landed: {
@@ -95,11 +107,20 @@ const DB = {
         creator(6, 'Order delivered', 'filming'), creator(7, 'Order delivered', 'filming'), creator(8, 'Order delivered', 'filming'), creator(9, 'Order delivered', 'filming'),
       ],
       upNext: 'The rest of the posts land over the next few weeks. We keep chasing so you do not have to.',
+    }), Object.assign({}, RUN2, {
+      status: 'Active', live: 0,
+      now: '10 creators filming, first drafts coming in',
+      creators: [
+        creator2(0, 'Draft submitted', 'we review by Nov 12'), creator2(1, 'Draft submitted', 'we review by Nov 12'), creator2(2, 'Order delivered', 'filming'),
+        creator2(3, 'Order delivered', 'filming'), creator2(4, 'Order delivered', 'filming'), creator2(5, 'Order delivered', 'filming'),
+        creator2(6, 'Order delivered', 'filming'), creator2(7, 'Order delivered', 'filming'), creator2(8, 'Order delivered', 'filming'), creator2(9, 'Order delivered', 'filming'),
+      ],
+      upNext: 'Drafts are starting to arrive. We review each one for quality before it goes live.',
     })],
     opportunities: [
-      { content_month: 'December', state: 'available', cta: 'Launch now',
-        copy: 'Your next campaign is ready. Everything from November is saved, so it takes a few minutes to review and go live.' },
-      { content_month: 'January', state: 'locked', unlocks: 'Dec 8', in_days: 28 },
+      { state: 'available', cta: 'Launch now',
+        copy: 'Your next campaign is ready. Everything from {prev} is saved, so it takes a few minutes to review and go live.' },
+      { state: 'locked', unlockISO: '2026-12-08' },
     ],
   },
 };
@@ -131,9 +152,11 @@ export function createMonths(root, opts = {}) {
   let stateKey = 'week4';
   let screen = 'overview';
   let infoOpen = false;
+  let openId = null;
   let toastT;
   const S = () => DB[stateKey];
   try { const s = localStorage.getItem('acState'); if (s && DB[s]) stateKey = s; } catch { /* fresh */ }
+  try { const o = Number(sessionStorage.getItem('acOpen')); if (o) openId = o; } catch { /* fresh */ }
 
   const tl = (r) => timeline(r.launchISO, S().todayISO);
 
@@ -165,21 +188,27 @@ export function createMonths(root, opts = {}) {
   }
 
   function oppCard(o) {
+    const s = S();
     if (o.state === 'locked') {
+      const month = contentMonthFor(o.unlockISO);
+      const inDays = Math.round((new Date(o.unlockISO + 'T12:00:00') - new Date(s.todayISO + 'T12:00:00')) / DAY);
       return `
       <article class="opportunity opportunity--locked svelte-75h9ek">
-        <div class="opportunity__locked-copy svelte-75h9ek"><h2 class="svelte-75h9ek">${esc(o.content_month)} content</h2><p class="svelte-75h9ek">Your next campaign unlocks ${esc(o.unlocks)}.</p></div>
-        <span class="opportunity__countdown svelte-75h9ek">in <strong class="svelte-75h9ek">${o.in_days} days</strong></span>
+        <div class="opportunity__locked-copy svelte-75h9ek"><h2 class="svelte-75h9ek">${esc(month)} content</h2><p class="svelte-75h9ek">Your next campaign unlocks ${esc(fmt(new Date(o.unlockISO + 'T12:00:00')))}.</p></div>
+        <span class="opportunity__countdown svelte-75h9ek">in <strong class="svelte-75h9ek">${inDays} ${inDays === 1 ? 'day' : 'days'}</strong></span>
       </article>`;
     }
+    const month = contentMonthFor(s.todayISO);
+    const last = s.runs[s.runs.length - 1];
+    const copy = o.copy.replace('{month}', esc(month)).replace('{prev}', last ? esc(tl(last).content_month) : 'your last campaign');
     return `
     <article class="opportunity opportunity--action svelte-75h9ek">
       <span class="opportunity__visuals svelte-75h9ek" aria-hidden="true"><img class="opportunity__action-gradient svelte-75h9ek" src="${GRADIENT}" alt=""> <span class="opportunity__action-overlay svelte-75h9ek"></span></span>
       <div class="opportunity__action-copy svelte-75h9ek">
-        <div class="opportunity__title-row svelte-75h9ek"><h2 class="svelte-75h9ek">${esc(o.content_month)} content</h2></div>
-        <p class="svelte-75h9ek">${o.copy}</p>
+        <div class="opportunity__title-row svelte-75h9ek"><h2 class="svelte-75h9ek">${esc(month)} content</h2></div>
+        <p class="svelte-75h9ek">${copy}</p>
       </div>
-      <button type="button" class="opportunity__action svelte-75h9ek" data-plan="${esc(o.content_month)}">${esc(o.cta)}</button>
+      <button type="button" class="opportunity__action svelte-75h9ek" data-plan="${esc(month)}">${esc(o.cta)}</button>
     </article>`;
   }
 
@@ -227,7 +256,7 @@ export function createMonths(root, opts = {}) {
   }
 
   function renderTracker() {
-    const r = S().runs[0];
+    const r = S().runs.find((x) => x.id === openId) || S().runs[0];
     if (!r) return renderOverview();
     const t = tl(r);
     const rows = r.creators.map((c) => {
@@ -290,10 +319,17 @@ export function createMonths(root, opts = {}) {
 
   const onClick = (e) => {
     const t = e.target;
-    if (t.closest('[data-open]')) { e.preventDefault(); opts.onOpen && opts.onOpen(); return; }
+    const open = t.closest('[data-open]');
+    if (open) {
+      e.preventDefault();
+      openId = Number(open.dataset.open);
+      try { sessionStorage.setItem('acOpen', String(openId)); } catch { /* ok */ }
+      opts.onOpen && opts.onOpen();
+      return;
+    }
     if (t.closest('[data-back]')) { e.preventDefault(); opts.onBack && opts.onBack(); return; }
     const plan = t.closest('[data-plan]');
-    if (plan) { opts.onPlan && opts.onPlan(plan.dataset.plan); return; }
+    if (plan) { opts.onPlan && opts.onPlan(plan.dataset.plan, S().todayISO); return; }
     if (t.closest('[data-info]')) { infoOpen = true; render(); return; }
     if (t.closest('.nfm-pop') && !t.closest('[data-close-info]')) return;
     if (t.closest('[data-close-info]')) { infoOpen = false; render(); return; }

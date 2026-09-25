@@ -149,7 +149,8 @@ function enhanceMonthsCopy(root, screen) {
   if (!root || !monthsMode()) return;
   const month = LIVE.monthsTarget || 'November';
   // 8-week baseline (Tony, Sep 8): first content expected 56 days after launch
-  const d = new Date(); d.setDate(d.getDate() + 56); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  // dated from the Months page's "Today is" day when launched from there, else the real clock
+  const d = LIVE.monthsToday ? new Date(LIVE.monthsToday + 'T12:00:00') : new Date(); d.setDate(d.getDate() + 56); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   const firstWeek = `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()]} ${d.getDate()}`;
   if (screen === 'step1') {
     // the intro is skipped in months mode (the overview tile is the start); kept honest if reached directly

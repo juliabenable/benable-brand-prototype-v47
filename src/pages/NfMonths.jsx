@@ -34,10 +34,11 @@ export default function NfMonths({ screen = 'overview' }) {
       onRender: (k) => setDayState(k),
       onOpen: () => navigate('/nf/months/track'),
       onBack: () => navigate('/nf/months'),
-      onPlan: (month) => {
+      onPlan: (month, todayISO) => {
         // the real captured wizard, intro screen skipped (Tony, Sep 8): straight to setup,
-        // already named for the month (NewFlow.jsx patches the copy)
-        if (typeof window !== 'undefined' && window.__nfLive) window.__nfLive.monthsTarget = month;
+        // already named for the month (NewFlow.jsx patches the copy); the prototype's
+        // "today" rides along so the launch screen dates from it, not the real clock
+        if (typeof window !== 'undefined' && window.__nfLive) Object.assign(window.__nfLive, { monthsTarget: month, monthsToday: todayISO });
         navigate('/nf/step2');
       },
     });
