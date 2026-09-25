@@ -132,15 +132,29 @@
 .nf .nf-months .nfm-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(8px); z-index: 320; background: #111114; color: #e6e6ea; font-size: 13px; padding: 10px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease; max-width: min(90vw, 520px); }
 .nf .nf-months .nfm-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* the launch screen's pace panel, injected by NewFlow in months mode */
-.nf .nf-months-launchpace { width: 100%; box-sizing: border-box; padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(122, 92, 250, .28); background: linear-gradient(135deg, rgba(122, 92, 250, .05), rgba(122, 92, 250, .11)); font-family: Inter, -apple-system, sans-serif; }
-.nf .nf-months-launchpace .k { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #717171; }
-.nf .nf-months-launchpace .v { font-size: 20px; font-weight: 800; letter-spacing: -.3px; color: #1c1c1c; margin-top: 4px; }
-.nf .nf-months-launchpace .v b { color: #167245; }
-.nf .nf-months-launchpace .dates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
-.nf .nf-months-launchpace .dates div { font-size: 12px; color: #717171; border-top: 3px solid #f1f3f4; padding-top: 6px; }
-.nf .nf-months-launchpace .dates div b { display: block; color: #1c1c1c; font-weight: 600; font-size: 12px; }
-.nf .nf-months-launchpace .dates div.done { border-top-color: #00b44e; }
+/* the launch screen's timeline card, injected by NewFlow in months mode: production's white card
+   (same border, radius and shadow as "What happens next" below it) */
+.nf .nf-months-launchpace { width: 100%; box-sizing: border-box; padding: 20px 24px; border-radius: 20px; border: 1px solid rgba(228, 228, 228, .95); background: #fff; box-shadow: 0 14px 40px rgba(23, 23, 23, .06); font-family: Inter, -apple-system, sans-serif; text-align: left; }
+.nf .nf-months-launchpace .lp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.nf .nf-months-launchpace .lp-k { font-size: 13px; font-weight: 500; color: #717171; }
+.nf .nf-months-launchpace .lp-v { margin-top: 2px; font-size: 22px; font-weight: 800; letter-spacing: -.25px; line-height: 1.2; color: #1c1c1c; }
+.nf .nf-months-launchpace .lp-pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px; border: .5px solid #e3e3e3; border-radius: 999px; background: #f7f7f7; color: #5b5b5b; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.nf .nf-months-launchpace .lp-track,
+.nf .nf-months-launchpace .lp-phases { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+.nf .nf-months-launchpace .lp-track { margin-top: 18px; }
+.nf .nf-months-launchpace .lp-track span { height: 6px; border-radius: 999px; background: #f1f3f4; }
+.nf .nf-months-launchpace .lp-track span.on { background: #7a5cfa; }
+.nf .nf-months-launchpace .lp-phases { margin-top: 8px; }
+.nf .nf-months-launchpace .lp-phases span { font-size: 12px; font-weight: 500; color: #717171; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nf .nf-months-launchpace .lp-phases span.now { color: #1c1c1c; font-weight: 600; }
+.nf .nf-months-launchpace .lp-tip { display: flex; align-items: flex-start; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #ebebeb; }
+.nf .nf-months-launchpace .lp-bulb { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: #fff0ce; color: #a85321; }
+.nf .nf-months-launchpace .lp-tip p { margin: 0; padding-top: 5px; font-size: 13px; line-height: 1.45; color: #5b5b5b; }
+.nf .nf-months-launchpace .lp-tip b { color: #1c1c1c; font-weight: 600; }
+@media (max-width: 480px) {
+  .nf .nf-months-launchpace { padding: 18px; }
+  .nf .nf-months-launchpace .lp-phases span { font-size: 11px; }
+}
 
 /* the campaign page: creators on the left, the timeline box top right (Tony, Sep 8) */
 .nf .nf-months .nfm-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; margin-top: 16px; }

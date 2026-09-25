@@ -177,8 +177,14 @@ function enhanceMonthsCopy(root, screen) {
     const el = document.createElement('section');
     el.className = 'nf-months-launchpace';
     el.setAttribute('aria-label', 'Campaign timeline');
-    el.innerHTML = `<div class="k">Campaign timeline</div><div class="v">Week 1 of 8 · first content expected <b>week of ${firstWeek}</b></div>`
-      + `<div class="dates"><div class="done"><b>Week 1</b>we match, you approve</div><div><b>Weeks 2 to 3</b>invites, product ships</div><div><b>Weeks 7 to 8</b>first posts go live</div></div>`;
+    /* Julia, Sep 24: production's white card; the first-content date leads, the 8 weeks are
+       segments with the phases under them, and a tip names the one thing the brand controls */
+    const PHASES = [['Match', 1], ['Ship', 2], ['Film', 2], ['Review', 2], ['Post', 1]];
+    const BULB = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 12.4h3.6M6.7 14.4h2.6"/><path d="M8 1.6a4.4 4.4 0 0 0-2.5 8c.4.3.6.7.6 1.2v.1h3.8v-.1c0-.5.2-.9.6-1.2A4.4 4.4 0 0 0 8 1.6z"/></svg>';
+    el.innerHTML = `<div class="lp-head"><div><div class="lp-k">First content expected</div><div class="lp-v">Week of ${firstWeek}</div></div><span class="lp-pill">Week 1 of 8</span></div>`
+      + `<div class="lp-track" aria-hidden="true">${Array.from({ length: 8 }, (_, i) => `<span${i === 0 ? ' class="on"' : ''}></span>`).join('')}</div>`
+      + `<div class="lp-phases">${PHASES.map(([label, weeks], i) => `<span style="grid-column: span ${weeks}"${i === 0 ? ' class="now"' : ''}>${label}</span>`).join('')}</div>`
+      + `<div class="lp-tip"><span class="lp-bulb" aria-hidden="true">${BULB}</span><p><b>Quick tip:</b> the biggest thing that speeds up your campaign is approving creators and content as soon as we send them over.</p></div>`;
     hero.insertAdjacentElement('afterend', el);
   }
 }
