@@ -16,7 +16,9 @@
 .nf .nf-months button { font: inherit; cursor: pointer; }
 
 /* overview page frame (the captured page carries these paddings on .campaign-overview) */
-.nf .nf-months .campaign-overview.nfm-overview { padding: 104px 32px 56px !important; max-width: 1180px; } /* production's .campaign-overview padding wins on order; the bar sits over the title without this */
+/* production's grey page runs edge to edge (62px sides, no cap) and fills the screen below the 46px header;
+   the top padding clears the second black bar, and needs !important because production's padding wins on order */
+.nf .nf-months .campaign-overview.nfm-overview { padding: 104px 62px 56px !important; min-height: calc(100vh - 46px); }
 .nf .nf-months .nfm-plan-line { color: var(--nfm-muted); font-size: 13px; padding-bottom: 9px; }
 .nf .nf-months .nfm-plan-line b { color: var(--nfm-text-2); font-weight: 600; }
 
