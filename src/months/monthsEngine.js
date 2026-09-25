@@ -63,8 +63,8 @@ const CREATORS_2 = [
 ];
 const creator2 = (i, stage, when) => ({ name: CREATORS_2[i][0], handle: CREATORS_2[i][1], stage, when });
 
-const RUN = { id: 88, title: 'Fall Campaign', launchISO: '2026-09-10', promised: 10 };
-const RUN2 = { id: 89, title: 'Holiday Campaign', launchISO: '2026-10-12', promised: 10 };
+const RUN = { id: 88, number: 1, title: 'Fall Campaign', launchISO: '2026-09-10', promised: 10 };
+const RUN2 = { id: 89, number: 2, title: 'Holiday Campaign', launchISO: '2026-10-12', promised: 10 };
 
 /* Next-month tiles carry no hand-typed month: the label comes from the same
    8-week rule as the cards. A ready tile is named for launching today, a locked
@@ -164,23 +164,20 @@ export function createMonths(root, opts = {}) {
   function runCard(r) {
     const t = tl(r);
     const landed = r.live > 0;
-    const progress = landed
-      ? `<div class="campaign-card__progress-copy svelte-1fvpax8"><strong class="svelte-1fvpax8">${r.live}</strong> <span class="svelte-1fvpax8">of ${r.promised} live</span></div>`
-      : `<div class="campaign-card__progress-copy svelte-1fvpax8"><strong class="svelte-1fvpax8">Week ${Math.min(t.week, 8)}</strong> <span class="svelte-1fvpax8">of 8</span></div>`;
+    /* one quiet line over the bar (Julia, Sep 24): the title leads, progress reads as detail */
     const line = landed
-      ? `First content landed <b>${r.first_landed}</b>, expected the week of ${t.first_content}`
-      : `First content expected the week of <b>${t.first_content}</b>`;
+      ? `<b>${r.live} of ${r.promised} live</b> · first content landed ${r.first_landed}`
+      : `<b>Week ${Math.min(t.week, 8)} of 8</b> · first content expected the week of ${t.first_content}`;
     const pct = landed ? Math.round((r.live / r.promised) * 100) : t.pct;
     return `
-    <a class="campaign-card svelte-1fvpax8" href="#" data-open="${r.id}" aria-label="Open ${esc(t.content_month)} content, ${esc(r.title)}">
+    <a class="campaign-card svelte-1fvpax8" href="#" data-open="${r.id}" aria-label="Open Campaign ${r.number}, ${esc(t.content_month)} content">
       <div class="campaign-card__heading svelte-1fvpax8">
         <span class="campaign-card__date svelte-1fvpax8"><strong class="svelte-1fvpax8">${esc(t.content_month)} content</strong> · launched ${t.launch}</span>
-        <h2 class="svelte-1fvpax8">${esc(r.title)}</h2>
+        <h2 class="svelte-1fvpax8">Campaign ${r.number}</h2>
       </div>
       <p class="campaign-card__subtitle svelte-1fvpax8">${esc(r.now)}</p>
       <div class="nfm-bottom">
-        ${progress}
-        <div class="nfm-pace">${line}</div>
+        <div class="nfm-meta">${line}</div>
         <div class="campaign-card__progress svelte-1fvpax8 ${landed ? '' : 'nfm-weeks'}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width: ${pct}%" class="svelte-1fvpax8"></span></div>
       </div>
       <span class="campaign-card__open svelte-1fvpax8" aria-hidden="true">${ARROW}</span>
@@ -277,7 +274,7 @@ export function createMonths(root, opts = {}) {
             <div class="workflow-header-row">
               <div class="workflow-header-main">
                 <span class="campaign-card__date svelte-1fvpax8 nfm-monthpill"><strong class="svelte-1fvpax8">${esc(t.content_month)} content</strong></span>
-                <h1>${esc(r.title)}</h1>
+                <h1>Campaign ${r.number}</h1>
                 <span class="phase-pill phase-pill--active"><span class="phase-pill-dot" aria-hidden="true"></span> <span>${esc(r.status)}</span></span>
               </div>
               <div class="header-right"><button type="button" class="workflow-header-edit-btn" data-inert="Edit campaign is unchanged; it opens the brief">Edit Campaign</button></div>

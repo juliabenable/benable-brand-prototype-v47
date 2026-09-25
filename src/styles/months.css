@@ -34,7 +34,9 @@
 .nf .nf-months .campaign-card__date.svelte-1fvpax8 strong.svelte-1fvpax8 { margin-left: 0; }
 .nf .nf-months .campaign-card .campaign-card__progress-copy,
 .nf .nf-months .campaign-card .campaign-card__progress { position: static; right: auto; left: auto; bottom: auto; }
-.nf .nf-months .campaign-card .nfm-bottom { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+.nf .nf-months .campaign-card .nfm-bottom { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+.nf .nf-months .campaign-card .nfm-meta { color: var(--nfm-muted); font-size: 14px; font-weight: 500; line-height: 1.35; padding-right: 56px; }
+.nf .nf-months .campaign-card .nfm-meta b { color: var(--nfm-text); font-weight: 600; }
 .nf .nf-months .campaign-card .campaign-card__progress { margin-top: 4px; }
 .nf .nf-months .campaign-card .campaign-card__subtitle { max-width: none; }
 .nf .nf-months .nfm-status { display: inline-flex; align-items: center; gap: 6px; }
