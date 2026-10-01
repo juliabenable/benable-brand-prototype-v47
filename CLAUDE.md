@@ -1,3 +1,37 @@
+# benable-brand-prototype-v48 — production parity
+
+**v48 (Oct 1) — snapshot of v47 + a prod-parity pass** against production's own
+captures (Aug 18-20, `captures/sources-aug18/` 01-53). Dev: launch
+`brand-prototype-v48`, port 5226. Live (once the v48 repo + Pages exist):
+https://juliabenable.github.io/benable-brand-prototype-v48/
+Deploy: `bash scripts/ship.sh "msg"`. v47 stays frozen at its own URL.
+
+What changed to close the gap to prod (landing / dashboard / Content tab):
+- ENTRY: `/` and unknown routes land on `/nf/overview` (production's new-chrome
+  Campaigns Overview), no longer the old-chrome `/brand/tonypikora/campaigns`
+  (still reachable by URL).
+- DASHBOARD (`/nf/track`): header button reads "Campaign Details" (was
+  "Campaign Brief") and opens production's LOCKED details modal (capture 53,
+  titled after the campaign on screen; ✕ / scrim / Esc close) · right rail
+  "While you were away" -> "Recent activity" (prod's title; global, old chrome
+  too) · row drawer head = "STAGE HISTORY" + a "Creator details" pill (capture
+  50; inert — its target was never captured; hidden on sourcing rows) · new
+  sidebar runs full height with Settings + account pinned low.
+- CONTENT TAB (`/nf/track`): production's empty state (capture 52, hourglass,
+  "No content to see yet …approved by Benable.") until something is live on
+  the pulse day (any crew row at stage 5, or day 30); after that the post grid.
+  `getPulseScene()` (CampaignPulse) exposes the last-rendered day/mode for it.
+- FULFILLMENT fork defaults to Shopify (prod's demo account), so Day 10's CSV
+  shipping scene is behind the CSV toggle. Fork store key is `nfForks.v48`
+  (every version shares the github.io origin; v47's stored forks don't leak in).
+- Reference routes for side-by-side checks: `/nf/prod-track` (capture 49),
+  `/nf/prod-track-89` (51), `/nf/prod-content` (52) — static production frames.
+  `scripts/newflow-build.py` re-run so captures 49-53 are in NF_STATES.
+- Known remaining deltas: prod's rail "Scroll to see all stages →" only shows
+  at narrow widths (not built); /nf/track's header/tabs are the old-chrome
+  markup restyled (visually matches); populated new-chrome Content tab never
+  captured; tracker demo data stays the Pikora scenario.
+
 # benable-brand-prototype-v47 — Campaign Pulse + months (A + C) + the roster (E)
 
 **v47 (Sep 8) — fresh iteration base, snapshot of v46 + directions A + C at /nf/months and E at /nf/roster.** Dev: launch

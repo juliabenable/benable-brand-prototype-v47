@@ -10,10 +10,10 @@ const state = {
   review: 'benable', // 'benable' | 'brand' — who reviews content
   declined: false,   // declined invites hidden|shown (Katie's admin switch)
   rui: 'modal',      // review UI direction: 'modal' | 'chat'
-  fulfill: 'csv',    // product fulfillment: 'shopify' auto-orders | 'csv' the brand ships
+  fulfill: 'shopify', // product fulfillment (prod demo account = Shopify; v48): 'shopify' auto-orders | 'csv' the brand ships
   model: 'campaigns', // what the brand buys: 'campaigns' (runs, today) | 'roster' (direction E, always-on)
 };
-try { Object.assign(state, JSON.parse(localStorage.getItem('nfForks') || '{}')); } catch { /* fresh */ }
+try { Object.assign(state, JSON.parse(localStorage.getItem('nfForks.v48') || '{}')); } catch { /* fresh */ }
 
 const subs = new Set();
 
@@ -23,7 +23,7 @@ export const forks = {
   set(k, v) {
     if (state[k] === v) return;
     state[k] = v;
-    try { localStorage.setItem('nfForks', JSON.stringify(state)); } catch { /* private mode */ }
+    try { localStorage.setItem('nfForks.v48', JSON.stringify(state)); } catch { /* private mode */ }
     subs.forEach((f) => f(state));
   },
   sub(f) { subs.add(f); return () => subs.delete(f); },

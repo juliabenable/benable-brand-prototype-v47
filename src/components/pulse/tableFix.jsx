@@ -346,7 +346,18 @@ export default function FixedTable({ scene, rows, filter, onFilter, openCrew, to
         <div className={`tf-drawer${open ? ' tf-drawer--open' : ''}`} aria-hidden={!open} inert={open ? undefined : ''}>
           <div className="tf-drawer-in">
           <div className="am-hist">
-            <p className="am-hist-title">Stage history</p>
+            {/* production's drawer head: title + a "Creator details" pill
+                (Aug 20 capture 50). Its target was never captured, so it is
+                inert here. Unnamed sourcing rows have no creator to show. */}
+            <div className="am-hist-head">
+              <p className="am-hist-title">Stage history</p>
+              {!c.mystery && (
+                <button type="button" className="am-showall am-hist-details" title="Creator profile (not built in the prototype yet)" onClick={(e) => e.stopPropagation()}>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path fillRule="evenodd" clipRule="evenodd" d="M5.5 20.5V3.5H18.5V20.5H5.5ZM19 2H5C4.44772 2 4 2.44772 4 3V21C4 21.5523 4.44772 22 5 22H19C19.5523 22 20 21.5523 20 21V3C20 2.44772 19.5523 2 19 2ZM8 8.75H12V7.25H8V8.75ZM8 12.75V11.25H16V12.75H8ZM8 15.25V16.75H16V15.25H8Z" fill="#1c1c1c" /></svg>
+                  Creator details
+                </button>
+              )}
+            </div>
             <div className="cp-crew-history am-hist-body">
               {/* the drawer mirrors the tracker's 7 stages — Thanked included */}
               {(c.mystery ? timeline : [...timeline, { detail: 'Thank-you sent 💌' }]).map((st, si) => {

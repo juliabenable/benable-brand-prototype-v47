@@ -518,7 +518,7 @@ export function AmineRail({ scene, railVar = 'a' }) {
     <aside className="am-rail">
       <RailCard
         icon={AIC.invites}
-        title="While you were away"
+        title="Recent activity"
         subtitle={<>Since, <b className="am-sub-b">{recap.since.replace(/^since /, '')}</b></>}
       >
         {recap.items.map((it, i) => (

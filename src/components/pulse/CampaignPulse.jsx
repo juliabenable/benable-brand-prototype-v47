@@ -58,6 +58,11 @@ export const setPulseDay = (day) => {
   if (i >= 0) persistedIdx = i;
 };
 
+/* the day/mode the tracker last rendered — survives the Dashboard tab's
+   unmount so /nf/track's Content tab knows whether anything is live yet */
+let lastScene = null;
+export const getPulseScene = () => lastScene;
+
 export default function CampaignPulse() {
   const [idx, setIdx] = useState(persistedIdx);
   // the shared fork store wins over module memory — a fork flipped on any
@@ -86,7 +91,7 @@ export default function CampaignPulse() {
   /* FULFILLMENT fork (product only): 'shopify' = orders placed + tracked
      automatically, the whole Day-10 CSV machinery disappears; 'csv' = the
      brand ships (order sheet + tracking). */
-  const [fulfill, setFulfill] = useState(() => forks.get('fulfill') || 'csv');
+  const [fulfill, setFulfill] = useState(() => forks.get('fulfill') || 'shopify');
   useEffect(() => { forks.set('fulfill', fulfill); }, [fulfill]);
   const rootRef = useRef(null);
   // some days only exist for one collab type (day 10 = CSV shipping)
@@ -99,6 +104,7 @@ export default function CampaignPulse() {
     ? { ...base, mode, review, showDeclined, fulfill, upNext: pickR(LOCAL.upNext[base.day] ?? base.upNext), recap: pickR(LOCAL.recap[base.day] ?? base.recap) }
     : { ...base, mode, review, showDeclined, fulfill, upNext: pickR(base.upNext), recap: pickR(base.recap) };
   const phase = scene.phase; // 'sourcing' | 'review' | undefined (live dashboard)
+  lastScene = { day: scene.day, mode };
 
   const switchMode = (m) => {
     if (m === mode) return;

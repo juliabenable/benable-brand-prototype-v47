@@ -124,6 +124,10 @@ const PAGES = {
   launched: '23-launch-t1',
   'launched-content': '25-launched-content-tab',
   settings: '31-settings',
+  // production's live tracker (campaigns 88/89, Aug 20) — static reference states
+  'prod-track': '49-prod-tracker-88-dashboard',
+  'prod-track-89': '51-prod-tracker-89-dashboard',
+  'prod-content': '52-prod-tracker-88-content',
   generating: null,
 };
 // modal overlay routes -> which captured tail supplies the overlay

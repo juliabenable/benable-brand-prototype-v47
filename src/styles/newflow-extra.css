@@ -146,3 +146,18 @@
   transition: opacity 0.4s;
 }
 .nf-generating .nf-line.on { opacity: 1; color: #55555c; }
+
+/* ---- v48: production parity on /nf/track ---- */
+/* sidebar runs the full height with Settings + account pinned low, as in prod */
+.nf-track__side aside.sidebar { height: 100vh; }
+.nf-track__side .sidebar-shell { height: 100%; }
+/* the locked Campaign details modal (capture 53) rides in its own .nf layer */
+.nf.nf-track__modal { background: transparent; overflow: visible; z-index: 1300; inset: 0; }
+/* Content tab empty state — production's markup (capture 52) inside the
+   UNSCOPED tracker document, so its rules are restated here */
+.nf-track .content-dashboard-panel[data-nf-empty] { background: #f9fafb; margin: -14px -20px 0; border: 0; border-radius: 0; box-shadow: none; }
+.nf-track .campaign-dashboard-placeholder-state { min-height: 520px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; text-align: center; font-family: Inter, -apple-system, sans-serif; }
+.nf-track .campaign-dashboard-placeholder-badge { width: 56px; height: 56px; border-radius: 999px; background: #f1f1f1; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.nf-track .campaign-dashboard-placeholder-copy { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 408px; }
+.nf-track .campaign-dashboard-placeholder-copy h2 { margin: 0; color: #222; font-size: 22px; font-weight: 700; line-height: 1.23; letter-spacing: .003em; }
+.nf-track .campaign-dashboard-placeholder-copy p { margin: 0; max-width: 340px; color: #6f6f6f; font-size: 16px; line-height: 1.28; }

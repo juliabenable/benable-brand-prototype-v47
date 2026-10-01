@@ -36,7 +36,7 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/brand/tonypikora/campaigns" replace />} />
+      <Route path="/" element={<Navigate to="/nf/overview" replace />} />
       {/* First-part flow on the NEW production chrome (Aug 18 capture) */}
       <Route path="/nf" element={<NewFlow />} />
       <Route path="/nf/track" element={<NfTrack />} />
@@ -69,7 +69,7 @@ export default function App() {
       <Route path="/__wraplive" element={withShell(<WrapPage />)} />
       {/* Standalone wrap (no shell) kept for quick previews. */}
       <Route path="/__wrapsolo" element={<GlowLoveWrap />} />
-      <Route path="*" element={<Navigate to="/brand/tonypikora/campaigns" replace />} />
+      <Route path="*" element={<Navigate to="/nf/overview" replace />} />
     </Routes>
   );
 }
