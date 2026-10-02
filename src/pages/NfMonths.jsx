@@ -17,6 +17,8 @@ import '../styles/months.css';
  * intro screen (/nf/step1), the new design goes straight to setup (/nf/step2); NewFlow
  * patches the copy in months mode and its back links return here.
  *
+ * Second black bar: PAGE (Overview | Campaign page), VERSION, TODAY IS, and on the campaign
+ * page BAR (the timeline card's Line | Segments).
  * Deep links: ?rev=before|after, ?day=signed|week4|slip|landed, ?tl=open (timeline
  * expanded), ?bar=line|segments (the timeline card's progress bar), ?embed=1 (no black
  * bars, nothing written to storage: the handoff page's frames).
@@ -99,6 +101,18 @@ export default function NfMonths({ screen = 'overview' }) {
       {!embed && <NfForkBar go={go} />}
       {!embed && (
       <div className="cp-mode cp-mode--opts nf-forkbar nf-roster-days" role="group" aria-label="Months version and day">
+        {/* PAGE: the campaign page (Dashboard) is one click away from any day. Sep 8 has no
+            campaign yet, so it jumps to Oct 5; otherwise the only door is a campaign card */}
+        <span className="cp-scrub-tag">PAGE</span>
+        <button type="button" className={screen === 'overview' ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'} onClick={() => navigate('/nf/months')}>Overview</button>
+        <button
+          type="button"
+          className={screen === 'track' ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'}
+          onClick={() => { if (day === 'signed') engineRef.current?.setDay('week4'); navigate('/nf/months/track'); }}
+        >
+          Campaign page
+        </button>
+        <span className="cp-mode-sep" aria-hidden />
         <span className="cp-scrub-tag">VERSION</span>
         {REVS.map(([key, label]) => (
           <button
@@ -125,7 +139,7 @@ export default function NfMonths({ screen = 'overview' }) {
         {rev === 'after' && screen === 'track' && (
           <>
             <span className="cp-mode-sep" aria-hidden />
-            <span className="cp-scrub-tag">TIMELINE BAR</span>
+            <span className="cp-scrub-tag">BAR</span>
             {[['line', 'Line'], ['segments', 'Segments']].map(([key, label]) => (
               <button
                 key={key}

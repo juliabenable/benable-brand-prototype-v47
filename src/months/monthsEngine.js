@@ -26,11 +26,12 @@ export const REVS = [
   ['after', 'New design'],
 ];
 
+/* short labels: the second black bar also carries PAGE and VERSION and must fit a laptop */
 export const DAYS = [
-  ['signed', 'Sep 8 · signed today'],
-  ['week4', 'Oct 5 · week 4 of 8'],
-  ['slip', 'Oct 19 · Campaign 2 not launched'],
-  ['landed', 'Oct 28 · first content in'],
+  ['signed', 'Sep 8 · signed'],
+  ['week4', 'Oct 5 · week 4'],
+  ['slip', 'Oct 19 · late launch'],
+  ['landed', 'Oct 28 · posts live'],
 ];
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
