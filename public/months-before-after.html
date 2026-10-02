@@ -127,7 +127,7 @@
     <div><b>3. Named for week 7</b><span>The name is the month it is 7 weeks after launch, when most posts are going live. First content can land a few days before that month starts. <span class="tag dec">Julia · Oct 2</span></span></div>
     <div><b>4. One date instead of a percent</b><span>Cards say "Week 4 of 8, first content expected the week of Oct 19", then "3 of 10 live". <span class="tag dec">Tony · Sep 8</span></span></div>
     <div><b>5. The next campaign is always visible</b><span>The locked tile shows next to a ready one. Prod shows it only when nothing is ready. <span class="tag prop">Proposed</span></span></div>
-    <div><b>6. Setup opens directly</b><span>The intro screen goes. "Launch now" lands on setup, with one new sentence. <span class="tag dec">Tony · Sep 8</span></span></div>
+    <div><b>6. Setup opens directly</b><span>"Launch now" skips the intro screen. Setup itself does not change. <span class="tag dec">Tony · Sep 8</span></span></div>
     <div><b>7. A Campaign timeline card</b><span>On the launch confirmation and at the top of the Dashboard's right rail. <span class="tag dec">Tony · Sep 8</span> <span class="tag prop">design</span></span></div>
   </div>
 
@@ -214,7 +214,7 @@ NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
       <tbody>
         <tr><td>A1</td><td class="what">Ready tile title</td><td class="old">Campaign 1</td><td>Campaign 1 | October content. The month is the rule applied to today.</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag dec">Tony · Sep 29</span></td></tr>
         <tr><td>A2</td><td class="what">Ready tile copy</td><td class="old">Your next campaign is ready to launch.</td><td>Two lines, same style. Line 1 stays: "Your next campaign is ready to launch." Line 2 is new: "Creator content will start going live in October." Only the month changes from tile to tile.</td><td class="tags"><span class="tag copy">Copy</span><span class="tag be">BE</span><span class="tag dec">Tony · Sep 29, Julia · Oct 2</span></td></tr>
-        <tr><td>A3</td><td class="what">Button</td><td class="old">Launch now, opens the intro screen</td><td>Launch now, opens setup directly (see D).</td><td class="tags"><span class="tag fe">FE</span><span class="tag dec">Tony · Sep 8</span></td></tr>
+        <tr><td>A3</td><td class="what">Button</td><td class="old">Launch now, opens the intro screen</td><td>Launch now, opens setup directly and skips the intro screen ("Creator campaigns, made easy."). Setup itself does not change.</td><td class="tags"><span class="tag fe">FE</span><span class="tag dec">Tony · Sep 8</span></td></tr>
         <tr><td>A4</td><td class="what">Next campaign</td><td class="old">Not shown. The locked tile appears only when nothing is ready.</td><td>Always shown under the ready tile: Campaign 2 | November content, "Unlocks Oct 8.", "in 30 days". Its month is the rule applied to its unlock date.</td><td class="tags"><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
         <tr><td>A5</td><td class="what">Countdown pill</td><td class="old">Sits 72px in from the right edge</td><td>Same right edge and width as the Launch now button above it.</td><td class="tags"><span class="tag fe">FE</span><span class="tag dec">Julia · Oct 1</span></td></tr>
         <tr><td>A6</td><td class="what">Page subtitle</td><td class="old">Manage your active campaigns and creator relationships.</td><td>Each campaign shows the month its content starts going live. Manage your active campaigns and creator relationships.</td><td class="tags"><span class="tag copy">Copy</span><span class="tag prop">Proposed</span></td></tr>
@@ -259,26 +259,8 @@ NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
     </table></div>
   </section>
 
-  <section class="screen" id="s-setup">
-    <div class="head"><span class="letter">D</span><h3>Setup, after pressing Launch now</h3><p>Prod opens on an intro screen that promises "Content in days, not weeks", then setup. The new design drops the intro and adds one sentence to setup.</p></div>
-    <div class="pair trio">
-      <figure><figcaption>Prod today, screen 1 <a href="./nf/step1?model=campaigns">Open</a></figcaption><div class="crop" data-src="nf/step1?model=campaigns&embed=1" data-sel=".flow-screen--intro" data-maxh="560"></div></figure>
-      <figure><figcaption>Prod today, screen 2 <a href="./nf/step2?model=campaigns">Open</a></figcaption><div class="crop" data-src="nf/step2?model=campaigns&embed=1" data-sel=".setup-shell" data-maxh="560"></div></figure>
-      <figure class="new"><figcaption>New design, first screen <a href="./nf/months?rev=after&day=signed">Open</a></figcaption><div class="crop" data-src="nf/step2?model=months&rev=after&mnum=1&mmonth=October&mtoday=2026-09-08&embed=1" data-sel=".setup-shell" data-maxh="560"></div></figure>
-    </div>
-    <div class="tablewrap changes"><table>
-      <thead><tr><th></th><th>What</th><th>Prod today</th><th>New</th><th></th></tr></thead>
-      <tbody>
-        <tr><td>D1</td><td class="what">Intro screen</td><td class="old">"Creator campaigns, made easy." with four promises and Get Started</td><td>Removed from this path. Launch now goes straight to setup.</td><td class="tags"><span class="tag fe">FE</span><span class="tag dec">Tony · Sep 8</span></td></tr>
-        <tr><td>D2</td><td class="what">Setup heading</td><td class="old">Set up your campaign</td><td>Set up your campaign. Unchanged.</td><td class="tags"><span class="tag dec">Julia · Oct 2</span></td></tr>
-        <tr><td>D3</td><td class="what">Setup sentence</td><td class="old">Choose the type of content and how you'd like to reward creators.</td><td>Creator content will start going live in October. Choose the type of content and how you'd like to reward creators.</td><td class="tags"><span class="tag copy">Copy</span><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
-        <tr><td>D4</td><td class="what">Month during setup</td><td class="old">Not applicable</td><td>Still the rule applied to today. If setup runs past the day the name changes, the month shown changes. The launch confirmation is what counts.</td><td class="tags"><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
-      </tbody>
-    </table></div>
-  </section>
-
   <section class="screen" id="s-launch">
-    <div class="head"><span class="letter">E</span><h3>Launch confirmation</h3><p>The moment the name freezes. The brand gets the name, the one date, and the one thing they control.</p></div>
+    <div class="head"><span class="letter">D</span><h3>Launch confirmation</h3><p>The moment the name freezes. The brand gets the name, the one date, and the one thing they control.</p></div>
     <div class="pair">
       <figure><figcaption>Prod today <a href="./nf/launched?model=campaigns">Open</a></figcaption><div class="crop" data-src="nf/launched?model=campaigns&embed=1" data-sel=".sourcing-queue-confirmation-shell" data-maxh="560" data-pad="16"></div></figure>
       <figure class="new"><figcaption>New design <a href="./nf/launched?model=months&rev=after&mnum=1&mmonth=October&mtoday=2026-09-08">Open</a></figcaption><div class="crop" data-src="nf/launched?model=months&rev=after&mnum=1&mmonth=October&mtoday=2026-09-08&embed=1" data-sel=".sourcing-queue-confirmation-shell" data-maxh="560" data-pad="16"></div></figure>
@@ -286,16 +268,16 @@ NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
     <div class="tablewrap changes"><table>
       <thead><tr><th></th><th>What</th><th>Prod today</th><th>New</th><th></th></tr></thead>
       <tbody>
-        <tr><td>E1</td><td class="what">Line under "Your campaign is live!"</td><td class="old">The campaign's title</td><td>Campaign 1 | October content · the title</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
-        <tr><td>E2</td><td class="what">Timeline card</td><td class="old">None</td><td>New card under the hero: "First content expected", "Week of Oct 19", a "Week 1 of 8" pill, eight week segments, five phases (Match 1 week, Ship 2, Film 2, Review 1, Post 2).</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag dec">Julia · Sep 24</span></td></tr>
-        <tr><td>E3</td><td class="what">Quick tip</td><td class="old">None</td><td>"Quick tip: the biggest thing that speeds up your campaign is approving creators and content as soon as we send them over."</td><td class="tags"><span class="tag copy">Copy</span><span class="tag dec">Julia · Sep 24</span></td></tr>
-        <tr><td>E4</td><td class="what">Freeze the name</td><td class="old">Not applicable</td><td>At launch, store the month on the campaign next to <code>launched_at</code>. From here on it is read, never recomputed.</td><td class="tags"><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
+        <tr><td>D1</td><td class="what">Line under "Your campaign is live!"</td><td class="old">The campaign's title</td><td>Campaign 1 | October content · the title</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
+        <tr><td>D2</td><td class="what">Timeline card</td><td class="old">None</td><td>New card under the hero: "First content expected", "Week of Oct 19", a "Week 1 of 8" pill, eight week segments, five phases (Match 1 week, Ship 2, Film 2, Review 1, Post 2).</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag dec">Julia · Sep 24</span></td></tr>
+        <tr><td>D3</td><td class="what">Quick tip</td><td class="old">None</td><td>"Quick tip: the biggest thing that speeds up your campaign is approving creators and content as soon as we send them over."</td><td class="tags"><span class="tag copy">Copy</span><span class="tag dec">Julia · Sep 24</span></td></tr>
+        <tr><td>D4</td><td class="what">Freeze the name</td><td class="old">Not applicable</td><td>At launch, store the month on the campaign next to <code>launched_at</code>. From here on it is read, never recomputed.</td><td class="tags"><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
       </tbody>
     </table></div>
   </section>
 
   <section class="screen" id="s-dash">
-    <div class="head"><span class="letter">F</span><h3>Campaign page, Dashboard tab</h3><p>Oct 5, week 4. The Dashboard itself stays exactly as shipped: the percent line, the stage rail, the Creators card, Recent activity, Up next. One card is added and the header changes.</p></div>
+    <div class="head"><span class="letter">E</span><h3>Campaign page, Dashboard tab</h3><p>Oct 5, week 4. The Dashboard itself stays exactly as shipped: the percent line, the stage rail, the Creators card, Recent activity, Up next. One card is added and the header changes.</p></div>
     <div class="pair">
       <figure><figcaption>Prod today <a href="./nf/months/track?rev=before&day=week4">Open</a></figcaption><div class="crop" data-src="nf/months/track?rev=before&day=week4&embed=1" data-sel=".workflow-header, .am-progress, .am-rail" data-pad="16" data-maxh="640"></div></figure>
       <figure class="new"><figcaption>New design <a href="./nf/months/track?rev=after&day=week4">Open</a></figcaption><div class="crop" data-src="nf/months/track?rev=after&day=week4&embed=1" data-sel=".workflow-header, .am-progress, .am-rail" data-pad="16" data-maxh="640"></div></figure>
@@ -307,12 +289,12 @@ NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
     <div class="tablewrap changes"><table>
       <thead><tr><th></th><th>What</th><th>Prod today</th><th>New</th><th></th></tr></thead>
       <tbody>
-        <tr><td>F1</td><td class="what">Page title</td><td class="old">The campaign's title ("Fall Campaign")</td><td>An "October content" pill, then "Campaign 1".</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag dec">Julia · Sep 24</span></td></tr>
-        <tr><td>F2</td><td class="what">Campaign timeline card</td><td class="old">None</td><td>First card of the right rail, above Recent activity. "First content expected", "Week of Oct 19", one progress line, five phase labels. After the first post: "First content went live", "Oct 21".</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag dec">Tony · Sep 8</span></td></tr>
-        <tr><td>F3</td><td class="what">Progress line fill</td><td class="old">None</td><td>Five equal slots, one per phase. The fill ends inside the current phase: halfway for a one-week phase, a quarter then three quarters for a two-week phase. Full after week 8. It tracks the 8 weeks, not the first-content date.</td><td class="tags"><span class="tag fe">FE</span><span class="tag prop">Proposed</span></td></tr>
-        <tr><td>F4</td><td class="what">"See the full timeline"</td><td class="old">None</td><td>Expands in place. Each phase gets its dates from the launch date (week 1 = launch to launch + 6 days, and so on), the current one is marked Now, then "After week 8".</td><td class="tags"><span class="tag fe">FE</span><span class="tag dec">Tony · Sep 29</span></td></tr>
-        <tr><td>F5</td><td class="what">What the timeline claims</td><td class="old">None</td><td>It is the plan by calendar week. A phase is past, now or next by the week number only. It never reads creator stages, and it never turns red.</td><td class="tags"><span class="tag dec">Tony · Sep 8</span></td></tr>
-        <tr><td>F6</td><td class="what">Everything else</td><td class="old">Percent line, stage rail, Creators, Recent activity, Up next</td><td>Unchanged.</td><td class="tags"></td></tr>
+        <tr><td>E1</td><td class="what">Page title</td><td class="old">The campaign's title ("Fall Campaign")</td><td>An "October content" pill, then "Campaign 1".</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag dec">Julia · Sep 24</span></td></tr>
+        <tr><td>E2</td><td class="what">Campaign timeline card</td><td class="old">None</td><td>First card of the right rail, above Recent activity. "First content expected", "Week of Oct 19", one progress line, five phase labels. After the first post: "First content went live", "Oct 21".</td><td class="tags"><span class="tag fe">FE</span><span class="tag be">BE</span><span class="tag dec">Tony · Sep 8</span></td></tr>
+        <tr><td>E3</td><td class="what">Progress line fill</td><td class="old">None</td><td>Five equal slots, one per phase. The fill ends inside the current phase: halfway for a one-week phase, a quarter then three quarters for a two-week phase. Full after week 8. It tracks the 8 weeks, not the first-content date.</td><td class="tags"><span class="tag fe">FE</span><span class="tag prop">Proposed</span></td></tr>
+        <tr><td>E4</td><td class="what">"See the full timeline"</td><td class="old">None</td><td>Expands in place. Each phase gets its dates from the launch date (week 1 = launch to launch + 6 days, and so on), the current one is marked Now, then "After week 8".</td><td class="tags"><span class="tag fe">FE</span><span class="tag dec">Tony · Sep 29</span></td></tr>
+        <tr><td>E5</td><td class="what">What the timeline claims</td><td class="old">None</td><td>It is the plan by calendar week. A phase is past, now or next by the week number only. It never reads creator stages, and it never turns red.</td><td class="tags"><span class="tag dec">Tony · Sep 8</span></td></tr>
+        <tr><td>E6</td><td class="what">Everything else</td><td class="old">Percent line, stage rail, Creators, Recent activity, Up next</td><td>Unchanged.</td><td class="tags"></td></tr>
       </tbody>
     </table></div>
     <p class="note">The prototype has a second version of the progress bar (eight week segments) behind the TIMELINE BAR switch. The continuous line is the default; the pick is open.</p>
@@ -344,7 +326,7 @@ NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
       <tr><td class="q">December into January</td><td>The name is the month only, no year: "January content". A launch on Nov 13 (week 7 ends Jan 1) is January.</td><td><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Ready but not launched</td><td>Named for launching today, so the name moves forward by itself. No date, note or colour tells the brand. It freezes at launch.</td><td><span class="tag dec">Tony · Sep 29, Julia · Oct 1</span></td></tr>
       <tr><td class="q">Locked</td><td>Named for launching on its unlock date (<code>window_start_at</code>). On the day it unlocks it switches to "today" and reads the same.</td><td><span class="tag prop">Proposed</span></td></tr>
-      <tr><td class="q">Draft, setup started but not launched</td><td>Same as ready: named for today until <code>launched_at</code> exists. A draft that sits for two weeks can change month.</td><td><span class="tag prop">Proposed</span></td></tr>
+      <tr><td class="q">Draft, setup started but not launched</td><td>Same as ready: named for today until <code>launched_at</code> exists. A draft that sits for two weeks can change month. Setup does not show the month; the launch confirmation is where the brand reads the final name.</td><td><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Held campaign (state <code>saved</code>)</td><td>Same as ready: named for today. The one-held rule is untouched.</td><td><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Two campaigns with the same month</td><td>Allowed, no check. Happens after a late launch, or when a brand launches two campaigns a couple of weeks apart.</td><td><span class="tag dec">Julia · Oct 1</span></td></tr>
       <tr><td class="q">"Week of" Monday is in the month before</td><td>Launch Sep 20: first content Nov 1, shown "week of Oct 26" on a November campaign. Shown as is.</td><td><span class="tag prop">Proposed</span></td></tr>
@@ -370,7 +352,7 @@ NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
       <tr><td class="q">Lateness</td><td>No at-risk, behind or overdue states anywhere. <span class="tag dec">Tony · Sep 8</span></td></tr>
       <tr><td class="q">Planning months ahead</td><td>Not in this version. <span class="tag dec">Tony · Sep 8</span></td></tr>
       <tr><td class="q">The availability email</td><td>Still "Your next Benable campaign is ready to launch!" with "anytime in the next 30 days". Whether it should name the month is open.</td></tr>
-      <tr><td class="q">The rest of setup</td><td>Products, brief, creator matching: untouched.</td></tr>
+      <tr><td class="q">Setup</td><td>Every setup screen is untouched: type, products, brief, creator matching. Only the intro screen before it is skipped.</td></tr>
     </tbody>
   </table></div>
 
@@ -380,7 +362,7 @@ NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
     <tbody>
       <tr><td class="q">Show the locked tile next to a ready one?</td><td>Yes (A4). Tony's note lists "Campaign 1 | November content" and "Campaign 2 | December content" on one screen. It is the only change to the cadence code.</td><td>Julia</td></tr>
       <tr><td class="q">Status sentence under the card title, or keep the campaign title?</td><td>The sentence (B3). Keeping the title needs no new field.</td><td>Julia</td></tr>
-      <tr><td class="q">Is the campaign's own title still shown anywhere?</td><td>Only on the launch confirmation line (E1). It leaves the card and the page header.</td><td>Julia</td></tr>
+      <tr><td class="q">Is the campaign's own title still shown anywhere?</td><td>Only on the launch confirmation line (D1). It leaves the card and the page header.</td><td>Julia</td></tr>
       <tr><td class="q">First content at 6 weeks, named for week 7?</td><td>Yes (Julia, Oct 2). Tony set first content at 8 weeks on Sep 8, so he should confirm. A mid-September launch stays November content.</td><td>Tony</td></tr>
       <tr><td class="q">The expected week passes with nothing live: what does the brand read?</td><td>The same line, with the date now past. No late state.</td><td>Tony</td></tr>
       <tr><td class="q">Which timestamp is "first post live"?</td><td>The earliest <code>verified_live_at</code>, falling back to <code>live_link_submitted_at</code>.</td><td>Nisarg</td></tr>

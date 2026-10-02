@@ -171,15 +171,7 @@ function enhanceMonthsCopy(root, screen) {
       if (p) p.textContent = 'A campaign runs about eight weeks in all. Your first-content date is on your campaign page from the day you launch.';
     }
   }
-  if (screen === 'step2') {
-    // the heading stays production's "Set up your campaign" (Julia, Oct 2: no "Set up Campaign 1");
-    // only Tony's standard sentence (Sep 29) is added under it
-    const h1 = root.querySelector('.flow-heading--setup');
-    if (h1) {
-      const p = h1.nextElementSibling;
-      if (p && p.tagName === 'P') p.textContent = `Creator content will start going live in ${month}. Choose the type of content and how you'd like to reward creators.`;
-    }
-  }
+  // setup (step2) is exactly production's: no heading or sentence change (Julia, Oct 2)
   if (screen === 'launched' && !root.querySelector('.nf-months-launchpace')) {
     const hero = root.querySelector('.sourcing-queue-confirmation-hero');
     if (!hero) return;

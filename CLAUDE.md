@@ -53,8 +53,9 @@ backend diff, edge cases and open questions: **`public/months-before-after.html`
   plan by calendar week, never creator stages. No week pill in the head.
 - NewFlow months block: URL overrides `?model= ?embed= ?mmonth= ?mnum= ?mtoday=` (so the
   handoff page can frame the wizard and launch screen in both versions), `monthsRev()`
-  ('before' leaves the captured screens untouched), step2 keeps prod's heading "Set up your
-  campaign" (Julia, Oct 2: no "Set up Campaign 1") and adds the sentence under it,
+  ('before' leaves the captured screens untouched), setup (step2) is EXACTLY production's:
+  no heading change, no added sentence (Julia, Oct 2: no "Set up Campaign 1", then "remove
+  item D", the setup section of the handoff page), only the intro screen before it is skipped,
   launch line "Campaign N | {month} content · {title}", the Sep 24 launch timeline card + tip.
 - Deep links: `?rev= ?day=signed|week4|slip|landed ?tl=open ?bar= ?embed=1`.
 - OPEN (see the handoff page): locked tile next to a ready one (cadence change), status
