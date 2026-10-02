@@ -1,6 +1,6 @@
-/* Directions A + C inside the /nf production chrome. The overview and tracker
-   reuse production's own classes (campaign-card, opportunity, workflow-header,
-   phase-pill, dashboard tabs); everything added is nfm- and scoped here. */
+/* Months, not campaigns, inside the /nf production chrome. Both versions reuse production's
+   own classes (campaign-card, opportunity, workflow-header, phase-pill, dashboard tabs, and
+   the Campaign Pulse's am-/am2-/tf-/cp-); everything added for the new design is nfm-. */
 .nf .nf-months {
   --nfm-text: #1c1c1c; --nfm-text-2: #5b5b5b; --nfm-muted: #717171;
   --nfm-accent: #7a5cfa; --nfm-accent-wash: #f5f3ff; --nfm-ring: rgba(122, 92, 250, .28);
@@ -25,61 +25,23 @@
 /* production card, flowed instead of absolutely positioned so the pace line fits.
    Production doubles its hash classes (0,4,0), so these match that weight plus one
    or its min-height 180 + 80px bottom padding win and leave dead space. */
-.nf .nf-months .campaign-card.svelte-1fvpax8.svelte-1fvpax8 { display: flex; flex-direction: column; gap: 0; min-height: 0; padding: 20px; }
-.nf .nf-months .campaign-card .campaign-card__heading,
-.nf .nf-months .campaign-card .campaign-card__subtitle,
-.nf .nf-months .campaign-card .nfm-pace { padding-right: 56px; }
+.nf .nf-months .campaign-card.svelte-1fvpax8.svelte-1fvpax8:not(.nfm-prodcard) { display: flex; flex-direction: column; gap: 0; min-height: 0; padding: 20px; }
+.nf .nf-months .campaign-card:not(.nfm-prodcard) .campaign-card__heading,
+.nf .nf-months .campaign-card:not(.nfm-prodcard) .campaign-card__subtitle { padding-right: 56px; }
 /* month pill: production's pill is inline-flex, which eats the space before the dot */
 .nf .nf-months .campaign-card__date.svelte-1fvpax8.svelte-1fvpax8 { gap: 4px; }
 .nf .nf-months .campaign-card__date.svelte-1fvpax8 strong.svelte-1fvpax8 { margin-left: 0; }
-.nf .nf-months .campaign-card .campaign-card__progress-copy,
-.nf .nf-months .campaign-card .campaign-card__progress { position: static; right: auto; left: auto; bottom: auto; }
+.nf .nf-months .campaign-card:not(.nfm-prodcard) .campaign-card__progress { position: static; right: auto; left: auto; bottom: auto; }
 .nf .nf-months .campaign-card .nfm-bottom { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
 .nf .nf-months .campaign-card .nfm-meta { color: var(--nfm-muted); font-size: 14px; font-weight: 500; line-height: 1.35; padding-right: 56px; }
 .nf .nf-months .campaign-card .nfm-meta b { color: var(--nfm-text); font-weight: 600; }
-.nf .nf-months .campaign-card .campaign-card__progress { margin-top: 4px; }
-.nf .nf-months .campaign-card .campaign-card__subtitle { max-width: none; }
-.nf .nf-months .nfm-status { display: inline-flex; align-items: center; gap: 6px; }
-.nf .nf-months .nfm-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--nfm-info); flex: 0 0 auto; }
-.nf .nf-months .nfm-status.ok::before { background: var(--nfm-ok); }
-.nf .nf-months .nfm-status.warn { color: var(--nfm-warn); }
-.nf .nf-months .nfm-status.warn::before { background: var(--nfm-warn); }
-.nf .nf-months .nfm-pace { color: var(--nfm-muted); font-size: 13px; line-height: 1.35; }
-.nf .nf-months .nfm-pace b { color: var(--nfm-text-2); font-weight: 600; }
-.nf .nf-months .nfm-pace.warn, .nf .nf-months .nfm-pace.warn b { color: var(--nfm-warn); }
+.nf .nf-months .campaign-card:not(.nfm-prodcard) .campaign-card__progress { margin-top: 4px; }
+.nf .nf-months .campaign-card:not(.nfm-prodcard) .campaign-card__subtitle { max-width: none; }
 .nf .nf-months .campaign-card__open svg { width: 20px; height: 20px; }
 
-/* badges on the next-month tile */
-.nf .nf-months .nfm-badge { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border-radius: 8px; font-size: 12px; font-weight: 600; line-height: 1; }
-.nf .nf-months .nfm-badge.open { background: var(--nfm-accent-wash); color: var(--nfm-accent); }
-.nf .nf-months .nfm-badge.warn { background: var(--nfm-warn-wash); color: var(--nfm-warn); }
-.nf .nf-months .nfm-badge.ok { background: var(--nfm-ok-wash); color: var(--nfm-ok); }
 .nf .nf-months .opportunity__action-copy > p b { color: var(--nfm-text-2); font-weight: 600; }
 
-/* queueable months (nothing is locked) */
-.nf .nf-months .opportunity.nfm-queue { border-style: dashed; background: var(--nfm-pill); }
-.nf .nf-months .opportunity.nfm-queued { border-color: var(--nfm-ring); background: linear-gradient(135deg, var(--nfm-tint-a), var(--nfm-tint-b)); }
-.nf .nf-months .opportunity.nfm-compact { padding: 14px 16px; }
-.nf .nf-months .opportunity.nfm-compact h2 { font-size: 18px; }
-.nf .nf-months .opportunity.nfm-compact p { font-size: 13px; margin-top: 6px; }
-.nf .nf-months .opportunity.nfm-compact .opportunity__action { min-width: 0; min-height: 36px; font-size: 13px; padding: 0 16px; }
 .nf .nf-months .opportunity__action { border: 0; cursor: pointer; }
-.nf .nf-months .opportunity__action.nfm-ghost { background: #fff; color: var(--nfm-text); border: 1px solid var(--nfm-border); }
-.nf .nf-months .nfm-qnote { display: block; margin-top: 6px; color: var(--nfm-text); font-size: 14px; }
-.nf .nf-months .nfm-queue-form { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; max-width: 62ch; }
-.nf .nf-months .nfm-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.nf .nf-months .nfm-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border: 1px solid var(--nfm-border); border-radius: 999px; background: #fff; color: var(--nfm-text-2); font-size: 12px; font-weight: 500; }
-.nf .nf-months .nfm-chip.on { border-color: var(--nfm-accent); background: var(--nfm-accent-wash); color: var(--nfm-accent); }
-.nf .nf-months .nfm-chip.on::before { content: "\2713"; font-weight: 700; }
-.nf .nf-months .nfm-note { width: 100%; border: 1px solid var(--nfm-border); border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 13px; color: var(--nfm-text); background: #fff; resize: vertical; min-height: 44px; }
-.nf .nf-months .nfm-note:focus { outline: 3px solid var(--nfm-ring); outline-offset: 1px; border-color: var(--nfm-accent); }
-.nf .nf-months .nfm-actions { display: flex; align-items: center; gap: 8px; }
-.nf .nf-months .nfm-btn { border: 0; border-radius: 999px; background: var(--nfm-accent); color: #fff; font-size: 12px; font-weight: 700; padding: 9px 14px; line-height: 1.2; white-space: nowrap; }
-.nf .nf-months .nfm-txt { border: 0; background: transparent; color: var(--nfm-muted); font-size: 13px; font-weight: 500; padding: 8px 6px; }
-.nf .nf-months .nfm-txt:hover { color: var(--nfm-text); }
-.nf .nf-months .nfm-txt.accent { color: var(--nfm-accent); font-weight: 600; padding-left: 0; }
-.nf .nf-months .nfm-more { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.nf .nf-months .nfm-more-toggle { margin-top: 4px; }
 
 /* tracker: production header + the pace card */
 .nf .nf-months .nfm-track { padding: 60px 0 0; height: auto; min-height: 100%; overflow: visible; }
@@ -87,47 +49,6 @@
 .nf .nf-months .nfm-track .workflow-header { padding: 12px 20px 0; }
 .nf .nf-months .nfm-monthpill { margin-right: 4px; }
 .nf .nf-months .workflow-header-backlink .icon svg { display: block; }
-.nf .nf-months .nfm-pace-card { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px; border-radius: 20px; border: 1px solid var(--nfm-ring); background: linear-gradient(135deg, var(--nfm-tint-a), var(--nfm-tint-b)); }
-.nf .nf-months .nfm-pace-card.warn { border-color: rgba(168, 83, 33, .25); background: linear-gradient(135deg, rgba(255, 240, 206, .45), rgba(255, 240, 206, .9)); }
-.nf .nf-months .nfm-pace-top { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.nf .nf-months .nfm-stat .k { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--nfm-muted); }
-.nf .nf-months .nfm-stat .v { font-size: 24px; font-weight: 800; letter-spacing: -.3px; line-height: 1.15; margin-top: 4px; color: var(--nfm-text); }
-.nf .nf-months .nfm-stat .v.ok { color: var(--nfm-ok); }
-.nf .nf-months .nfm-stat .v.warn { color: var(--nfm-warn); }
-.nf .nf-months .nfm-stat .s { font-size: 13px; color: var(--nfm-muted); margin-top: 4px; }
-.nf .nf-months .nfm-stat .s b { color: var(--nfm-text-2); font-weight: 600; }
-.nf .nf-months .nfm-steps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
-.nf .nf-months .nfm-step { border-top: 3px solid var(--nfm-track); padding-top: 8px; min-width: 0; }
-.nf .nf-months .nfm-step b { display: block; font-size: 12px; font-weight: 600; color: var(--nfm-text); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nf .nf-months .nfm-step span { display: block; font-size: 12px; color: var(--nfm-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nf .nf-months .nfm-step.done { border-top-color: var(--nfm-ok-b); }
-.nf .nf-months .nfm-step.now { border-top-color: var(--nfm-text); }
-.nf .nf-months .nfm-step.late { border-top-color: var(--nfm-warn); }
-.nf .nf-months .nfm-step.late span { color: var(--nfm-warn); }
-.nf .nf-months .nfm-why { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; background: rgba(255, 255, 255, .7); font-size: 13px; color: #555; line-height: 1.5; }
-.nf .nf-months .nfm-why b { color: var(--nfm-text); font-weight: 600; }
-.nf .nf-months .nfm-av { width: 28px; height: 28px; border-radius: 50%; background: var(--nfm-pill); color: var(--nfm-text-2); font-weight: 600; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; border: 1px solid #ebebeb; }
-.nf .nf-months .nfm-av.k { background: var(--nfm-accent-wash); color: var(--nfm-accent); border-color: transparent; font-weight: 700; font-size: 12px; }
-.nf .nf-months .nfm-panel { margin-top: 16px; padding: 24px; border-radius: 20px; border: 1px solid rgba(228, 228, 228, .95); background: #fff; box-shadow: 0 14px 40px rgba(23, 23, 23, .06); }
-.nf .nf-months .nfm-panel h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--nfm-text); }
-.nf .nf-months .nfm-panel .sub { margin: 0 0 12px; font-size: 13px; color: var(--nfm-muted); }
-.nf .nf-months .nfm-tbl-wrap { overflow-x: auto; }
-.nf .nf-months .nfm-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-.nf .nf-months .nfm-tbl th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--nfm-muted); padding: 0 10px 10px 0; border-bottom: 1px solid #ebebeb; }
-.nf .nf-months .nfm-tbl td { padding: 10px 10px 10px 0; border-bottom: 1px solid #ebebeb; vertical-align: middle; }
-.nf .nf-months .nfm-tbl tr:last-child td { border-bottom: 0; }
-.nf .nf-months .nfm-tbl td.r, .nf .nf-months .nfm-tbl th.r { text-align: right; }
-.nf .nf-months .nfm-who { display: flex; align-items: center; gap: 10px; }
-.nf .nf-months .nfm-who b { font-weight: 600; color: var(--nfm-text); }
-.nf .nf-months .nfm-who span { color: var(--nfm-muted); font-size: 12px; }
-.nf .nf-months .nfm-st { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
-.nf .nf-months .nfm-st::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--nfm-muted); }
-.nf .nf-months .nfm-st.done::before { background: var(--nfm-ok-b); }
-.nf .nf-months .nfm-st.now::before { background: var(--nfm-info); }
-.nf .nf-months .nfm-st.late { color: var(--nfm-warn); }
-.nf .nf-months .nfm-st.late::before { background: var(--nfm-warn); }
-.nf .nf-months .nfm-when { color: var(--nfm-muted); font-variant-numeric: tabular-nums; }
-.nf .nf-months .nfm-when.warn { color: var(--nfm-warn); font-weight: 500; }
 
 .nf .nf-months .nfm-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(8px); z-index: 320; background: #111114; color: #e6e6ea; font-size: 13px; padding: 10px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease; max-width: min(90vw, 520px); }
 .nf .nf-months .nfm-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -156,43 +77,102 @@
   .nf .nf-months-launchpace .lp-phases span { font-size: 11px; }
 }
 
-/* the campaign page: creators on the left, the timeline box top right (Tony, Sep 8) */
-.nf .nf-months .nfm-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; margin-top: 16px; }
-.nf .nf-months .nfm-grid .nfm-panel { margin-top: 0; }
-.nf .nf-months .nfm-rail { display: flex; flex-direction: column; gap: 16px; }
-.nf .nf-months .nfm-timeline { padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(228, 228, 228, .95); background: #fff; box-shadow: 0 14px 40px rgba(23, 23, 23, .06); }
-.nf .nf-months .nfm-timeline__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.nf .nf-months .nfm-timeline__head h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--nfm-text); }
-.nf .nf-months .nfm-info { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--nfm-muted); font-size: 12px; font-weight: 500; padding: 4px 6px; border-radius: 8px; }
-.nf .nf-months .nfm-info:hover { color: var(--nfm-text); background: var(--nfm-pill); }
-.nf .nf-months .nfm-timeline__week { margin-top: 10px; font-size: 13px; color: var(--nfm-text-2); }
-.nf .nf-months .nfm-timeline__week b { color: var(--nfm-text); font-weight: 600; }
-.nf .nf-months .nfm-timeline__bar { height: 8px; border-radius: 999px; background: var(--nfm-track); overflow: hidden; margin-top: 8px; }
-.nf .nf-months .nfm-timeline__bar span { display: block; height: 100%; border-radius: inherit; background: var(--nfm-accent); opacity: .7; }
-.nf .nf-months .nfm-timeline__first { margin-top: 14px; font-size: 15px; color: var(--nfm-text-2); line-height: 1.35; }
-.nf .nf-months .nfm-timeline__first b { color: var(--nfm-text); font-weight: 700; }
-.nf .nf-months .nfm-timeline__sub { margin-top: 6px; font-size: 12.5px; color: var(--nfm-muted); line-height: 1.4; }
-.nf .nf-months .nfm-railcard { padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(228, 228, 228, .95); background: #fff; box-shadow: 0 14px 40px rgba(23, 23, 23, .06); }
-.nf .nf-months .nfm-railcard h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--nfm-text); }
-.nf .nf-months .nfm-railcard p { margin: 0; font-size: 13px; color: #555; line-height: 1.5; }
 .nf .nf-months .campaign-card__progress.nfm-weeks span { background: var(--nfm-accent); opacity: .55; }
 
-/* the (i) popup */
-.nf .nf-months .nfm-scrim { position: fixed; inset: 0; z-index: 310; background: rgba(17, 17, 20, .45); display: grid; place-items: center; padding: 24px; }
-.nf .nf-months .nfm-pop { width: min(560px, 100%); max-height: 85vh; overflow: auto; background: #fff; border-radius: 20px; padding: 22px 24px; box-shadow: 0 20px 48px rgba(0, 0, 0, .18); font-family: Inter, -apple-system, sans-serif; }
-.nf .nf-months .nfm-pop__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.nf .nf-months .nfm-pop__head h3 { margin: 0; font-size: 18px; font-weight: 700; color: var(--nfm-text); }
-.nf .nf-months .nfm-pop__close { border: 0; background: var(--nfm-pill); width: 32px; height: 32px; border-radius: 50%; font-size: 13px; color: var(--nfm-text-2); }
-.nf .nf-months .nfm-pop p { margin: 0 0 14px; font-size: 14px; color: var(--nfm-text-2); line-height: 1.5; }
-.nf .nf-months .nfm-pop__tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-.nf .nf-months .nfm-pop__tbl th { text-align: left; width: 120px; font-weight: 600; color: var(--nfm-text); padding: 9px 12px 9px 0; border-bottom: 1px solid #ebebeb; vertical-align: top; white-space: nowrap; }
-.nf .nf-months .nfm-pop__tbl td { padding: 9px 0; border-bottom: 1px solid #ebebeb; color: var(--nfm-text-2); }
-.nf .nf-months .nfm-pop__tbl tr:last-child th, .nf .nf-months .nfm-pop__tbl tr:last-child td { border-bottom: 0; }
 
-@media (max-width: 1100px) { .nf .nf-months .nfm-grid { grid-template-columns: 1fr; } }
+/* ---------- Tony, Sep 29 (the 'after' revision) ---------- */
+/* "Campaign 1 | November content": the number leads at the title's own weight, a hairline
+   stands in for the pipe, the month follows a step quieter. Wraps as two units, never mid-phrase. */
+.nf .nf-months .nfm-title { display: flex; flex-wrap: wrap; align-items: center; column-gap: 12px; row-gap: 0; }
+.nf .nf-months .nfm-title .nfm-div { width: 1.5px; height: .78em; background: currentColor; opacity: .22; border-radius: 1px; flex: 0 0 auto; }
+.nf .nf-months .nfm-title .nfm-mo { font-weight: 600; opacity: .72; white-space: nowrap; }
+.nf .nf-months .opportunity--locked .nfm-title .nfm-div { opacity: .5; }
+.nf .nf-months .opportunity--locked .nfm-title .nfm-mo { opacity: .9; }
+/* the countdown pill lines up with "Launch now" on the tile above it: same right edge, same
+   width (Julia, Oct 1). Production parks it 72px in from the right, on no shared axis. */
+.nf .nf-months .opportunity--locked.nfm-locked .opportunity__countdown.svelte-75h9ek.svelte-75h9ek.svelte-75h9ek { right: 20px; min-width: 146px; text-align: center; box-sizing: border-box; }
+
+/* the timeline widget: small, and it expands in place into the full dated timeline */
+.nf .nf-months .nfm-tl .nfm-tl__body { padding: 16px 20px 6px; }
+.nf .nf-months .nfm-tl__compact { cursor: pointer; }
+.nf .nf-months .nfm-tl__k { font-size: 13px; font-weight: 500; color: var(--nfm-muted); }
+/* the date sits in the rail's own type scale (Julia, Oct 1: 22px/800 read "cartoony" next to
+   Recent activity's 13px notes): 16px/600, one step above the card title's 14px */
+.nf .nf-months .nfm-tl__v { margin-top: 2px; font-size: 16px; font-weight: 600; letter-spacing: -.1px; line-height: 1.3; color: var(--nfm-text); }
+.nf .nf-months .nfm-tl__track,
+.nf .nf-months .nfm-tl__phases { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+.nf .nf-months .nfm-tl__track { margin-top: 14px; }
+.nf .nf-months .nfm-tl__track span { height: 6px; border-radius: 999px; background: var(--nfm-track); }
+.nf .nf-months .nfm-tl__track span.done { background: var(--nfm-accent); opacity: .38; }
+.nf .nf-months .nfm-tl__track span.now { background: var(--nfm-accent); }
+.nf .nf-months .nfm-tl__phases { margin-top: 8px; }
+/* the continuous version (Julia, Oct 1): the Sep 24 box's single bar, phases still under it */
+.nf .nf-months .nfm-tl__line { height: 6px; margin-top: 14px; border-radius: 999px; background: var(--nfm-track); overflow: hidden; }
+.nf .nf-months .nfm-tl__line span { display: block; height: 100%; border-radius: inherit; background: var(--nfm-accent); opacity: .7; }
+/* labels are centered in their slot (Julia, Oct 1: left-aligned in the uneven week grid read as
+   "weirdly spaced": Match and Ship touched, the rest floated). Segments: the slot is the phase's own
+   weeks. Line: five equal slots, so the labels are evenly spaced. "Match" owns one week in Segments
+   (about 38px in the rail), so labels may run into the gap rather than truncate. */
+.nf .nf-months .nfm-tl__phases.nfm-tl__phases--even { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+.nf .nf-months .nfm-tl__phases span { font-size: 12px; font-weight: 500; color: var(--nfm-muted); white-space: nowrap; letter-spacing: -.1px; text-align: center; }
+.nf .nf-months .nfm-tl__phases span.now { color: var(--nfm-text); font-weight: 600; }
+.nf .nf-months .nfm-tl__toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 14px; padding: 12px 0 10px; border: 0; border-top: 1px solid #ebebeb; background: transparent; color: var(--nfm-text-2); font-size: 13px; font-weight: 600; text-align: left; }
+.nf .nf-months .nfm-tl__toggle:hover { color: var(--nfm-text); }
+.nf .nf-months .nfm-tl .nfm-tl__toggle { border-radius: 0; box-shadow: none; }
+.nf .nf-months .nfm-tl .nfm-tl__toggle:focus:not(:focus-visible) { outline: none; box-shadow: none; }
+.nf .nf-months .nfm-tl .nfm-tl__toggle:focus-visible { outline: 3px solid var(--nfm-ring); outline-offset: 2px; border-radius: 8px; }
+.nf .nf-months .nfm-tl__toggle svg { transition: transform .2s ease; }
+.nf .nf-months .nfm-tl.is-open .nfm-tl__toggle svg { transform: rotate(180deg); }
+.nf .nf-months .nfm-tl__full { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s ease; }
+.nf .nf-months .nfm-tl__full > div { overflow: hidden; min-height: 0; visibility: hidden; transition: visibility 0s .26s; }
+.nf .nf-months .nfm-tl.is-open .nfm-tl__full { grid-template-rows: 1fr; }
+.nf .nf-months .nfm-tl.is-open .nfm-tl__full > div { visibility: visible; transition-delay: 0s; }
+.nf .nf-months .nfm-tl__steps { list-style: none; margin: 0; padding: 4px 0 0; }
+.nf .nf-months .nfm-tl__steps li { position: relative; display: grid; grid-template-columns: 12px minmax(0, 1fr); column-gap: 12px; padding-bottom: 14px; }
+.nf .nf-months .nfm-tl__steps li::before { content: ""; position: absolute; left: 5px; top: 14px; bottom: -4px; width: 2px; border-radius: 1px; background: var(--nfm-track); }
+.nf .nf-months .nfm-tl__steps li.done::before { background: var(--nfm-accent); opacity: .3; }
+.nf .nf-months .nfm-tl__steps li:last-child { padding-bottom: 4px; }
+.nf .nf-months .nfm-tl__steps li:last-child::before { display: none; }
+.nf .nf-months .nfm-tl__dot { position: relative; z-index: 1; width: 12px; height: 12px; margin-top: 3px; border-radius: 50%; background: #fff; border: 2px solid #d5d7da; }
+.nf .nf-months .nfm-tl__steps li.done .nfm-tl__dot { background: #c9bdfd; border-color: #c9bdfd; }
+.nf .nf-months .nfm-tl__steps li.now .nfm-tl__dot { background: var(--nfm-accent); border-color: var(--nfm-accent); box-shadow: 0 0 0 4px var(--nfm-accent-wash); }
+.nf .nf-months .nfm-tl__row { display: flex; align-items: center; gap: 8px; min-height: 18px; }
+.nf .nf-months .nfm-tl__row b { font-size: 13.5px; font-weight: 600; color: var(--nfm-text); }
+.nf .nf-months .nfm-tl__steps li.done .nfm-tl__row b { color: var(--nfm-text-2); }
+.nf .nf-months .nfm-tl__now { display: inline-flex; align-items: center; min-height: 18px; padding: 0 7px; border-radius: 999px; background: var(--nfm-accent-wash); color: var(--nfm-accent); font-size: 11px; font-weight: 700; }
+.nf .nf-months .nfm-tl__dates { margin-left: auto; font-size: 12px; color: var(--nfm-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nf .nf-months .nfm-tl .nfm-tl__steps p { margin: 2px 0 0; font-size: 13px; line-height: 1.4; color: var(--nfm-muted); }
+.nf .nf-months .nfm-tl__steps li.now p { color: var(--nfm-text-2); }
+/* spacing restated at card weight: the Dashboard's `p { margin: 0 }` reset was flattening it, which left
+   6px above the divider, 15 below and 9 under the text (Julia, Oct 1: "padding underneath is a bit wrong").
+   Now even above and below the divider, and the same breathing room under the text as Recent activity */
+.nf .nf-months .nfm-tl .nfm-tl__note { margin: 8px 0 14px; padding-top: 12px; border-top: 1px solid #ebebeb; font-size: 12.5px; line-height: 1.45; color: var(--nfm-muted); text-wrap: balance; }
+@media (prefers-reduced-motion: reduce) {
+  .nf .nf-months .nfm-tl__full, .nf .nf-months .nfm-tl__full > div, .nf .nf-months .nfm-tl__toggle svg { transition: none; }
+}
+
+/* The Dashboard as production ships it (Campaign Pulse on pulse.css), inside the captured chrome.
+   Same fix-ups as content-handoff-study/surface.html: the captured CSS carries
+   `.nf :where(.workflow-page) button` and friends, so the pulse's own sizes are restated here. */
+.nf .nf-months .stage-top-card.nfm-dash { background: #f9fafb; padding: 20px 24px 8px; margin-top: 16px; }
+.nf .nf-months .nfm-dash .nfm-pulse { margin: 0 0 16px; }
+.nf .nf-months .nfm-dash .am2-bar { height: 40px; }
+.nf .nf-months .nfm-dash .am-row { height: 64px; padding: 0 20px; cursor: pointer; }
+.nf .nf-months .nfm-dash .am-card, .nf .nf-months .nfm-dash .am-progress, .nf .nf-months .nfm-dash .am-row { animation: none; }
+.nf .nf-months .nfm-dash p { margin: 0; }
+.nf .nf-months .nfm-dash .cp-celebrate-emoji { margin-right: 6px; }
+/* the captured chrome fades every disabled button; production's done and empty slabs are full strength */
+.nf .nf-months .nfm-dash .am2-bar:disabled { opacity: 1; }
+
+/* embedded frames of the wizard and launch screen (NewFlow sets the class on <html>): the NPS ask is
+   another proposal, not part of prod or of this change, so it stays out of the comparison */
+html.nf-embed [data-nf-nps] { display: none !important; }
+
+/* ?embed=1 (the before/after page's frames): no black bars above, so no clearance for them */
+.nf .nf-months.nfm-embed .campaign-overview.nfm-overview { padding-top: 40px !important; }
+.nf .nf-months.nfm-embed .nfm-track { padding-top: 8px; }
+
 
 @media (max-width: 900px) {
   .nf .nf-months .campaign-overview.nfm-overview { padding: 104px 16px 48px !important; }
-  .nf .nf-months .nfm-more { grid-template-columns: 1fr; }
-  .nf .nf-months .nfm-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }

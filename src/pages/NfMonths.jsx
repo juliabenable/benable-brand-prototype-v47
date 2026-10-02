@@ -1,29 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { NF_SHELL } from '../data/newFlowHtml.js';
 import { forks } from '../components/pulse/forks.js';
 import NfForkBar from './NfForkBar.jsx';
-import { createMonths, DAYS } from '../months/monthsEngine.js';
+import { createMonths, DAYS, REVS } from '../months/monthsEngine.js';
 import '../styles/pulse.css';
 import '../styles/months.css';
 
 /*
- * /nf/months and /nf/months/track — directions A + C from the Sep 8 study
- * "October, On Track": the campaigns overview relabeled by content month with a
- * count of promised and a pace line, and the tracker with the pace line as its
- * hero. Same captured chrome as the rest of /nf (NF_SHELL header + sidebar,
- * content inside production's .workspace-content-shell). Fully wired:
- * "Start my campaign" / "Launch now" hand off to the REAL wizard at setup
- * (/nf/step2, the intro screen is skipped per Tony), whose copy NewFlow patches
- * in months mode; the wizard's back links and the launch screen's "Campaigns"
- * return here. V1 as settled on the Sep 8 Tony call: same blocks, new syntax,
- * one date (first content expected), a Campaign timeline box, no lateness states.
+ * /nf/months and /nf/months/track: "months, not campaigns" in the real captured chrome
+ * (NF_SHELL header + sidebar, content inside production's .workspace-content-shell).
+ *
+ * VERSION (second black bar): Prod today = what the brand portal shows now, New design =
+ * the change. Both are rendered by months/monthsEngine.js (its header has the sources and
+ * the decisions). "Launch now" hands off to the REAL captured wizard: prod opens on the
+ * intro screen (/nf/step1), the new design goes straight to setup (/nf/step2); NewFlow
+ * patches the copy in months mode and its back links return here.
+ *
+ * Deep links: ?rev=before|after, ?day=signed|week4|slip|landed, ?tl=open (timeline
+ * expanded), ?bar=line|segments (the timeline card's progress bar), ?embed=1 (no black
+ * bars, nothing written to storage: the handoff page's frames).
+ * Engineering handoff with the two versions side by side: public/months-before-after.html
  */
 export default function NfMonths({ screen = 'overview' }) {
   const navigate = useNavigate();
   const mountRef = useRef(null);
   const engineRef = useRef(null);
   const [day, setDayState] = useState('week4');
+  const [rev, setRevState] = useState('after');
+  const [bar, setBarState] = useState('line');
+  const [params] = useSearchParams();
+  const embed = params.has('embed');
 
   const go = (next) => navigate('/nf/' + next);
 
@@ -31,15 +38,16 @@ export default function NfMonths({ screen = 'overview' }) {
     const el = mountRef.current;
     if (!el) return undefined;
     const engine = createMonths(el, {
-      onRender: (k) => setDayState(k),
+      init: { rev: params.get('rev'), day: params.get('day'), tl: params.get('tl'), bar: params.get('bar'), embed },
+      onRender: (k, _screen, r, b) => { setDayState(k); setRevState(r); setBarState(b); },
       onOpen: () => navigate('/nf/months/track'),
       onBack: () => navigate('/nf/months'),
-      onPlan: (month, todayISO) => {
-        // the real captured wizard, intro screen skipped (Tony, Sep 8): straight to setup,
-        // already named for the month (NewFlow.jsx patches the copy); the prototype's
-        // "today" rides along so the launch screen dates from it, not the real clock
-        if (typeof window !== 'undefined' && window.__nfLive) Object.assign(window.__nfLive, { monthsTarget: month, monthsToday: todayISO });
-        navigate('/nf/step2');
+      onPlan: ({ month, todayISO, number, rev: planRev }) => {
+        // the real captured wizard. Prod opens on the intro screen; the new design skips it
+        // (Tony, Sep 8) and goes straight to setup, already named (NewFlow patches the copy).
+        // The prototype's "today" rides along so the launch screen dates from it, not the real clock
+        if (typeof window !== 'undefined' && window.__nfLive) Object.assign(window.__nfLive, { monthsTarget: month, monthsToday: todayISO, monthsNumber: number });
+        navigate(planRev === 'before' ? '/nf/step1' : '/nf/step2');
       },
     });
     engineRef.current = engine;
@@ -81,15 +89,28 @@ export default function NfMonths({ screen = 'overview' }) {
             <div style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: NF_SHELL.sidebar }} />
             <main className="workspace-content svelte-187rxgr" aria-busy="false">
               <div className="workspace-content-shell svelte-187rxgr">
-                <div className="nf-months" ref={mountRef} />
+                <div className={embed ? 'nf-months nfm-embed' : 'nf-months'} ref={mountRef} />
               </div>
             </main>
           </div>
           <div style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: NF_SHELL.backdrop }} />
         </div>
       </div>
-      <NfForkBar go={go} />
-      <div className="cp-mode cp-mode--opts nf-forkbar nf-roster-days" role="group" aria-label="Months day">
+      {!embed && <NfForkBar go={go} />}
+      {!embed && (
+      <div className="cp-mode cp-mode--opts nf-forkbar nf-roster-days" role="group" aria-label="Months version and day">
+        <span className="cp-scrub-tag">VERSION</span>
+        {REVS.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={rev === key ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'}
+            onClick={() => engineRef.current?.setRev(key)}
+          >
+            {label}
+          </button>
+        ))}
+        <span className="cp-mode-sep" aria-hidden />
         <span className="cp-scrub-tag">TODAY IS</span>
         {DAYS.map(([key, label]) => (
           <button
@@ -101,7 +122,24 @@ export default function NfMonths({ screen = 'overview' }) {
             {label}
           </button>
         ))}
+        {rev === 'after' && screen === 'track' && (
+          <>
+            <span className="cp-mode-sep" aria-hidden />
+            <span className="cp-scrub-tag">TIMELINE BAR</span>
+            {[['line', 'Line'], ['segments', 'Segments']].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={bar === key ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'}
+                onClick={() => engineRef.current?.setBar(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </>
+        )}
       </div>
+      )}
     </>
   );
 }

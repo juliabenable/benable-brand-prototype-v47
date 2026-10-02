@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { NF_SHELL, NF_STATES } from '../data/newFlowHtml.js';
 import NfForkBar from './NfForkBar.jsx';
 import { forks } from '../components/pulse/forks.js';
+import { monthsRev } from '../months/monthsEngine.js';
 import { setPulseDay } from '../components/pulse/CampaignPulse.jsx';
 import '../styles/newflow-extra.css';
 import '../styles/newflow-production.css';
@@ -144,16 +145,25 @@ const LAUNCHED_FAMILY = new Set(['launched', 'launched-content', 'overview-after
    screen names the month being planned, and the launch confirmation carries the
    two pace dates. The month comes from the /nf/months overview (LIVE.monthsTarget). */
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const monthsMode = () => forks.get('model') === 'months';
+/* URL overrides (?model= ?embed= ?mmonth= ?mnum= ?mtoday=) let the handoff page frame the wizard
+   and the launch screen in both versions side by side without touching the shared forks store */
+const qs = () => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+const isEmbed = () => qs().has('embed');
+const monthsMode = () => (qs().get('model') ? qs().get('model') === 'months' : forks.get('model') === 'months');
 function enhanceMonthsCopy(root, screen) {
-  if (!root || !monthsMode()) return;
-  const month = LIVE.monthsTarget || 'November';
-  // 8-week baseline (Tony, Sep 8): first content expected 56 days after launch
+  if (typeof document !== 'undefined') document.documentElement.classList.toggle('nf-embed', isEmbed());
+  // "Prod today" on the Months page (rev = before) leaves the captured production screens untouched
+  if (!root || !monthsMode() || monthsRev() === 'before') return;
+  const q = qs();
+  const month = LIVE.monthsTarget || q.get('mmonth') || 'November';
+  const number = LIVE.monthsNumber || Number(q.get('mnum')) || 1;
+  const todayISO = LIVE.monthsToday || q.get('mtoday');
+  // 8-week baseline (Tony, Sep 8): first content expected 56 days after launch, shown as the week's Monday;
   // dated from the Months page's "Today is" day when launched from there, else the real clock
-  const d = LIVE.monthsToday ? new Date(LIVE.monthsToday + 'T12:00:00') : new Date(); d.setDate(d.getDate() + 56); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const d = todayISO ? new Date(todayISO + 'T12:00:00') : new Date(); d.setDate(d.getDate() + 56); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   const firstWeek = `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()]} ${d.getDate()}`;
   if (screen === 'step1') {
-    // the intro is skipped in months mode (the overview tile is the start); kept honest if reached directly
+    // the intro is skipped in the new design (the overview tile is the start); kept honest if reached directly
     const feat = [...root.querySelectorAll('.intro-feature strong')].find((s) => /Content in days/.test(s.textContent));
     if (feat) {
       feat.textContent = 'First content in about eight weeks';
@@ -162,18 +172,19 @@ function enhanceMonthsCopy(root, screen) {
     }
   }
   if (screen === 'step2') {
+    // number tracking + Tony's standard sentence (Sep 29)
     const h1 = root.querySelector('.flow-heading--setup');
     if (h1) {
-      h1.textContent = `Set up your ${month} campaign`;
+      h1.textContent = `Set up Campaign ${number}`;
       const p = h1.nextElementSibling;
-      if (p && p.tagName === 'P') p.textContent = `First content is expected about eight weeks after you launch. Choose the type of content and how you'd like to reward creators.`;
+      if (p && p.tagName === 'P') p.textContent = `Creator content will start going live in ${month}. Choose the type of content and how you'd like to reward creators.`;
     }
   }
   if (screen === 'launched' && !root.querySelector('.nf-months-launchpace')) {
     const hero = root.querySelector('.sourcing-queue-confirmation-hero');
     if (!hero) return;
     const copy = hero.querySelector('.sourcing-queue-confirmation-copy p');
-    if (copy && !/content ·/.test(copy.textContent)) copy.textContent = `${month} content · ${copy.textContent}`;
+    if (copy && !/content ·/.test(copy.textContent)) copy.textContent = `Campaign ${number} | ${month} content · ${copy.textContent}`;
     const el = document.createElement('section');
     el.className = 'nf-months-launchpace';
     el.setAttribute('aria-label', 'Campaign timeline');
@@ -1358,7 +1369,7 @@ export default function NewFlow() {
     </div>
       {/* fork switchboard — OUTSIDE .nf so the captured chrome's resets
           never restyle the pulse pill */}
-      <NfForkBar go={go} />
+      {!isEmbed() && <NfForkBar go={go} />}
     </>
   );
 }

@@ -5,39 +5,51 @@
 https://juliabenable.github.io/benable-brand-prototype-v47/
 Deploy: `bash scripts/ship.sh "msg"`. v46 stays frozen at its own URL.
 
-## /nf/months + /nf/months/track — the Months version, V1 per the Sep 8 Tony call
+## /nf/months + /nf/months/track — months, not campaigns: PROD TODAY vs NEW DESIGN (Oct 1 2026)
 
-Settled on the 7:30pm call "Selling Months not Campaigns, first pass" (Julia + Tony,
-Sep 8): keep the existing blocks, change the syntax. `src/pages/NfMonths.jsx` (shell +
-fork bar + three-day bar: Sep 8 signed / Oct 5 week 4 of 8 / Nov 10 first content in),
-engine `src/months/monthsEngine.js`, `src/styles/months.css` scoped `.nf .nf-months`.
-The overview REUSES production's own classes with svelte hashes (`campaign-card
-svelte-1fvpax8`, `opportunity svelte-75h9ek` incl. the real locked gradient tile,
-`overview-* svelte-9w8so5`); the campaign page reuses the launch screen's
-`workflow-header` / `phase-pill` / `workflow-dashboard-tab`.
-- THE RULE (in `timeline()`): first_content_expected = launch + 56 days shown as
-  "week of {Monday}"; week_of_8 = floor(days/7)+1 ("Week 9 · long tail" after);
-  content_month = month of first_content_expected. One date only, no "all by".
-- Overview card: "November content · launched Sep 10" pill, production subtitle =
-  what is happening now, progress copy "Week 4 of 8" (soft accent bar) before first
-  content and "3 of 10 live" (green) after, line "First content expected the week of
-  Nov 9". Next tile: production's ready ("Launch now") or locked ("unlocks in N
-  days", untouched cadence) tiles labeled by month. First campaign: "Start my
-  campaign" opens setup DIRECTLY (/nf/step2; the intro screen is skipped, Tony).
-- Campaign page: creators table left, right rail = "Campaign timeline" box
-  ("Currently week 4 of 8", bar, "First content expected week of Nov 9", (i) More
-  info -> popup with the 8-week explainer + 7-row week table; Esc/scrim closes) and
-  an "Up next" card. No pace-vs-plan, no behind/at-risk, no reds (Tony: keep
-  lateness out for now; revisit in 2-3 weeks for PCA's November deadline).
-- NewFlow months mode (`enhanceMonthsCopy`, when forks.model === 'months'): step2
-  "Set up your November campaign" + "First content is expected about eight weeks
-  after you launch..."; launch screen gets the Campaign timeline line ("Week 1 of 8
-  · first content expected week of ...") and "November content · {campaign}"; step1
-  (reachable only by URL now) says "First content in about eight weeks". Back links
-  and the sidebar return to /nf/months in months mode.
-- Not built on purpose: queueing months ahead (unlocks unchanged), fast mode (rush
-  fee + auto-approve, Tony's later idea), lateness states.
-- MODEL fork = Campaigns | Months | Roster.
+`src/pages/NfMonths.jsx` (shell + fork bar + second black bar), engine
+`src/months/monthsEngine.js`, `src/styles/months.css` (`.nf .nf-months`, new classes `nfm-`).
+Engineering handoff for Nisarg with both versions side by side, the rule, worked dates,
+backend diff, edge cases and open questions: **`public/months-before-after.html`**
+(live: /benable-brand-prototype-v47/months-before-after.html). Keep it in step with the engine.
+
+- VERSION switch (`?rev=before|after`): **Prod today** = what production shows now, rebuilt
+  from capture 01 (card "Launched September 10 / Campaign 1 / {title} / 54% Complete", ready
+  tile "Campaign N / Your next campaign is ready to launch.", locked tile ONLY when nothing is
+  ready, campaign page h1 = the title + the shipped Campaign Pulse) and from the backend at
+  origin/master (OverviewService, CadenceService, TrackerQuery). **New design** = the change.
+  The Sep 24 version Tony saw in the Loom is commit 0ac265a.
+- THE RULE (`timeline()` / `monthOf()`): first_content_expected = launch + 56 days (Tony,
+  Sep 8), shown as "week of {Monday}"; content_month = its month, EXCEPT in the last 4 days
+  of the month, then the next month (`CUTOFF_DAYS = 4`, Julia, Oct 1); week = floor(days/7)+1.
+  Ready tile = as if launched today (so it relabels by itself, Tony Sep 29), locked tile = as
+  if launched on its unlock date, frozen at launch. Two campaigns may share a month; no
+  launch-by line and no slip note on the tile; product campaigns only (all Julia, Oct 1).
+- Days: Sep 8 signed / Oct 5 week 4 / **Nov 5 Campaign 2 not launched** (first content Dec 31
+  = January by the cut-off; Campaign 3 unlocks Nov 8 and is January too) / Nov 10 first content in.
+- New design, overview: tiles "Campaign 1 | November content" (`title()`, number + hairline +
+  month; TILES ONLY, cards keep "Campaign N" with the month in the pill: Julia Oct 1 "he just
+  didn't like that before Launching we dropped the Campaign number"), sentence "Creator content
+  will start going live in {month}." (Tony Sep 29), "Launch now" opens setup directly
+  (/nf/step2; prod opens /nf/step1), locked tile always shown under a ready one ("Unlocks Oct
+  8.", countdown pill aligned to the button's right edge and width). Card: pill "{month} content
+  · launched Sep 10", status line from stage counts (`statusLine()`, PROPOSED), then "Week 4 of 8
+  · first content expected the week of Nov 2" or "3 of 10 live · first on Nov 4".
+- New design, campaign page: month pill + "Campaign N"; the Dashboard is production's Campaign
+  Pulse (`pulse()`, ported from content-handoff-study/surface.html; root class `nfm-pulse`,
+  NEVER `cp-root`: overrides.css `:has(.cp-root)` unlocks page scroll) plus ONE new card first
+  in the right rail: **Campaign timeline** (`timelineCard()`): date at 16px/600, progress
+  (TIMELINE BAR switch, `?bar=line|segments`, default Line = five equal phase slots), "See the
+  full timeline" expands in place (class flip) into dated phases with a Now marker. It is the
+  plan by calendar week, never creator stages. No week pill in the head.
+- NewFlow months block: URL overrides `?model= ?embed= ?mmonth= ?mnum= ?mtoday=` (so the
+  handoff page can frame the wizard and launch screen in both versions), `monthsRev()`
+  ('before' leaves the captured screens untouched), step2 "Set up Campaign N" + the sentence,
+  launch line "Campaign N | {month} content · {title}", the Sep 24 launch timeline card + tip.
+- Deep links: `?rev= ?day=signed|week4|slip|landed ?tl=open ?bar= ?embed=1`.
+- OPEN (see the handoff page): locked tile next to a ready one (cadence change), status
+  sentence vs campaign title, week 9 with nothing live, Tony's Sep 8 "Sep 20 launch =
+  December" (the rule says November), which timestamp is "first post live", line vs segments.
 
 ## /nf/roster — direction E, the always-on roster (Sep 8 2026)
 
