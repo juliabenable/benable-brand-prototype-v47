@@ -23,15 +23,17 @@ backend diff, edge cases and open questions: **`public/months-before-after.html`
   of 8") and first_content_expected = launch + 42 days (`FIRST_CONTENT_WEEKS = 6`; Julia, Oct
   2, from: match about 1 week, ship about 2, 10 days to film, about 1 week to review and
   post. REPLACES Tony's Sep 8 "first content at 8 weeks", so names are a month earlier than
-  he has been saying: OPEN with Tony). Shown as "week of {Monday}"; content_month = its
-  month, EXCEPT in the last 4 days of the month, then the next month (`CUTOFF_DAYS = 4`,
-  Julia, Oct 1); week = floor(days/7)+1. Phases: Match 1 · Ship 2-3 · Film 4-5 · Review 6 ·
+  he has been saying: OPEN with Tony). Shown as "week of {Monday}". content_month = the month
+  of WEEK 7 = month of launch + 49 days (`NAME_WEEKS = 7`; Julia, Oct 2: "week 6 will have the
+  first content, and most will be on week 7 and 8"). This REPLACED the Oct 1 "last 4 days"
+  cut-off (no CUTOFF_DAYS any more): first content in the last 7 days of a month is already
+  named for the next month. week = floor(days/7)+1. Phases: Match 1 · Ship 2-3 · Film 4-5 · Review 6 ·
   Post 7-8 (same split on the launch card).
   Ready tile = as if launched today (so it relabels by itself, Tony Sep 29), locked tile = as
   if launched on its unlock date, frozen at launch. Two campaigns may share a month; no
   launch-by line and no slip note on the tile; product campaigns only (all Julia, Oct 1).
-- Days: Sep 8 signed / Oct 5 week 4 / **Oct 19 Campaign 2 not launched** (first content Nov 30
-  = December by the cut-off; Campaign 3 unlocks Nov 8 and is December too) / Oct 28 first
+- Days: Sep 8 signed / Oct 5 week 4 / **Oct 19 Campaign 2 not launched** (first content the
+  week of Nov 30, week 7 ends Dec 7 = December; Campaign 3 unlocks Nov 8 and is December too) / Oct 28 first
   content in (Campaign 1 week 7 with 3 live, Campaign 2 week 3).
 - New design, overview: tiles "Campaign 1 | November content" (`title()`, number + hairline +
   month; TILES ONLY, cards keep "Campaign N" with the month in the pill: Julia Oct 1 "he just

@@ -17,8 +17,8 @@
    Decided: one date ("first content expected"), no lateness states, monthly unlocks
    untouched (Tony, Sep 8) · the campaign is 8 weeks in TOTAL and first content is expected
    at 6 weeks (Julia, Oct 2; replaces the Sep 8 "first content at 8 weeks") · "Campaign 1 | November content" on tiles
-   before launch, "Launch now", the standard sentence (Tony, Sep 29) · month-end cut-off
-   of 4 days, two campaigns may share a month, no launch-by line on the tile, product
+   before launch, "Launch now", the standard sentence (Tony, Sep 29) · the name is
+   the month of week 7, two campaigns may share a month, no launch-by line on the tile, product
    campaigns only (Julia, Oct 1). */
 
 export const REVS = [
@@ -39,28 +39,29 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
    the same function and a table of worked dates):
      launch_date            = launched_at in the organization's cadence time zone. Before
                               launch: today for a ready tile, the unlock date for a locked one.
-     first_content_expected = launch_date + 42 days (6 weeks). Julia, Oct 2, from the steps:
+     campaign length        = 8 weeks in total ("Week 4 of 8").
+     first_content_expected = launch_date + 6 weeks (42 days). Julia, Oct 2, from the steps:
                               about 1 week to match and accept, about 2 weeks to ship, 10 days
-                              to film, about 1 week to review and post.
-     campaign length        = 8 weeks in total ("Week 4 of 8"); posts keep going live in
-                              weeks 7 and 8.
-     shown as               = "week of {the Monday of that week}"
-     content_month          = the month first_content_expected falls in, EXCEPT when it falls
-                              in the last 4 days of that month: then the next month
-                              (Julia, Oct 1: first content Nov 29 is a December campaign)
+                              to film, about 1 week to review and post. Shown as
+                              "week of {the Monday of that week}".
+     content_month          = the month of WEEK 7: the month it is 7 weeks (49 days) after
+                              launch. Julia, Oct 2: "week 6 will have the first content, and
+                              most will be on week 7 and 8". Week 7's last day is the middle
+                              of the two weeks when most posts go live, so the name is the
+                              month holding most of that window. This replaces the Oct 1
+                              "last 4 days of the month" cut-off: first content in the last
+                              week of a month already takes the next month's name.
      week                   = floor((today - launch_date) / 7) + 1
    Before launch the month is recomputed every day, so a campaign that is not launched
    moves to the next month by itself (Tony, Sep 29). At launch it freezes. */
 export const WEEKS = 8;
 export const FIRST_CONTENT_WEEKS = 6;
-export const CUTOFF_DAYS = 4;
+export const NAME_WEEKS = 7;
 const DAY = 86400000;
 const SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const fmt = (d) => `${SHORT[d.getMonth()]} ${d.getDate()}`;
 const at = (iso) => new Date(iso + 'T12:00:00');
 const mondayOf = (d) => { const m = new Date(d); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return m; };
-const daysInMonth = (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-const monthOf = (first) => MONTHS[(first.getMonth() + (first.getDate() > daysInMonth(first) - CUTOFF_DAYS ? 1 : 0)) % 12];
 export function timeline(launchISO, todayISO) {
   const launch = at(launchISO);
   const first = new Date(launch.getTime() + FIRST_CONTENT_WEEKS * 7 * DAY);
@@ -70,7 +71,7 @@ export function timeline(launchISO, todayISO) {
     launch: fmt(launch),
     launchLong: `${MONTHS[launch.getMonth()]} ${launch.getDate()}`,
     first_content: fmt(mondayOf(first)),
-    content_month: monthOf(first),
+    content_month: MONTHS[new Date(launch.getTime() + NAME_WEEKS * 7 * DAY).getMonth()],
     week,
     pct: Math.min(100, Math.round((Math.min(week, WEEKS) / WEEKS) * 100)),
   };
@@ -148,8 +149,8 @@ const DB = {
   },
   /* Tony, Sep 29: "if they slip in launching we'll need to change the months e.g. Dec to Jan".
      Campaign 2 has been ready since Oct 8 (November content then) and is still not launched
-     on Oct 19. Launched today, first content is expected Nov 30: inside the last 4 days of
-     November, so the cut-off names it December. Campaign 3 unlocks Nov 8 and is December too
+     on Oct 19. Launched today, first content is expected the week of Nov 30 and week 7 ends
+     Dec 7, so it is December content. Campaign 3 unlocks Nov 8 and is December too
      (two campaigns may share a month; the numbers tell them apart). A branch of its own:
      on the Oct 28 day Campaign 2 was launched Oct 12. */
   slip: {

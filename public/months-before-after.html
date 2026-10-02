@@ -110,7 +110,7 @@
   <div class="eyebrow">Brand portal · engineering handoff</div>
   <h1>Months, not campaigns: prod today vs the new design</h1>
   <p class="intro">Brands buy months of content, so each campaign is now named for the month its creator content starts going live. Nothing about how campaigns unlock or run changes. What changes is a name, one date, and a small timeline card. Every frame below is the live prototype: the left one renders what production shows today, the right one the new design.</p>
-  <p class="intro"><span class="tag dec">Updated Oct 2</span> The campaign is 8 weeks in total and first content is expected at week 6 (Julia). Before, first content was set at week 8. Every date, name and frame on this page uses the new timing.</p>
+  <p class="intro"><span class="tag dec">Updated Oct 2</span> The campaign is 8 weeks in total, first content is expected at week 6, and the campaign is named for the month of week 7, when most posts are going live (Julia). Before, first content was set at week 8. Every date, name and frame on this page uses the new timing.</p>
   <div class="live">
     <a class="is-new" href="./nf/months?rev=after&day=signed">Open the prototype, new design</a>
     <a href="./nf/months?rev=before&day=signed">Open the prototype, prod today</a>
@@ -124,7 +124,7 @@
   <div class="glance">
     <div><b>1. A month name on every campaign</b><span>"October content", from the rule below. Before launch it sits in the tile title next to the number. <span class="tag dec">Tony · Sep 8, Sep 29</span></span></div>
     <div><b>2. The name moves until launch</b><span>A ready campaign that is not launched is renamed by itself as days pass. It freezes at launch. <span class="tag dec">Tony · Sep 29</span></span></div>
-    <div><b>3. Month-end cut-off</b><span>First content expected in the last 4 days of a month takes the next month's name. <span class="tag dec">Julia · Oct 1</span></span></div>
+    <div><b>3. Named for week 7</b><span>The name is the month it is 7 weeks after launch, when most posts are going live. First content can land a few days before that month starts. <span class="tag dec">Julia · Oct 2</span></span></div>
     <div><b>4. One date instead of a percent</b><span>Cards say "Week 4 of 8, first content expected the week of Oct 19", then "3 of 10 live". <span class="tag dec">Tony · Sep 8</span></span></div>
     <div><b>5. The next campaign is always visible</b><span>The locked tile shows next to a ready one. Prod shows it only when nothing is ready. <span class="tag prop">Proposed</span></span></div>
     <div><b>6. Setup opens directly</b><span>The intro screen goes. "Launch now" lands on setup, with one new sentence. <span class="tag dec">Tony · Sep 8</span></span></div>
@@ -138,25 +138,24 @@
       <h3>In words</h3>
       <ol class="steps">
         <li><b>Launch date.</b> The day the campaign was launched, in the brand's own time zone. Before launch: today for a ready campaign, the unlock date for a locked one.</li>
-        <li><b>First content expected</b> = launch date + 42 days. Six weeks. <span class="tag dec">Julia · Oct 2</span></li>
-        <li><b>The campaign is 8 weeks in total.</b> Posts keep going live in weeks 7 and 8. <span class="tag dec">Julia · Oct 2</span></li>
-        <li><b>Shown as</b> "week of" the Monday of that week, never as a single day.</li>
-        <li><b>Month name</b> = the month that date falls in. <b>Exception:</b> if it falls in the last 4 days of the month, use the next month. <span class="tag dec">Julia · Oct 1</span></li>
+        <li><b>The campaign is 8 weeks in total.</b> <span class="tag dec">Julia · Oct 2</span></li>
+        <li><b>First content expected</b> = launch date + 6 weeks (42 days). Shown as "week of" the Monday of that week, never as a single day. <span class="tag dec">Julia · Oct 2</span></li>
+        <li><b>Month name</b> = the month of week 7: the month it is 7 weeks (49 days) after launch. Week 6 has the first content, most posts go live in weeks 7 and 8, and the end of week 7 is the middle of those two weeks. <span class="tag dec">Julia · Oct 2</span></li>
+        <li><b>No separate month-end rule.</b> This replaces the Oct 1 "last 4 days" cut-off: when first content lands in the last week of a month, the name is already the next month.</li>
         <li><b>Week</b> = whole weeks since launch, plus one. Shown as "Week 4 of 8", against the 8-week total.</li>
         <li><b>Freeze at launch.</b> Until then the name is recomputed every day.</li>
       </ol>
 <pre style="margin-top:14px"><span class="c"># proposed home: CampaignOverview::ContentMonth (no such code exists today)</span>
 CAMPAIGN_WEEKS      = 8    <span class="c"># "Week 4 of 8"</span>
 FIRST_CONTENT_WEEKS = 6
-CUTOFF_DAYS         = 4
+NAME_WEEKS          = 7    <span class="c"># the month of week 7</span>
 
 <span class="k">def</span> timeline(launch_date, today)
   first = launch_date + FIRST_CONTENT_WEEKS * 7   <span class="c"># first_content_expected_on</span>
-  late  = first.day > first.end_of_month.day - CUTOFF_DAYS
   {
     first_content_expected_on: first,
     week_of:       first.beginning_of_week(:monday),   <span class="c"># "week of Oct 19"</span>
-    content_month: (late ? first.next_month : first).beginning_of_month,
+    content_month: (launch_date + NAME_WEEKS * 7).beginning_of_month,
     week_number:   (today - launch_date).to_i / 7 + 1  <span class="c"># 1, 2 ... 8, then 9 ...</span>
   }
 <span class="k">end</span>
@@ -169,12 +168,12 @@ CUTOFF_DAYS         = 4
     <div class="box">
       <h3>Try a launch date</h3>
       <div class="calc">
-        <label for="launch">Launch date</label><input id="launch" type="date" value="2026-10-16">
+        <label for="launch">Launch date</label><input id="launch" type="date" value="2026-10-13">
       </div>
       <dl class="calc" style="margin-top:14px">
         <dt>First content expected</dt><dd id="o-first"></dd>
         <dt>Shown to the brand as</dt><dd id="o-week"></dd>
-        <dt>Days left in that month</dt><dd id="o-left"></dd>
+        <dt>Week 7 ends (7 weeks after launch)</dt><dd id="o-left"></dd>
         <dt>Campaign name</dt><dd id="o-name" class="big"></dd>
         <dd id="o-why" class="why"></dd>
       </dl>
@@ -189,15 +188,15 @@ CUTOFF_DAYS         = 4
         </tbody>
       </table></div>
       <p class="note">Julia, Oct 2. This replaces the Sep 8 call's "first content at 8 weeks".</p>
-      <h3 style="margin-top:22px">What the 4 days mean for launches</h3>
-      <p class="note" style="margin-top:0">Counted on the first-content date, not the launch date. "Last 4 days" follows the real length of the month: the 28th to 31st in a 31-day month, the 27th to 30th in a 30-day month, the 25th to 28th in February (26th to 29th in a leap year).</p>
+      <h3 style="margin-top:22px">When the name and the first content differ</h3>
+      <p class="note" style="margin-top:0">Only when first content is expected in the last 7 days of a month. Then first content lands at the end of one month and the campaign is named for the next, where weeks 7 and 8 fall.</p>
     </div>
   </div>
 
   <h3 id="examples" style="margin-top:36px">Worked dates</h3>
-  <p class="lede">Computed on this page with the same function. Purple rows are where the cut-off changes the name.</p>
+  <p class="lede">Computed on this page with the same function. Purple rows are where first content lands the month before the name.</p>
   <div class="tablewrap"><table id="examples-table">
-    <thead><tr><th>Launch</th><th>First content expected</th><th>Shown as</th><th>Without the cut-off</th><th>Campaign name</th><th>Why it is here</th></tr></thead>
+    <thead><tr><th>Launch</th><th>First content expected</th><th>Shown as</th><th>Week 7 ends</th><th>Campaign name</th><th>Why it is here</th></tr></thead>
     <tbody></tbody>
   </table></div>
 
@@ -245,7 +244,7 @@ CUTOFF_DAYS         = 4
   </section>
 
   <section class="screen" id="s-late">
-    <div class="head"><span class="letter">C</span><h3>A campaign that is launched late</h3><p>Oct 19. Campaign 2 has been ready since Oct 8, when it read November content. Launched today, first content is expected Nov 30, inside the last 4 days of November, so it is December content. Campaign 3 unlocks in 20 days and is December too.</p></div>
+    <div class="head"><span class="letter">C</span><h3>A campaign that is launched late</h3><p>Oct 19. Campaign 2 has been ready since Oct 8, when it read November content. Launched today, first content is expected the week of Nov 30 and week 7 ends Dec 7, so it is December content. Campaign 3 unlocks in 20 days and is December too.</p></div>
     <div class="pair">
       <figure><figcaption>Prod today <a href="./nf/months?rev=before&day=slip">Open</a></figcaption><div class="crop" data-src="nf/months?rev=before&day=slip&embed=1" data-sel=".overview-header, .campaign-group__cards"></div></figure>
       <figure class="new"><figcaption>New design <a href="./nf/months?rev=after&day=slip">Open</a></figcaption><div class="crop" data-src="nf/months?rev=after&day=slip&embed=1" data-sel=".overview-header, .campaign-group__cards"></div></figure>
@@ -273,7 +272,7 @@ CUTOFF_DAYS         = 4
         <tr><td>D1</td><td class="what">Intro screen</td><td class="old">"Creator campaigns, made easy." with four promises and Get Started</td><td>Removed from this path. Launch now goes straight to setup.</td><td class="tags"><span class="tag fe">FE</span><span class="tag dec">Tony · Sep 8</span></td></tr>
         <tr><td>D2</td><td class="what">Setup heading</td><td class="old">Set up your campaign</td><td>Set up your campaign. Unchanged.</td><td class="tags"><span class="tag dec">Julia · Oct 2</span></td></tr>
         <tr><td>D3</td><td class="what">Setup sentence</td><td class="old">Choose the type of content and how you'd like to reward creators.</td><td>Creator content will start going live in October. Choose the type of content and how you'd like to reward creators.</td><td class="tags"><span class="tag copy">Copy</span><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
-        <tr><td>D4</td><td class="what">Month during setup</td><td class="old">Not applicable</td><td>Still the rule applied to today. If setup runs past the cut-off, the month shown changes. The launch confirmation is what counts.</td><td class="tags"><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
+        <tr><td>D4</td><td class="what">Month during setup</td><td class="old">Not applicable</td><td>Still the rule applied to today. If setup runs past the day the name changes, the month shown changes. The launch confirmation is what counts.</td><td class="tags"><span class="tag be">BE</span><span class="tag prop">Proposed</span></td></tr>
       </tbody>
     </table></div>
   </section>
@@ -325,7 +324,7 @@ CUTOFF_DAYS         = 4
     <thead><tr><th>Piece</th><th>Today</th><th>Add or change</th><th></th></tr></thead>
     <tbody>
       <tr><td class="q">Overview payload<br><span class="mono" style="font-weight:400">CampaignOverview::OverviewService</span></td><td><code>active_campaigns[]</code>: id, number, display_number, title, status, launched_at, progress_percent.<br><code>opportunities[]</code>: number, display_number, state (available, saved, locked, draft), window_start_at, window_end_at, unlocks_in_days.<br><code>cadence</code>: mode, server_now, timezone, anchor_at, next_unlock_at.</td><td>On each active campaign: <code>content_month</code>, <code>first_content_expected_on</code>, <code>week_number</code>, <code>creators_count</code>, <code>live_count</code>, <code>first_live_on</code>, <code>status_line</code>.<br>On each opportunity: <code>content_month</code>.</td><td class="tags"><span class="tag prop">Proposed names</span></td></tr>
-      <tr><td class="q">Where the name is stored</td><td>Nothing. <code>launched_at</code> is set once in <code>Commands::Campaigns::Transition.publish</code> and never reset.</td><td>Write <code>content_month</code> on the campaign in the same place, at the same time. Storing it means a later change to the 6 weeks or the 4 days never renames a campaign that is already running.</td><td class="tags"><span class="tag prop">Proposed</span></td></tr>
+      <tr><td class="q">Where the name is stored</td><td>Nothing. <code>launched_at</code> is set once in <code>Commands::Campaigns::Transition.publish</code> and never reset.</td><td>Write <code>content_month</code> on the campaign in the same place, at the same time. Storing it means a later change to the 6 or 7 weeks never renames a campaign that is already running.</td><td class="tags"><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Time zone</td><td><code>organizations.campaign_cadence_time_zone</code>, default America/New_York. Rails itself runs in UTC.</td><td>Take "today" and the launch date in that zone, on the server. The name of a ready campaign then changes at the brand's midnight, and the browser never computes it.</td><td class="tags"><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Locked tile<br><span class="mono" style="font-weight:400">CadenceService#monthly_opportunities_for</span></td><td>A locked slot is returned only when nothing is available or saved and there are no drafts.</td><td>Also return the next locked window when a campaign is ready, so the tile in A4 has data. The unlock rules themselves do not change.</td><td class="tags"><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">First live post</td><td>No field. Live posts (<code>BrandCollabCampaignLivePost</code>) have no posted date. Assignments have <code>verified_live_at</code> and <code>live_link_submitted_at</code>.</td><td><code>first_live_on</code> = the earliest of those across the campaign's assignments. <code>live_count</code> = assignments at the published slot or later.</td><td class="tags"><span class="tag open">Nisarg to pick the field</span></td></tr>
@@ -340,9 +339,9 @@ CUTOFF_DAYS         = 4
   <div class="tablewrap"><table>
     <thead><tr><th>Case</th><th>What happens</th><th></th></tr></thead>
     <tbody>
-      <tr><td class="q">First content lands in the last 4 days of a month</td><td>The campaign takes the next month's name. Launch Oct 16: first content Nov 27, named December. Launch Oct 15: Nov 26, named November.</td><td><span class="tag dec">Julia · Oct 1</span></td></tr>
-      <tr><td class="q">Short and long months</td><td>"Last 4 days" uses the real month length. February: the 25th to 28th, or 26th to 29th in a leap year.</td><td><span class="tag prop">Proposed</span></td></tr>
-      <tr><td class="q">December into January</td><td>The name is the month only, no year: "January content". A launch on Nov 19 (first content Dec 31) is January.</td><td><span class="tag prop">Proposed</span></td></tr>
+      <tr><td class="q">First content lands in the last week of a month</td><td>The campaign has the next month's name, because week 7 ends there. Launch Oct 13: first content Nov 24, week 7 ends Dec 1, named December. Launch Oct 12: week 7 ends Nov 30, named November. The tile's sentence "will start going live in December" is then a few days late on the first post; shown as is.</td><td><span class="tag dec">Julia · Oct 2</span></td></tr>
+      <tr><td class="q">The Oct 1 "last 4 days" cut-off</td><td>Gone. Naming by week 7 covers it: first content on Nov 29 is still a December campaign.</td><td><span class="tag dec">Julia · Oct 2</span></td></tr>
+      <tr><td class="q">December into January</td><td>The name is the month only, no year: "January content". A launch on Nov 13 (week 7 ends Jan 1) is January.</td><td><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Ready but not launched</td><td>Named for launching today, so the name moves forward by itself. No date, note or colour tells the brand. It freezes at launch.</td><td><span class="tag dec">Tony · Sep 29, Julia · Oct 1</span></td></tr>
       <tr><td class="q">Locked</td><td>Named for launching on its unlock date (<code>window_start_at</code>). On the day it unlocks it switches to "today" and reads the same.</td><td><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Draft, setup started but not launched</td><td>Same as ready: named for today until <code>launched_at</code> exists. A draft that sits for two weeks can change month.</td><td><span class="tag prop">Proposed</span></td></tr>
@@ -358,7 +357,7 @@ CUTOFF_DAYS         = 4
       <tr><td class="q">Completed campaigns</td><td>Keep their name. The Completed tab is not redesigned here.</td><td><span class="tag prop">Proposed</span></td></tr>
       <tr><td class="q">Local and gift card campaigns</td><td>No month name, no timeline card. They stay exactly as today (<code>collab_type: local</code>, <code>reward_type: gift_card</code>). The 6 and 8 weeks describe the product flow.</td><td><span class="tag dec">Julia · Oct 1</span></td></tr>
       <tr><td class="q">Brands without monthly billing</td><td>Cadence mode "unrestricted" always has one ready slot. It is named for today like any ready campaign.</td><td><span class="tag prop">Proposed</span></td></tr>
-      <tr><td class="q">Names are a month earlier than Tony's</td><td>On Sep 8 Tony set first content at 8 weeks, called a mid-September launch November content and a Sep 20 launch December. With first content at 6 weeks they are October and November.</td><td><span class="tag open">Tony to confirm</span></td></tr>
+      <tr><td class="q">Against what Tony has said</td><td>On Sep 8 Tony set first content at 8 weeks; it is now 6. His names mostly hold: a mid-September launch is still November content. Two differ: a launch on or before Sep 12 is October content, and a Sep 20 launch is November where he said December.</td><td><span class="tag open">Tony to confirm</span></td></tr>
     </tbody>
   </table></div>
 
@@ -382,7 +381,7 @@ CUTOFF_DAYS         = 4
       <tr><td class="q">Show the locked tile next to a ready one?</td><td>Yes (A4). Tony's note lists "Campaign 1 | November content" and "Campaign 2 | December content" on one screen. It is the only change to the cadence code.</td><td>Julia</td></tr>
       <tr><td class="q">Status sentence under the card title, or keep the campaign title?</td><td>The sentence (B3). Keeping the title needs no new field.</td><td>Julia</td></tr>
       <tr><td class="q">Is the campaign's own title still shown anywhere?</td><td>Only on the launch confirmation line (E1). It leaves the card and the page header.</td><td>Julia</td></tr>
-      <tr><td class="q">First content at 6 weeks, and names a month earlier?</td><td>Yes (Julia, Oct 2). A mid-September launch is October content. Tony had it as November.</td><td>Tony</td></tr>
+      <tr><td class="q">First content at 6 weeks, named for week 7?</td><td>Yes (Julia, Oct 2). Tony set first content at 8 weeks on Sep 8, so he should confirm. A mid-September launch stays November content.</td><td>Tony</td></tr>
       <tr><td class="q">The expected week passes with nothing live: what does the brand read?</td><td>The same line, with the date now past. No late state.</td><td>Tony</td></tr>
       <tr><td class="q">Which timestamp is "first post live"?</td><td>The earliest <code>verified_live_at</code>, falling back to <code>live_link_submitted_at</code>.</td><td>Nisarg</td></tr>
       <tr><td class="q">Store the month at launch, or derive it each time?</td><td>Store it.</td><td>Nisarg</td></tr>
@@ -394,18 +393,16 @@ CUTOFF_DAYS         = 4
 
 <script>
   /* ---------- the rule (same function as src/months/monthsEngine.js) ---------- */
-  const FIRST_CONTENT_WEEKS = 6, CUTOFF_DAYS = 4, DAY = 86400000;
+  const FIRST_CONTENT_WEEKS = 6, NAME_WEEKS = 7, DAY = 86400000;
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const SHORT = MONTHS.map((m) => m.slice(0, 3));
   const at = (iso) => new Date(iso + 'T12:00:00');
   const fmt = (d) => `${SHORT[d.getMonth()]} ${d.getDate()}`;
-  const daysInMonth = (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
   function rule(iso) {
     const first = new Date(at(iso).getTime() + FIRST_CONTENT_WEEKS * 7 * DAY);
     const monday = new Date(first); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-    const left = daysInMonth(first) - first.getDate();          // days after it in its month
-    const late = first.getDate() > daysInMonth(first) - CUTOFF_DAYS;
-    return { first, monday, left, late, plain: MONTHS[first.getMonth()], name: MONTHS[(first.getMonth() + (late ? 1 : 0)) % 12] };
+    const named = new Date(at(iso).getTime() + NAME_WEEKS * 7 * DAY);   // the day week 7 ends
+    return { first, monday, named, differs: first.getMonth() !== named.getMonth(), firstMonth: MONTHS[first.getMonth()], name: MONTHS[named.getMonth()] };
   }
 
   const out = (id, v) => { document.getElementById(id).textContent = v; };
@@ -415,31 +412,32 @@ CUTOFF_DAYS         = 4
     const r = rule(iso);
     out('o-first', `${fmt(r.first)}, ${r.first.getFullYear()}`);
     out('o-week', `Week of ${fmt(r.monday)}`);
-    out('o-left', r.left === 0 ? 'It is the last day' : `${r.left} after it`);
+    out('o-left', fmt(r.named));
     out('o-name', `${r.name} content`);
-    out('o-why', r.late
-      ? `${fmt(r.first)} is one of the last 4 days of ${r.plain}, so the campaign takes the next month's name.`
-      : `${fmt(r.first)} is not in the last 4 days of ${r.plain}, so the campaign is named for ${r.plain}.`);
+    out('o-why', r.differs
+      ? `First content is expected at the end of ${r.firstMonth}, but week 7 ends ${fmt(r.named)}, so most posts go live in ${r.name}.`
+      : `First content and week 7 both fall in ${r.name}.`);
   }
   document.getElementById('launch').addEventListener('input', calc);
   calc();
 
   const EXAMPLES = [
     ['2026-09-08', 'The brand signs and launches the same day'],
-    ['2026-09-15', 'Last launch day that keeps October (31-day month: the cut-off starts the 28th). Tony has been calling a mid-September launch November content'],
-    ['2026-09-16', 'First launch day the cut-off moves to November'],
-    ['2026-09-19', 'First content on the last day of the month'],
-    ['2026-09-20', 'First content on the 1st. The "week of" Monday is still in October. On Sep 8 Tony called this launch December'],
-    ['2026-10-15', 'Last launch day that keeps November (30-day month: the cut-off starts the 27th)'],
-    ['2026-10-16', 'First launch day the cut-off moves to December'],
+    ['2026-09-12', 'Last launch day that is October content'],
+    ['2026-09-13', 'First launch day that is November content. First content still lands in October'],
+    ['2026-09-15', 'A mid-September launch. Tony has been calling this November content, and it is'],
+    ['2026-09-20', 'On Sep 8 Tony called this launch December. The rule says November'],
+    ['2026-10-12', 'Week 7 ends on the last day of November'],
+    ['2026-10-13', 'Week 7 ends Dec 1. First content is still expected in November'],
     ['2026-10-19', 'The late launch in screen C'],
-    ['2026-11-19', 'First content Dec 31. Crosses the year'],
-    ['2027-01-13', 'First content Feb 24. February has 28 days: the cut-off starts the 25th'],
-    ['2027-01-14', 'First content Feb 25, inside the last 4 days of February'],
+    ['2026-11-12', 'Week 7 ends Dec 31'],
+    ['2026-11-13', 'Crosses the year: week 7 ends Jan 1'],
+    ['2027-01-10', 'Week 7 ends Feb 28'],
+    ['2027-01-11', 'Week 7 ends Mar 1'],
   ];
   document.querySelector('#examples-table tbody').innerHTML = EXAMPLES.map(([iso, why]) => {
     const r = rule(iso);
-    return `<tr class="${r.late ? 'hit' : ''}"><td class="num">${fmt(at(iso))}</td><td class="num">${fmt(r.first)}</td><td class="num">week of ${fmt(r.monday)}</td><td>${r.plain}</td><td class="name">${r.late ? `<span class="was">${r.plain}</span>` : ''}${r.name} content</td><td>${why}</td></tr>`;
+    return `<tr class="${r.differs ? 'hit' : ''}"><td class="num">${fmt(at(iso))}</td><td class="num">${fmt(r.first)}</td><td class="num">week of ${fmt(r.monday)}</td><td class="num">${fmt(r.named)}</td><td class="name">${r.name} content</td><td>${why}</td></tr>`;
   }).join('');
 
   /* ---------- live frames ----------
