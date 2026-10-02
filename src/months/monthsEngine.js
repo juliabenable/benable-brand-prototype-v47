@@ -14,8 +14,9 @@
    Switch: VERSION in the second black bar, or ?rev=before|after. Other deep links:
    ?day=signed|week4|slip|landed, ?tl=open, ?bar=line|segments, ?embed=1.
 
-   Decided: 8-week baseline, one date ("first content expected"), no lateness states,
-   monthly unlocks untouched (Tony, Sep 8) · "Campaign 1 | November content" on tiles
+   Decided: one date ("first content expected"), no lateness states, monthly unlocks
+   untouched (Tony, Sep 8) · the campaign is 8 weeks in TOTAL and first content is expected
+   at 6 weeks (Julia, Oct 2; replaces the Sep 8 "first content at 8 weeks") · "Campaign 1 | November content" on tiles
    before launch, "Launch now", the standard sentence (Tony, Sep 29) · month-end cut-off
    of 4 days, two campaigns may share a month, no launch-by line on the tile, product
    campaigns only (Julia, Oct 1). */
@@ -28,8 +29,8 @@ export const REVS = [
 export const DAYS = [
   ['signed', 'Sep 8 · signed today'],
   ['week4', 'Oct 5 · week 4 of 8'],
-  ['slip', 'Nov 5 · Campaign 2 not launched'],
-  ['landed', 'Nov 10 · first content in'],
+  ['slip', 'Oct 19 · Campaign 2 not launched'],
+  ['landed', 'Oct 28 · first content in'],
 ];
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -38,15 +39,20 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
    the same function and a table of worked dates):
      launch_date            = launched_at in the organization's cadence time zone. Before
                               launch: today for a ready tile, the unlock date for a locked one.
-     first_content_expected = launch_date + 56 days                       (8 weeks, Tony Sep 8)
+     first_content_expected = launch_date + 42 days (6 weeks). Julia, Oct 2, from the steps:
+                              about 1 week to match and accept, about 2 weeks to ship, 10 days
+                              to film, about 1 week to review and post.
+     campaign length        = 8 weeks in total ("Week 4 of 8"); posts keep going live in
+                              weeks 7 and 8.
      shown as               = "week of {the Monday of that week}"
      content_month          = the month first_content_expected falls in, EXCEPT when it falls
                               in the last 4 days of that month: then the next month
                               (Julia, Oct 1: first content Nov 29 is a December campaign)
-     week                   = floor((today - launch_date) / 7) + 1         ("Week 4 of 8")
+     week                   = floor((today - launch_date) / 7) + 1
    Before launch the month is recomputed every day, so a campaign that is not launched
    moves to the next month by itself (Tony, Sep 29). At launch it freezes. */
 export const WEEKS = 8;
+export const FIRST_CONTENT_WEEKS = 6;
 export const CUTOFF_DAYS = 4;
 const DAY = 86400000;
 const SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -57,7 +63,7 @@ const daysInMonth = (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDat
 const monthOf = (first) => MONTHS[(first.getMonth() + (first.getDate() > daysInMonth(first) - CUTOFF_DAYS ? 1 : 0)) % 12];
 export function timeline(launchISO, todayISO) {
   const launch = at(launchISO);
-  const first = new Date(launch.getTime() + WEEKS * 7 * DAY);
+  const first = new Date(launch.getTime() + FIRST_CONTENT_WEEKS * 7 * DAY);
   const days = Math.max(0, Math.round((at(todayISO) - launch) / DAY));
   const week = Math.floor(days / 7) + 1;
   return {
@@ -89,10 +95,10 @@ export const PHASES = [
   { name: 'Match', weeks: [1, 1], line: "Katie's team matches creators for you to approve." },
   { name: 'Ship', weeks: [2, 3], line: 'Product ships to creators.' },
   { name: 'Film', weeks: [4, 5], line: 'Creators film with your product.' },
-  { name: 'Review', weeks: [6, 7], line: "Katie's team reviews each draft." },
-  { name: 'Post', weeks: [8, 8], line: 'First posts go live.' },
+  { name: 'Review', weeks: [6, 6], line: "Katie's team reviews each draft and the first posts go live." },
+  { name: 'Post', weeks: [7, 8], line: 'The rest of the posts go live.' },
 ];
-const TAIL = { name: 'After week 8', line: 'The rest of the posts go live over the following weeks.' };
+const TAIL = { name: 'After week 8', line: 'Any last posts go live.' };
 /* Tony's Sep 8 framing, cut to fit two lines in the rail (Julia, Oct 1) */
 export const TIMELINE_NOTE = 'A classic campaign takes about eight weeks. The industry benchmark is eight to ten.';
 
@@ -141,46 +147,45 @@ const DB = {
     opportunities: [{ state: 'locked', unlockISO: '2026-10-08' }],
   },
   /* Tony, Sep 29: "if they slip in launching we'll need to change the months e.g. Dec to Jan".
-     Campaign 2 has been ready since Oct 8 (December content then) and is still not launched
-     on Nov 5. Launched today, first content is expected Dec 31: inside the last 4 days of
-     December, so the cut-off names it January. Campaign 3 unlocks Nov 8 and is January too
+     Campaign 2 has been ready since Oct 8 (November content then) and is still not launched
+     on Oct 19. Launched today, first content is expected Nov 30: inside the last 4 days of
+     November, so the cut-off names it December. Campaign 3 unlocks Nov 8 and is December too
      (two campaigns may share a month; the numbers tell them apart). A branch of its own:
-     on the Nov 10 day Campaign 2 was launched Oct 12. */
+     on the Oct 28 day Campaign 2 was launched Oct 12. */
   slip: {
-    todayISO: '2026-11-05', today: 'Nov 5',
+    todayISO: '2026-10-19', today: 'Oct 19',
     runs: [Object.assign({}, RUN, {
-      first_live: 'Nov 4',
       creators: [
-        creator(0, 'Content published', 'Nov 4'), creator(1, 'Draft approved', 'posts this week'), creator(2, 'Draft approved', 'posts this week'),
-        creator(3, 'Draft approved', 'posts next week'), creator(4, 'Draft approved', 'posts next week'), creator(5, 'Draft submitted', 'we review by Nov 7'),
-        creator(6, 'Draft submitted', 'we review by Nov 7'), creator(7, 'Draft submitted', 'we review by Nov 7'), creator(8, 'Order delivered', 'filming'), creator(9, 'Order delivered', 'filming'),
+        creator(0, 'Draft approved', 'posts this week'), creator(1, 'Draft approved', 'posts this week'), creator(2, 'Draft approved', 'posts this week'),
+        creator(3, 'Draft submitted', 'we review by Oct 21'), creator(4, 'Draft submitted', 'we review by Oct 21'), creator(5, 'Draft submitted', 'we review by Oct 21'),
+        creator(6, 'Draft submitted', 'we review by Oct 21'), creator(7, 'Order delivered', 'filming'), creator(8, 'Order delivered', 'filming'), creator(9, 'Order delivered', 'filming'),
       ],
-      activity: [['🎉', 'The first post is live!', "Katie's team checked the draft against your brief before it went live."], ['✅', '4 drafts approved', 'They post over the next two weeks.']],
-      next: [['💌', 'Send a thank-you to Maya', 'Thoughtful notes help strengthen your creator relationships after their posts went live.']],
+      activity: [['✅', '3 drafts approved', 'They post this week.'], ['📝', '4 drafts in review', "Katie's team reviews them by Oct 21."]],
+      next: [['🚀', 'First posts go live this week', 'We track every post for you once it is live.']],
     })],
     opportunities: [{ state: 'available' }, { state: 'locked', unlockISO: '2026-11-08' }],
   },
   landed: {
-    todayISO: '2026-11-10', today: 'Nov 10',
+    todayISO: '2026-10-28', today: 'Oct 28',
     runs: [Object.assign({}, RUN, {
-      first_live: 'Nov 4',
+      first_live: 'Oct 21',
       creators: [
-        creator(0, 'Content published', 'Nov 4'), creator(1, 'Content published', 'Nov 6'), creator(2, 'Content published', 'Nov 9'),
-        creator(3, 'Draft approved', 'posts this week'), creator(4, 'Draft approved', 'posts this week'), creator(5, 'Order delivered', 'filming'),
-        creator(6, 'Order delivered', 'filming'), creator(7, 'Order delivered', 'filming'), creator(8, 'Order delivered', 'filming'), creator(9, 'Order delivered', 'filming'),
+        creator(0, 'Content published', 'Oct 21'), creator(1, 'Content published', 'Oct 23'), creator(2, 'Content published', 'Oct 26'),
+        creator(3, 'Draft approved', 'posts this week'), creator(4, 'Draft approved', 'posts this week'), creator(5, 'Draft approved', 'posts this week'),
+        creator(6, 'Draft approved', 'posts this week'), creator(7, 'Draft submitted', 'we review by Oct 30'), creator(8, 'Draft submitted', 'we review by Oct 30'), creator(9, 'Order delivered', 'filming'),
       ],
-      activity: [['🎉', '3 posts are live!', "Katie's team checked every draft against your brief before it went live."], ['✅', '2 drafts approved', 'Both post this week.']],
+      activity: [['🎉', '3 posts are live!', "Katie's team checked every draft against your brief before it went live."], ['✅', '4 drafts approved', 'They post this week.']],
       next: [['💌', 'Send thank-yous to 3 creators', 'Thoughtful notes help strengthen your creator relationships after their posts went live.']],
     }), Object.assign({}, RUN2, {
       creators: [
-        creator2(0, 'Draft submitted', 'we review by Nov 12'), creator2(1, 'Draft submitted', 'we review by Nov 12'), creator2(2, 'Order delivered', 'filming'),
-        creator2(3, 'Order delivered', 'filming'), creator2(4, 'Order delivered', 'filming'), creator2(5, 'Order delivered', 'filming'),
-        creator2(6, 'Order delivered', 'filming'), creator2(7, 'Order delivered', 'filming'), creator2(8, 'Order delivered', 'filming'), creator2(9, 'Order delivered', 'filming'),
+        creator2(0, 'Order delivered', 'filming'), creator2(1, 'Order delivered', 'filming'), creator2(2, 'Order delivered', 'filming'),
+        creator2(3, 'Order delivered', 'filming'), creator2(4, 'Order shipped', 'arrives Oct 30'), creator2(5, 'Order shipped', 'arrives Oct 30'),
+        creator2(6, 'Order shipped', 'arrives Oct 30'), creator2(7, 'Order shipped', 'arrives Oct 30'), creator2(8, 'Order shipped', 'arrives Oct 30'), creator2(9, 'Order shipped', 'arrives Oct 30'),
       ],
-      activity: [['📝', '2 drafts are in', "Katie's team reviews them by Nov 12."]],
-      next: [['🎬', 'More drafts arrive over the next two weeks', "Katie's team reviews each one for quality before it goes live."]],
+      activity: [['📦', '4 orders delivered', '6 more arrive Oct 30. Creators film once the product is in hand.']],
+      next: [['🎬', 'Creators film over the next two weeks', "Drafts start arriving around week 5. Katie's team reviews each one before it goes live."]],
     })],
-    opportunities: [{ state: 'available' }, { state: 'locked', unlockISO: '2026-12-08' }],
+    opportunities: [{ state: 'locked', unlockISO: '2026-11-08' }],
   },
 };
 
@@ -323,14 +328,15 @@ export function createMonths(root, opts = {}) {
       <button type="button" class="opportunity__action svelte-75h9ek" data-plan data-num="${number}">Launch now</button>
     </article>`;
     }
-    /* named for launching today, so the month moves by itself while the campaign is not launched */
+    /* named for launching today, so the month moves by itself while the campaign is not launched.
+       Two lines, one style (Julia, Oct 2): production's sentence, then Tony's */
     const month = contentMonthFor(s.todayISO);
     return `
     <article class="opportunity opportunity--action svelte-75h9ek">
       ${visuals}
       <div class="opportunity__action-copy svelte-75h9ek">
         <div class="opportunity__title-row svelte-75h9ek"><h2 class="svelte-75h9ek nfm-title">${title(number, month)}</h2></div>
-        <p class="svelte-75h9ek">Creator content will start going live in ${esc(month)}.</p>
+        <p class="svelte-75h9ek">Your next campaign is ready to launch.<br>Creator content will start going live in ${esc(month)}.</p>
       </div>
       <button type="button" class="opportunity__action svelte-75h9ek" data-plan="${esc(month)}" data-num="${number}">Launch now</button>
     </article>`;
@@ -378,7 +384,7 @@ export function createMonths(root, opts = {}) {
     const linePct = k < 0 ? 100 : Math.round((k + (t.week - PHASES[k].weeks[0] + 0.5) / (PHASES[k].weeks[1] - PHASES[k].weeks[0] + 1)) * 20);
     const steps = PHASES.map((p) => {
       const st = stateOf(p.weeks);
-      const line = p.name === 'Post' && live ? `First post went live ${r.first_live}.` : p.line;
+      const line = p.name === 'Review' && live ? `Katie's team reviewed each draft. First post went live ${r.first_live}.` : p.line;
       return `<li class="${st}"><span class="nfm-tl__dot" aria-hidden="true"></span><div><div class="nfm-tl__row"><b>${p.name}</b>${st === 'now' ? '<span class="nfm-tl__now">Now</span>' : ''}<span class="nfm-tl__dates">${span(p.weeks[0], p.weeks[1])}</span></div><p>${esc(line)}</p></div></li>`;
     }).join('');
     const tailNow = t.week > WEEKS;
@@ -413,7 +419,7 @@ export function createMonths(root, opts = {}) {
       ['Accepted', d(7), 'Accepted the invite'],
       ['Order shipped', d(10), row.stage === 3 ? `Product on its way, ${row.c.when}` : 'Product on its way'],
       ['Order delivered', d(17), row.draft ? "Package arrived. The draft is in review with Katie's team" : 'Package arrived, filming'],
-      ['Draft approved', d(49), "Katie's team checked the draft against your brief"],
+      ['Draft approved', d(38), "Katie's team checked the draft against your brief"],
       ['Live!', row.live ? row.c.when : 'up next', row.live ? 'Post went live' : 'Post goes live, we track how it does for you'],
       ['Thanked', 'up next', 'Your thank-you, right after the post'],
     ];

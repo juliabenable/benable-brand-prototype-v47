@@ -158,24 +158,24 @@ function enhanceMonthsCopy(root, screen) {
   const month = LIVE.monthsTarget || q.get('mmonth') || 'November';
   const number = LIVE.monthsNumber || Number(q.get('mnum')) || 1;
   const todayISO = LIVE.monthsToday || q.get('mtoday');
-  // 8-week baseline (Tony, Sep 8): first content expected 56 days after launch, shown as the week's Monday;
+  // the campaign is 8 weeks in total and first content is expected at 6 (Julia, Oct 2): 42 days after launch, shown as the week's Monday;
   // dated from the Months page's "Today is" day when launched from there, else the real clock
-  const d = todayISO ? new Date(todayISO + 'T12:00:00') : new Date(); d.setDate(d.getDate() + 56); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const d = todayISO ? new Date(todayISO + 'T12:00:00') : new Date(); d.setDate(d.getDate() + 42); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   const firstWeek = `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()]} ${d.getDate()}`;
   if (screen === 'step1') {
     // the intro is skipped in the new design (the overview tile is the start); kept honest if reached directly
     const feat = [...root.querySelectorAll('.intro-feature strong')].find((s) => /Content in days/.test(s.textContent));
     if (feat) {
-      feat.textContent = 'First content in about eight weeks';
+      feat.textContent = 'First content in about six weeks';
       const p = feat.parentElement && feat.parentElement.querySelector('p');
-      if (p) p.textContent = 'The industry benchmark is eight to ten. Your first-content date is on your campaign page from the day you launch.';
+      if (p) p.textContent = 'A campaign runs about eight weeks in all. Your first-content date is on your campaign page from the day you launch.';
     }
   }
   if (screen === 'step2') {
-    // number tracking + Tony's standard sentence (Sep 29)
+    // the heading stays production's "Set up your campaign" (Julia, Oct 2: no "Set up Campaign 1");
+    // only Tony's standard sentence (Sep 29) is added under it
     const h1 = root.querySelector('.flow-heading--setup');
     if (h1) {
-      h1.textContent = `Set up Campaign ${number}`;
       const p = h1.nextElementSibling;
       if (p && p.tagName === 'P') p.textContent = `Creator content will start going live in ${month}. Choose the type of content and how you'd like to reward creators.`;
     }
@@ -190,7 +190,7 @@ function enhanceMonthsCopy(root, screen) {
     el.setAttribute('aria-label', 'Campaign timeline');
     /* Julia, Sep 24: production's white card; the first-content date leads, the 8 weeks are
        segments with the phases under them, and a tip names the one thing the brand controls */
-    const PHASES = [['Match', 1], ['Ship', 2], ['Film', 2], ['Review', 2], ['Post', 1]];
+    const PHASES = [['Match', 1], ['Ship', 2], ['Film', 2], ['Review', 1], ['Post', 2]];
     const BULB = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 12.4h3.6M6.7 14.4h2.6"/><path d="M8 1.6a4.4 4.4 0 0 0-2.5 8c.4.3.6.7.6 1.2v.1h3.8v-.1c0-.5.2-.9.6-1.2A4.4 4.4 0 0 0 8 1.6z"/></svg>';
     el.innerHTML = `<div class="lp-head"><div><div class="lp-k">First content expected</div><div class="lp-v">Week of ${firstWeek}</div></div><span class="lp-pill">Week 1 of 8</span></div>`
       + `<div class="lp-track" aria-hidden="true">${Array.from({ length: 8 }, (_, i) => `<span${i === 0 ? ' class="on"' : ''}></span>`).join('')}</div>`
