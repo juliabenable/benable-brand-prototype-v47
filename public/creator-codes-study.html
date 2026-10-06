@@ -147,7 +147,7 @@
   <div class="col">
     <div class="eyebrow">Study · Oct 6, 2026 · prompted by Phyla</div>
     <h1>One discount code per creator: what other platforms do, and what Benable should do</h1>
-    <p class="lede">Phyla asked today to give each of their 20 shipped-product creators their own discount code, mainly so they can track sales internally. 28 Litsea asked for the same thing in May. This page compares how PLATFORM_COUNT creator platforms handle per-creator codes, explains what a code can and cannot measure, and recommends what Benable does now, next, and later.</p>
+    <p class="lede">Phyla asked today to give each of their 20 shipped-product creators their own discount code, mainly so they can track sales internally. 28 Litsea asked for the same thing in May. This page compares how 28 creator platforms handle per-creator codes, explains what a code can and cannot measure, and recommends what Benable does now, next, and later.</p>
     <div class="toc">
       <a href="#ask">The ask</a><a href="#answer">The answer</a><a href="#platforms">Other platforms</a><a href="#patterns">Patterns</a><a href="#measure">What a code measures</a><a href="#shopify">Shopify mechanics</a><a href="#now">Now: Phyla</a><a href="#next">Next: the portal</a><a href="#later">Later: automatic</a><a href="#reply">Reply to Gianna</a><a href="#open">Open questions</a><a href="#sources">Sources</a>
     </div>
@@ -184,12 +184,65 @@
       <span class="when">Later · Automatic</span>
       <b>Benable creates the codes in Shopify and reports sales per creator</b>
       <span>One discount per campaign, one code per approved creator, created at approval. Orders with each code are read back into the tracker and the wrap-up.</span>
-      <span class="cost">Needs the Shopify discounts permission, so brands reconnect.</span>
+      <span class="cost">Needs Shopify discount access, asked only of brands that turn codes on.</span>
     </div>
   </div>
   <div class="col">
     <h2 id="platforms">How other platforms do it</h2>
-    <p class="lede">Research in progress: the platform comparison lands here in the next commit.</p>
+    <p class="lede">28 platforms in four groups, from the managed services closest to Benable to the affiliate tools brands install in Shopify. Each row covers who creates the code, how it is named, when the creator gets it, what the brand sees, and what happens after the campaign.</p>
+  </div>
+  <div class="tablewrap">
+    <table class="platforms">
+      <thead><tr><th>Platform</th><th>Creates per-creator codes?</th><th>Code name</th><th>When the creator gets it</th><th>What the brand sees</th><th>After the campaign, and notes</th></tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="6">Gifting and UGC services, the closest to Benable</td></tr>
+        <tr><td class="name">Statusphere<small>Managed gifting, guaranteed posts</small></td><td><span class="n">No</span>. Codes and links appear only as KPIs in its marketing. A review says it "doesn't handle… affiliate programs."</td><td>n/a</td><td>n/a</td><td>Post metrics.</td><td>About $3.5k a month and up (third-party review).</td></tr>
+        <tr><td class="name">Insense<small>UGC marketplace</small></td><td><span class="n">No</span>. Its Shopify link creates gift orders only. For affiliate campaigns the brand makes links elsewhere and sends them in Insense's chat.</td><td>n/a</td><td>Brand pastes the link into chat.</td><td>Commission payouts run through Insense.</td><td>From about $400 a month.</td></tr>
+        <tr><td class="name">Collabstr<small>Creator marketplace</small></td><td><span class="n">No</span>. "Sales attribution… [is] managed through your own e-commerce or affiliate tracking stack."</td><td>Its blog advises a unique code and a tagged link per creator, capped and dated.</td><td>n/a</td><td>Views, likes, comments and CPM for 30 days.</td><td>Free marketplace.</td></tr>
+        <tr><td class="name">Archive<small>Content capture</small></td><td><span class="n">No</span>. It pairs with Shopify Collabs: "Shopify Collabs handles the affiliate and payment side."</td><td>n/a</td><td>n/a</td><td>Captured posts.</td><td>n/a</td></tr>
+        <tr><td class="name">Billo, #paid<small>UGC for ads · paid social</small></td><td><span class="n">No</span> for Billo (creators don't post to their own accounts). Not found for #paid.</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>
+
+        <tr><td class="name">Agentio<small>Creator sponsorship marketplace</small></td><td><span class="y">Yes</span>, per one case study: Shopify codes and links "generated on the platform instantly," with product sent to each new creator.</td><td>Not found.</td><td>Not found.</td><td>Not found.</td><td>Not found.</td></tr>
+        <tr class="group"><td colspan="6">Influencer software the brand runs itself</td></tr>
+        <tr><td class="name">Aspire</td><td><span class="y">Automatic</span> in Shopify: "no Shopify admin required."</td><td>A naming strategy from the creator: first initial + last name, handle, or "{NAME}SUMMER15". Renamable.</td><td>The brand adds a "Promo Codes" stage and clicks Generate. A pre-written email sends the code.</td><td>Reads redemptions from Shopify, no pixel. Sales dashboard, commissions, and discount links that apply the code.</td><td>Expire on the end date or bulk deactivate. SecureCodes: one single-use code per shopper, against leaks.</td></tr>
+        <tr><td class="name">GRIN</td><td><span class="y">Automatic</span> in Shopify, WooCommerce, BigCommerce, Magento, SFCC.</td><td>"Modeled after their name."</td><td>Not public. Codes "sent at scale."</td><td>Codes and links on one dashboard, commissions, 1099s.</td><td>Blog advises expiry dates.</td></tr>
+        <tr><td class="name">Upfluence</td><td><span class="y">Automatic</span> per campaign "tracking plan."</td><td><code>{{username}}10OFF</code>. Random letters added if the name is taken.</td><td>When the creator joins, or at approval. The approval option shipped in May 2025 because early codes "often led to… being leaked or simply unused."</td><td>Orders table per creator, refunds shown as $0, commission per sale.</td><td>Disabled automatically at the plan's end date.</td></tr>
+        <tr><td class="name">CreatorIQ</td><td><span class="y">Automatic</span> in Shopify (Convert module).</td><td>Not public.</td><td>Not public. Its blog puts the code in the creator agreement.</td><td>Code and link sales in wrap reports, links that fill in the code.</td><td>Blog advises expiry dates. Enterprise pricing.</td></tr>
+        <tr><td class="name">Influencity</td><td><span class="y">Automatic</span> at its "sync" step.</td><td>Tokens, e.g. alias + "_PROMO" = JaneDoe_PROMO. Duplicates error out.</td><td>At sync, then bulk email.</td><td>Uses and sales per creator in a Codes tab.</td><td>Not found.</td></tr>
+        <tr><td class="name">Captiv8</td><td><span class="y">Automatic</span>, codes or tracking links per creator.</td><td>Not public.</td><td>Not public.</td><td>Revenue, clicks, conversions, payouts. Fraud detection.</td><td>Not found. Free app, fee on creator payments.</td></tr>
+        <tr><td class="name">Modash</td><td><span class="m">Manual</span>: the brand types each code, one at a time, and it syncs to Shopify. Existing Shopify codes import.</td><td>Whatever the brand types.</td><td>"Add code" per creator. The creator's dashboard then shows the gift, "your personal discount code, and a tracking link."</td><td>Revenue, orders and uses per creator. A code beats a link for credit.</td><td>Not found. Included free in every plan.</td></tr>
+        <tr><td class="name">Later Influence</td><td><span class="m">Split</span>: automatic single-use codes for the creator's own gift order. Audience sales go through affiliate links.</td><td>Prefix + random string, plus a "-FREESHIP" code.</td><td>Sent by workflow stage.</td><td>Redemptions, order numbers, fulfillment. Links: clicks, conversions, commission.</td><td>Expire with the campaign.</td></tr>
+        <tr class="group"><td colspan="6">Shopify-native affiliate tools</td></tr>
+        <tr><td class="name">Shopify Collabs<small>Free with most Shopify plans</small></td><td><span class="y">Automatic</span>: a link and a code per creator once they join a program.</td><td>The brand can overwrite the "Creator code" field.</td><td>When the creator is assigned to a program. Shown in the Collabs app.</td><td>Sales, orders, visits, conversion and commission per creator. Codes and links both earn commission.</td><td>Pausing a creator switches off their link and code. Gift orders are tagged in Shopify.</td></tr>
+        <tr><td class="name">Superfiliate</td><td><span class="y">Automatic</span> vanity code plus a link that applies it.</td><td>Editable, syncs to Shopify. Codes live in a "SUPERFILIATE – DO NOT CHANGE" folder.</td><td>On joining.</td><td>The link can win credit even when the shopper uses another code.</td><td>One-time-use codes offered against leaks.</td></tr>
+        <tr><td class="name">Social Snowball</td><td><span class="y">Automatic</span>. One Shopify discount per program holds every creator's code.</td><td>First name + a random number. Editable.</td><td>On joining.</td><td>Sales per code, commission.</td><td>Safelinks mint a single-use code per click. A leaked-code center flags codes found on Honey and similar sites.</td></tr>
+        <tr><td class="name">UpPromote</td><td><span class="y">Automatic</span>, cloned from a sample code the brand makes in Shopify.</td><td>Full name, first name, random, or the creator's pick. A taken name becomes JOHN2495068.</td><td>When the affiliate joins.</td><td>A code beats a link for credit.</td><td>Anti-leak feature. Professional plan and up.</td></tr>
+        <tr><td class="name">GoAffPro</td><td><span class="y">Automatic</span> on registration.</td><td>Name, Instagram handle, random or custom.</td><td>On registration.</td><td>A code always beats a link.</td><td>Free tier available.</td></tr>
+        <tr><td class="name">Refersion</td><td><span class="y">Automatic</span> push to Shopify after a one-time setup form.</td><td>Creators can pick their own code, checked for uniqueness.</td><td>At registration.</td><td>Sales per code, commission. Supports Shopify discount links.</td><td>Not found.</td></tr>
+        <tr><td class="name">impact.com, Awin</td><td><span class="m">Manual</span>: the brand creates the code in Shopify, then assigns it to a partner.</td><td>The brand's choice. Awin accepts prefix wildcards like AB*.</td><td>Brand-assigned.</td><td>Credit rules decide whether the code or a link wins the sale.</td><td>Not found.</td></tr>
+
+        <tr class="group"><td colspan="6">Creator commerce and marketplaces</td></tr>
+        <tr><td class="name">ShopMy</td><td><span class="y">Automatic</span>: its Shopify app creates and maintains creators' commissionable codes (and asks Shopify for discount access).</td><td>Not found.</td><td>Creators request codes from brands in chat.</td><td>Code orders credit the creator with no link click.</td><td>Not found.</td></tr>
+        <tr><td class="name">LTK</td><td><span class="n">No</span>. Attribution is by link and cookie. A promo code at checkout can cost the creator the credit.</td><td>Brands hand out their own codes in LTK campaigns.</td><td>n/a</td><td>Link sales.</td><td>n/a</td></tr>
+        <tr><td class="name">TikTok Shop</td><td><span class="n">No</span> per-creator codes. Sales credit by link, last click.</td><td>Shop-level codes, 2 to 8 characters. "Creator exclusive" coupons only claimable in a named creator's LIVE or showcase.</td><td>n/a</td><td>Affiliate link sales.</td><td>Codes valid up to 365 days.</td></tr>
+        <tr><td class="name">Amazon, Levanta</td><td>Amazon: <span class="n">no</span> creator codes, social promo codes per listing. Levanta: <span class="y">automatic</span> Shopify codes, one per creator.</td><td>Levanta errors on duplicates.</td><td>Real time, by API.</td><td>Levanta lets the brand choose whether the link or the code wins. Link by default.</td><td>Not found.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">From each platform's help center, product pages and changelogs, read through search-engine extracts on Oct 6 (direct page fetches were blocked in this session). GRIN, CreatorIQ, Captiv8 and #paid keep their help centers behind a login, so their rows rely on marketing pages. "Not found" means no public page covers it.</p>
+  <div class="col">
+    <h2 id="patterns">Patterns</h2>
+    <p class="lede">What holds across the platforms, and what it means for a managed gifting service like Benable.</p>
+  </div>
+  <div class="facts">
+    <div class="fact"><b>Software automates codes. Most managed gifting services skip them.</b><span>Every brand-run influencer tool checked creates codes in Shopify for the brand. The services closest to Benable (Statusphere, Insense, Collabstr, Archive) leave codes to the brand's own tools. Agentio is the one exception found. Offering codes at all puts Benable ahead of most direct competitors. Automating them puts it level with the software tier.</span></div>
+    <div class="fact"><b>One discount per campaign, one code per creator</b><span>The brand sets the offer once: percentage, products, dates, limits. Every creator's code copies it. Upfluence calls it a tracking plan, Aspire an offer.</span></div>
+    <div class="fact"><b>The name comes from the creator</b><span>Name or handle plus the discount number: JANE15, {{username}}10OFF, JaneDoe_PROMO. When a name is taken the tool adds letters or digits. A spoken code has to be easy to say and spell.</span></div>
+    <div class="fact"><b>Codes are made at approval, not earlier</b><span>Upfluence added "generate at approval" in May 2025 because codes made when a creator was first added "often led to discount codes being leaked or simply unused, cluttering your shop."</span></div>
+    <div class="fact"><b>The code travels with a link that applies it</b><span>Aspire, Upfluence, CreatorIQ and Modash pair each code with a link that fills it in at checkout. The code covers video and word of mouth, the link covers Stories and bios.</span></div>
+    <div class="fact"><b>Leaks are the known problem</b><span>Coupon extensions pick up creator codes and apply them for shoppers who never saw the post. The strong defense, single-use codes per shopper (Aspire SecureCodes), only works through a link. A code said in a video has to stay multi-use, so the usual defenses are an end date and a cap.</span></div>
+    <div class="fact"><b>Shopify Collabs gives brands codes for free</b><span>Any Shopify brand can already give creators a code and a link through Collabs at no cost. So codes alone are not a reason to buy Benable. The value is having them inside a campaign Benable already runs: created at approval, delivered with the brief, checked in review, reported in the wrap-up.</span></div>
+    <div class="fact"><b>Modash's manual version is our "Next"</b><span>Modash has the brand type each creator's code by hand, then shows it on the creator's dashboard with the gift and a tracking link. It is included in every Modash plan.</span></div>
   </div>
   <div class="col">
     <h2 id="measure">What a code can and cannot tell Phyla</h2>
@@ -215,11 +268,56 @@
     </div>
   </div>
   <div class="col">
+    <h2 id="shopify">Shopify mechanics</h2>
+    <p class="lede">What the automatic version would sit on, for Nisarg. All of it is Shopify's GraphQL Admin API. Items marked <span class="tag prop">Verify</span> came from secondary sources and need a check on a dev store before the build depends on them.</p>
+  </div>
+  <div class="two">
+    <div class="box">
+      <h3>Create</h3>
+      <ul>
+        <li><b>One discount per campaign:</b> <code>discountCodeBasicCreate</code> with the brand's percentage, <code>appliesOncePerCustomer</code>, <code>combinesWith</code> all false, optional <code>endsAt</code>.</li>
+        <li><b>One code per creator on it:</b> <code>discountRedeemCodeBulkAdd</code>, up to 250 codes per call, as an async job. Each code keeps its own usage count (<code>asyncUsageCount</code>), and usage limits apply per code.</li>
+        <li><b>Switching off one creator:</b> delete that code with <code>discountCodeRedeemCodeBulkDelete</code>. Deactivating the discount stops every creator's code at once.</li>
+        <li><b>Renaming:</b> codes added in bulk can't be renamed. Delete and add the new name.</li>
+        <li><b>Name taken:</b> Shopify rejects the duplicate, case-insensitively. Retry with the last initial, then a digit: MAYAK15, MAYA215. <span class="tag prop">Verify</span> the exact error.</li>
+        <li><b>Limits:</b> 20 million codes per store over its lifetime, 100 to 1,000 API points per second by plan. Neither matters at 20 creators a month.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Read</h3>
+      <ul>
+        <li><b>Per order:</b> <code>Order.discountCodes</code> and <code>discountApplications</code>. The <code>orders/create</code> webhook carries <code>discount_codes</code>. Handle cancels and refunds too.</li>
+        <li><b>Click path:</b> <code>customerJourneySummary</code> gives the first and last visit with UTM tags, so a <code>benable.com/a/</code> click shows up even when no code was typed.</li>
+        <li><b>Brand-side report:</b> Shopify's "Sales by discount" lists orders and sales per code. It counts only the discounted line items, and an order with two discounts appears under both.</li>
+        <li><b>Discount link:</b> <code>store.com/discount/MAYA15?redirect=/products/serum</code> applies the code and lands on the product. Some private and in-app browsers drop it.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="two">
+    <div class="box">
+      <h3>Permission</h3>
+      <ul>
+        <li>Creating codes needs the <code>write_discounts</code> scope, which includes reading them. ShopMy's app asks for the same.</li>
+        <li><b>Optional, not required:</b> declare it under optional scopes and request it only when a brand turns codes on. Adding it as a required scope would prompt every connected brand to re-approve the app.</li>
+        <li>Order reading is limited to the last 60 days without <code>read_all_orders</code>. Fine for a campaign window.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Guardrails for day one</h3>
+      <ul>
+        <li><b>Keep gift orders and codes apart.</b> Never apply a creator code to the creator's own gift order, and tag gift orders, as Collabs does.</li>
+        <li><b>Watch for leaks.</b> A sudden jump in one code's uses, far above the creator's reach, usually means a coupon site picked it up. Alert ops.</li>
+        <li><b>Check for other affiliate apps.</b> If the brand runs Collabs, UpPromote or GoAffPro, their "code wins" rules can take or give credit for the same order.</li>
+        <li><b>Report codes and links side by side.</b> Tools disagree on which one wins a sale. For a brand's own tracking, show both and mark orders that have both.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
     <h2 id="now">Now: run Phyla's codes by hand</h2>
     <p class="lede">Phyla's October campaign. Everything below fits inside today's product and today's 8-week plan. The weeks are counted from launch.</p>
   </div>
   <div class="steps">
-    <div class="step"><span class="wk">This week</span><div><b>Reply yes and agree the code rules</b><span>Code format, discount, one use per customer, no end date for now. Draft reply below.</span></div><span class="who">Katie</span></div>
+    <div class="step"><span class="wk">This week</span><div><b>Reply yes and agree the code rules</b><span>Code format, discount, one use per customer, no end date for now. Ask whether Phyla already runs an affiliate app such as Shopify Collabs or UpPromote. If so, the codes should live there so two tools do not compete for the same sale. Draft reply below.</span></div><span class="who">Katie</span></div>
     <div class="step"><span class="wk">Week 1</span><div><b>Phyla approves creators, we send the code list</b><span>A sheet with creator, handle and suggested code. One row per approved creator, sent the same day.</span></div><span class="who">Katie's team</span></div>
     <div class="step"><span class="wk">Week 1 to 2</span><div><b>Phyla creates the codes in Shopify and confirms</b><span>Within 2 business days. If a code name is taken, Phyla adds a digit and tells us.</span></div><span class="who">Phyla</span></div>
     <div class="step"><span class="wk">Week 2 to 3</span><div><b>Each creator gets their code, before the product arrives</b><span>One message per creator: the code, what it gives followers, and how to use it in the post.</span></div><span class="who">Katie's team</span></div>
@@ -281,7 +379,7 @@
     <div class="box">
       <h3>How it works</h3>
       <ol>
-        <li><b>Permission.</b> The Shopify app asks for discount access. Existing brands reconnect from Settings, and only the brands that turn codes on need to.</li>
+        <li><b>Permission.</b> Benable asks for Shopify discount access only when a brand turns codes on, so no other brand sees a new prompt.</li>
         <li><b>At launch:</b> Benable creates one discount for the campaign in the brand's Shopify, with the brand's percentage, one use per customer, no stacking.</li>
         <li><b>At each approval:</b> Benable adds the creator's code to that discount. If the name is taken, it adds a digit.</li>
         <li><b>Orders:</b> Benable reads new orders, matches their discount codes to creators, and stores order count and sales per code.</li>
@@ -311,6 +409,7 @@
         <li>We'll send each creator their code before the serum arrives and ask them to say it or show it in their video and add it to their caption. Our team will check it's in every draft.</li>
         <li>About 30 days after the last post, you'll see each code's orders and sales in Shopify under Analytics, in the sales by discount report. We'll go through them with you in the wrap-up.</li>
       </ol>
+      <p>Quick question: do you already use an affiliate app such as Shopify Collabs or UpPromote? If so, it's best to create the codes there so each sale is only credited once.</p>
       <p>One thing to keep in mind: codes only count purchases on phyla.com. Anyone who sees a video and buys the serum at Target won't show up, so the code numbers will undercount what the campaign does, especially with Target as a core message in the videos.</p>
       <p>[Katie: timing for the 5 Target creators]</p>
       <p>Best,<br>Katie</p>
@@ -333,7 +432,79 @@
       </tbody>
     </table>
   </div>
-
+  <div class="col">
+    <h2 id="sources">Sources</h2>
+    <p class="lede">Internal: Gianna's emails of Oct 1 to 6, Tony's of Sep 30 and Oct 1, the 28 Litsea call recap of May 18 and the <code>benable.com/a/</code> link thread of May 20 to 26 in Slack. External, the main pages behind each row:</p>
+  </div>
+  <ul class="sources">
+    <li><a href="https://www.aspire.io/features/shopify-promo-codes">Aspire: Shopify promo codes</a></li>
+    <li><a href="https://help.aspireiq.com/en/articles/10762699-how-to-create-a-promo-code-offer">Aspire: create a promo code offer</a></li>
+    <li><a href="https://help.aspireiq.com/en/articles/10352213-how-to-create-securecodes">Aspire: SecureCodes</a></li>
+    <li><a href="https://grin.co/integrations-shopify/">GRIN: Shopify integration</a></li>
+    <li><a href="https://help.upfluence.co/en/articles/4582817-how-to-create-and-assign-discount-codes-to-influencers-in-the-irm">Upfluence: create and assign codes</a></li>
+    <li><a href="https://help.upfluence.co/en/articles/12628901-decide-when-discount-codes-and-affiliate-links-are-generated-05-21-25">Upfluence: when codes are generated (May 2025)</a></li>
+    <li><a href="https://help.upfluence.co/en/articles/8288595-how-to-deactivate-discount-codes-on-shopify">Upfluence: deactivating codes</a></li>
+    <li><a href="https://www.creatoriq.com/blog/boost-roi-creator-marketing-ecommerce-campaigns">CreatorIQ: codes and links</a></li>
+    <li><a href="https://knowledge.influencity.com/programs/audience-discounts">Influencity: audience codes</a></li>
+    <li><a href="https://apps.shopify.com/captiv8-1">Captiv8: Shopify app</a></li>
+    <li><a href="https://help.modash.io/en/articles/13717096-how-to-create-and-assign-shopify-discount-codes">Modash: create and assign codes</a></li>
+    <li><a href="https://creator-help.modash.io/en/articles/12554671-receiving-products-discount-codes-and-affiliate-links">Modash: what the creator sees</a></li>
+    <li><a href="https://help-influence.later.com/hc/en-us/articles/23944293951127-Shopify-Codes">Later Influence: Shopify codes</a></li>
+    <li><a href="https://help-influence.later.com/hc/en-us/articles/20462320857111-Promo-Code-Incentives">Later Influence: promo code incentives</a></li>
+    <li><a href="https://help.insense.pro/article/4888">Insense: Shopify integration</a></li>
+    <li><a href="https://collabstr.com/use-cases/affiliate-marketing/">Collabstr: affiliate marketing</a></li>
+    <li><a href="https://collabstr.com/blog/influencer-discount-codes">Collabstr: influencer discount codes</a></li>
+    <li><a href="https://brands.joinstatus.com/influencer-sales">Statusphere: influencer sales</a></li>
+    <li><a href="https://archive.com/blog/archive-vs-shopify-collabs">Archive vs Shopify Collabs</a></li>
+    <li><a href="https://help.billo.app/en/articles/5355527-do-creators-post-videos-on-their-social-media">Billo: creators don't post</a></li>
+    <li><a href="https://www.agentio.com/case-study/suri-x-agentio">Agentio: Suri case study</a></li>
+    <li><a href="https://help.shopify.com/en/manual/promoting-marketing/collabs/merchants/collabs-programs">Shopify Collabs: programs</a></li>
+    <li><a href="https://help.superfiliate.com/articles/1029393724-how-to-change-your-affiliate-link-code">Superfiliate: changing codes</a></li>
+    <li><a href="https://help.socialsnowball.io/en/articles/6689965-where-to-find-your-affiliate-codes-in-shopify">Social Snowball: codes in Shopify</a></li>
+    <li><a href="https://help.socialsnowball.io/en/articles/7953430-safelinks-everything-you-need-to-know">Social Snowball: Safelinks</a></li>
+    <li><a href="https://docs.uppromote.com/settings/affiliate-coupon-settings/auto-generate-coupon">UpPromote: auto-generated coupons</a></li>
+    <li><a href="https://docs.goaffpro.com/affiliate-coupons/setup-referral-coupons/automatically-generate-coupons">GoAffPro: automatic coupons</a></li>
+    <li><a href="https://support.refersion.com/en/articles/4627053-how-do-i-track-affiliate-sales-using-shopify-coupon-codes">Refersion: Shopify coupon codes</a></li>
+    <li><a href="https://help.impact.com/en/support/solutions/articles/155000001578-create-promo-codes-for-hired-creators">impact.com: promo codes for creators</a></li>
+    <li><a href="https://success.awin.com/s/article/Voucher-Attribution?language=en_US">Awin: voucher attribution</a></li>
+    <li><a href="https://docs.shopmy.us/reference/create-shopmy-shopify-app">ShopMy: Shopify app scopes</a></li>
+    <li><a href="https://onbrand.shopltk.com/en-au/how-commission-links-cookies-work">LTK: how commission links work</a></li>
+    <li><a href="https://seller-us.tiktok.com/university/essay?knowledge_id=3873674328753962&amp;lang=en">TikTok Shop: promo codes</a></li>
+    <li><a href="https://knowledge.levanta.io/articles/1160933106-discount-code-creation-attribution-for-sellers">Levanta: code creation and attribution</a></li>
+    <li><a href="https://shopify.dev/docs/api/admin-graphql/latest/mutations/discountCodeBasicCreate">Shopify: discountCodeBasicCreate</a></li>
+    <li><a href="https://shopify.dev/docs/api/admin-graphql/latest/mutations/discountRedeemCodeBulkAdd">Shopify: discountRedeemCodeBulkAdd</a></li>
+    <li><a href="https://community.shopify.dev/t/why-cant-discount-codes-be-renamed-after-deleting-all-other-redeem-codes/13552">Shopify community: bulk codes can't be renamed</a></li>
+    <li><a href="https://help.shopify.com/en/manual/discounts/discount-codes/usage-limits">Shopify: code limits per store</a></li>
+    <li><a href="https://help.shopify.com/en/manual/discounts/managing-discounts">Shopify: shareable discount links</a></li>
+    <li><a href="https://help.shopify.com/en/manual/reports-and-analytics/shopify-reports/report-types/default-reports/sales-report">Shopify: sales by discount report</a></li>
+    <li><a href="https://shopify.dev/docs/apps/build/authentication-authorization/app-installation/manage-access-scopes">Shopify: managing access scopes</a></li>
+    <li><a href="https://1800dtc.com/resources/newsletter/your-influencer-codes-are-probably-leaking-right-now">1800DTC: influencer codes leaking</a></li>
+  </ul>
 </div>
+<script>
+(function () {
+  var btn = document.getElementById('copy-email');
+  var box = document.getElementById('email');
+  if (!btn || !box) return;
+  btn.addEventListener('click', function () {
+    var parts = [];
+    box.querySelectorAll('p, li').forEach(function (el, i) {
+      if (el.tagName === 'LI') { parts.push((Array.prototype.indexOf.call(el.parentNode.children, el) + 1) + '. ' + el.innerText.trim()); }
+      else { parts.push(el.innerText.trim()); }
+    });
+    var text = parts.join('\n\n');
+    var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy the email text'; }, 1600); };
+    var fallback = function () {
+      var r = document.createRange(); r.selectNodeContents(box);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = 'Selected, press Copy';
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, fallback); }
+      else { fallback(); }
+    } catch (e) { fallback(); }
+  });
+})();
+</script>
 </body>
 </html>

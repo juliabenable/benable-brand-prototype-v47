@@ -5,6 +5,18 @@
 https://juliabenable.github.io/benable-brand-prototype-v47/
 Deploy: `bash scripts/ship.sh "msg"`. v46 stays frozen at its own URL.
 
+## public/creator-codes-study.html — one discount code per creator (Oct 6 2026)
+
+Study prompted by Phyla (Gianna, Oct 6: "give each creator their own unique discount code… mainly
+to help us with tracking internally"; 28 Litsea asked the same in May). 28 platforms compared
+(gifting services, influencer software, Shopify-native affiliate tools, creator commerce), patterns,
+what a code can and cannot measure (Target purchases invisible), Shopify mechanics for Nisarg
+(one discount per campaign + `discountRedeemCodeBulkAdd` per creator, `write_discounts` as an
+OPTIONAL scope), recommendation NOW (Phyla makes the codes, Katie's team delivers + checks them) /
+NEXT (a per-creator code field in the portal + creator brief) / LATER (Benable creates codes in
+Shopify and reports orders per code), a draft reply to Gianna, and open questions. All PROPOSED.
+Platform facts came from search-engine extracts (help centers blocked direct fetch): spot-check.
+
 ## /nf/months + /nf/months/track — months, not campaigns: PROD TODAY vs NEW DESIGN (Oct 1 2026)
 
 `src/pages/NfMonths.jsx` (shell + fork bar + second black bar), engine
