@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Creator Codes Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* Layout: one reading column (880px) for argument, full 1180px width for the comparison tables. House style of the v47 handoff pages. */
+  :root {
+    --ink: #1b1a1f; --ink2: #4b4954; --mute: #77747f; --line: rgba(27,26,31,0.11); --line2: rgba(27,26,31,0.07);
+    --paper: #f4f2ef; --card: #ffffff; --card2: #faf9f7; --chip: rgba(27,26,31,0.06);
+    --new: #6a4df0; --newwash: #f1eeff;
+    --ok: #17663f; --okwash: #e2f3e9; --warn: #8a4a12; --warnwash: #fff0ce; --open: #9b2c2c; --openwash: #fde8e8;
+    --codebg: #17171a; --codefg: #e9e7e2;
+    --sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #ecebf0; --ink2: #bdbac6; --mute: #908d99; --line: rgba(236,235,240,0.14); --line2: rgba(236,235,240,0.08);
+      --paper: #141317; --card: #1d1c22; --card2: #232229; --chip: rgba(236,235,240,0.09);
+      --new: #a893ff; --newwash: rgba(168,147,255,0.14);
+      --ok: #7fd1a2; --okwash: rgba(127,209,162,0.13); --warn: #f0b878; --warnwash: rgba(240,184,120,0.13); --open: #f39a9a; --openwash: rgba(243,154,154,0.13);
+      --codebg: #0d0c10; --codefg: #e9e7e2;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #ecebf0; --ink2: #bdbac6; --mute: #908d99; --line: rgba(236,235,240,0.14); --line2: rgba(236,235,240,0.08);
+    --paper: #141317; --card: #1d1c22; --card2: #232229; --chip: rgba(236,235,240,0.09);
+    --new: #a893ff; --newwash: rgba(168,147,255,0.14);
+    --ok: #7fd1a2; --okwash: rgba(127,209,162,0.13); --warn: #f0b878; --warnwash: rgba(240,184,120,0.13); --open: #f39a9a; --openwash: rgba(243,154,154,0.13);
+    --codebg: #0d0c10; --codefg: #e9e7e2;
+    color-scheme: dark;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--sans); background: var(--paper); color: var(--ink); font-size: 14px; line-height: 1.6; padding-inline: 20px; padding-block: 44px 120px; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  .col { max-width: 880px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--new); margin-bottom: 10px; }
+  h1 { font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -0.4px; text-wrap: balance; }
+  h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.2px; margin-top: 64px; padding-top: 26px; border-top: 1px solid var(--line); text-wrap: balance; }
+  h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.1px; text-wrap: balance; }
+  p { max-width: 760px; }
+  .lede { margin-top: 10px; color: var(--ink2); }
+  .stack > * + * { margin-top: 12px; }
+  a { color: var(--new); }
+  code, .mono { font-family: var(--mono); font-size: 12.5px; }
+  code { background: var(--chip); padding: 1px 5px; border-radius: 5px; }
+  .toc { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .toc a { font-size: 12px; font-weight: 600; color: var(--ink2); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; text-decoration: none; }
+  .toc a:hover, .toc a:focus-visible { border-color: var(--mute); color: var(--ink); }
+  a:focus-visible { outline: 2px solid var(--new); outline-offset: 2px; }
+
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; vertical-align: 1px; }
+  .tag.dec { background: var(--okwash); color: var(--ok); }
+  .tag.prop { background: var(--warnwash); color: var(--warn); }
+  .tag.open { background: var(--openwash); color: var(--open); }
+  .tag.new { background: var(--newwash); color: var(--new); }
+
+  blockquote { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; max-width: 760px; }
+  blockquote p { font-size: 15px; }
+  blockquote cite { display: block; margin-top: 8px; font-style: normal; font-size: 12.5px; color: var(--mute); }
+
+  /* three moves */
+  .moves { margin-top: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .move { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .move.now { border-color: color-mix(in srgb, var(--new) 45%, transparent); }
+  .move .when { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+  .move.now .when { color: var(--new); }
+  .move b { font-size: 15px; line-height: 1.35; }
+  .move span { color: var(--ink2); font-size: 13.5px; }
+  .move .cost { margin-top: auto; padding-top: 8px; font-size: 12.5px; color: var(--mute); }
+
+  .facts { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .fact { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+  .fact b { display: block; font-size: 14px; }
+  .fact span { display: block; margin-top: 4px; color: var(--ink2); font-size: 13.5px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); }
+  .tablewrap { margin-top: 16px; overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+  th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mute); padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--card2); white-space: nowrap; vertical-align: bottom; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line2); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  tr.group td { background: var(--card2); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mute); padding-block: 8px; }
+  td.name { font-weight: 700; white-space: nowrap; }
+  td.name small { display: block; font-weight: 500; color: var(--mute); font-size: 12px; white-space: normal; max-width: 160px; }
+  .platforms td { min-width: 150px; }
+  .platforms td.name { min-width: 130px; }
+  .y { color: var(--ok); font-weight: 600; }
+  .n { color: var(--mute); font-weight: 600; }
+  .m { color: var(--warn); font-weight: 600; }
+  .note { margin-top: 10px; color: var(--mute); font-size: 13px; max-width: 880px; }
+
+  .two { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; min-width: 0; }
+  .box h3 { margin-bottom: 10px; }
+  .box ul, .box ol, .col ul, .col ol { padding-left: 18px; color: var(--ink2); }
+  .box li, .col li { margin-top: 6px; padding-left: 2px; }
+  .box li b, .col li b { color: var(--ink); }
+
+  pre { font-family: var(--mono); font-size: 12.5px; line-height: 1.6; background: var(--codebg); color: var(--codefg); border-radius: 12px; padding: 16px 18px; overflow-x: auto; margin-top: 12px; }
+  pre .c { color: #9b978e; }
+  pre .k { color: #c9b8ff; }
+
+  /* timeline strip for the "now" process */
+  .steps { margin-top: 16px; display: grid; gap: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+  .step { display: grid; grid-template-columns: 112px minmax(0, 1fr) 120px; gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--line2); align-items: baseline; }
+  .step:last-child { border-bottom: 0; }
+  .step .wk { font-size: 12px; font-weight: 700; color: var(--new); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+  .step .who { font-size: 12px; font-weight: 600; color: var(--mute); text-align: right; }
+  .step b { display: block; }
+  .step span { color: var(--ink2); font-size: 13.5px; }
+
+  .codecard { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 12px; border: 1px dashed color-mix(in srgb, var(--new) 55%, transparent); border-radius: 10px; background: var(--newwash); }
+  .codecard .mono { font-size: 15px; font-weight: 500; letter-spacing: 0.06em; color: var(--new); }
+  .codecard span { font-size: 12.5px; color: var(--ink2); }
+
+  .email { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; max-width: 760px; }
+  .email .meta { font-size: 12px; color: var(--mute); padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--line2); }
+  .email p { margin-top: 10px; }
+  .email p:first-of-type { margin-top: 0; }
+  .email ol { padding-left: 20px; margin-top: 8px; }
+  .email li { margin-top: 6px; }
+  .copybtn { margin-top: 12px; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--card2); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; cursor: pointer; }
+  .copybtn:hover { border-color: var(--mute); }
+  .copybtn:focus-visible { outline: 2px solid var(--new); outline-offset: 2px; }
+
+  .sources { margin-top: 12px; columns: 2; column-gap: 32px; font-size: 12.5px; color: var(--ink2); padding-left: 18px; }
+  .sources li { margin-top: 4px; break-inside: avoid; overflow-wrap: anywhere; }
+
+  @media (max-width: 900px) {
+    .moves, .facts, .two { grid-template-columns: minmax(0, 1fr); }
+    .step { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .step .who { text-align: left; }
+    .sources { columns: 1; }
+  }
+  @media (max-width: 480px) {
+    body { padding-inline: 16px; padding-block: 28px 80px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="col">
+    <div class="eyebrow">Study · Oct 6, 2026 · prompted by Phyla</div>
+    <h1>One discount code per creator: what other platforms do, and what Benable should do</h1>
+    <p class="lede">Phyla asked today to give each of their 20 shipped-product creators their own discount code, mainly so they can track sales internally. 28 Litsea asked for the same thing in May. This page compares how PLATFORM_COUNT creator platforms handle per-creator codes, explains what a code can and cannot measure, and recommends what Benable does now, next, and later.</p>
+    <div class="toc">
+      <a href="#ask">The ask</a><a href="#answer">The answer</a><a href="#platforms">Other platforms</a><a href="#patterns">Patterns</a><a href="#measure">What a code measures</a><a href="#shopify">Shopify mechanics</a><a href="#now">Now: Phyla</a><a href="#next">Next: the portal</a><a href="#later">Later: automatic</a><a href="#reply">Reply to Gianna</a><a href="#open">Open questions</a><a href="#sources">Sources</a>
+    </div>
+
+    <h2 id="ask">The ask</h2>
+    <blockquote>
+      <p>"After talking with our CEO, Neil, we'd like to give each creator their own unique discount code. We can create these once we approve the creators and make the process as easy as possible for your team. This will mainly help us with tracking internally."</p>
+      <cite>Gianna Distasio, Phyla, email to Katie, Oct 6</cite>
+    </blockquote>
+    <div class="facts">
+      <div class="fact"><b>It covers the 20 shipped creators only</b><span>The 5 Target creators buy the serum in store with a gift card. A Shopify code does nothing at a Target register.</span></div>
+      <div class="fact"><b>Phyla offers to make the codes</b><span>They said they will create them once creators are approved. So nothing has to be built for October.</span></div>
+      <div class="fact"><b>The goal is tracking</b><span>They want to see which creators drive sales on phyla.com. They did not ask to pay creators a commission.</span></div>
+      <div class="fact"><b>The code has to exist before filming</b><span>Creators film in weeks 4 and 5 of the 8-week plan. If the code is said or shown in the video, it must reach the creator by week 3 at the latest. Approval in week 1 is the natural moment.</span></div>
+    </div>
+
+    <h2 id="answer">The answer</h2>
+    <p class="lede">Say yes to Phyla this week and run it by hand. Build the small version into the portal next, and only automate it in Shopify once brands use it.</p>
+  </div>
+  <div class="moves">
+    <div class="move now">
+      <span class="when">Now · Phyla, October campaign</span>
+      <b>Phyla makes the codes, Katie's team delivers and checks them</b>
+      <span>We send Phyla a list of code names when they approve creators. Phyla creates them in Shopify. Katie's team sends each creator their code and checks it appears in every draft. Phyla reads results in Shopify.</span>
+      <span class="cost">No engineering. About 1 hour of ops work per campaign.</span>
+    </div>
+    <div class="move">
+      <span class="when">Next · Brand portal</span>
+      <b>A code field per creator, shown in the creator's brief</b>
+      <span>The brand turns codes on in setup and pastes each creator's code after approval (we suggest the name). The creator app shows the code in the brief, review checks it, the wrap-up lists it.</span>
+      <span class="cost">Small build. No new Shopify permission.</span>
+    </div>
+    <div class="move">
+      <span class="when">Later · Automatic</span>
+      <b>Benable creates the codes in Shopify and reports sales per creator</b>
+      <span>One discount per campaign, one code per approved creator, created at approval. Orders with each code are read back into the tracker and the wrap-up.</span>
+      <span class="cost">Needs the Shopify discounts permission, so brands reconnect.</span>
+    </div>
+  </div>
+  <div class="col">
+    <h2 id="platforms">How other platforms do it</h2>
+    <p class="lede">Research in progress: the platform comparison lands here in the next commit.</p>
+  </div>
+  <div class="col">
+    <h2 id="measure">What a code can and cannot tell Phyla</h2>
+    <p class="lede">Codes are the right tool for Benable's format. They are also a partial count, and Phyla's Target launch makes the gap bigger than usual.</p>
+  </div>
+  <div class="two">
+    <div class="box">
+      <h3>What a code measures well</h3>
+      <ul>
+        <li><b>Sales from video.</b> TikTok and Reels captions do not carry clickable links. A code said out loud or shown on screen is the one piece of attribution that survives inside the video itself. Links only work in Stories and bios.</li>
+        <li><b>Which creator drove the order.</b> One code per creator means each order points at one creator, which is what Neil wants to see.</li>
+        <li><b>A reason to buy now.</b> Followers ask for codes. A code turns "I want this" into a first order on phyla.com.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>What it misses</h3>
+      <ul>
+        <li><b>Target.</b> Phyla is in 611 Target stores, and "now at Target" is a core message of the 20 e-commerce videos (Tony, Oct 1). Every viewer who buys in store is invisible to a Shopify code.</li>
+        <li><b>Buyers who skip the code.</b> People who search for Phyla later, buy at full price, or forget the code are not counted.</li>
+        <li><b>Leaked codes.</b> Coupon browser extensions and deal sites collect working codes and apply them at checkout. Those orders get credited to a creator who did not drive them.</li>
+        <li><b>Scale.</b> 20 nano and micro creators (5K to 50K followers) on a gifted deal. Expect small numbers per creator, with a few creators driving most of the orders.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <h2 id="now">Now: run Phyla's codes by hand</h2>
+    <p class="lede">Phyla's October campaign. Everything below fits inside today's product and today's 8-week plan. The weeks are counted from launch.</p>
+  </div>
+  <div class="steps">
+    <div class="step"><span class="wk">This week</span><div><b>Reply yes and agree the code rules</b><span>Code format, discount, one use per customer, no end date for now. Draft reply below.</span></div><span class="who">Katie</span></div>
+    <div class="step"><span class="wk">Week 1</span><div><b>Phyla approves creators, we send the code list</b><span>A sheet with creator, handle and suggested code. One row per approved creator, sent the same day.</span></div><span class="who">Katie's team</span></div>
+    <div class="step"><span class="wk">Week 1 to 2</span><div><b>Phyla creates the codes in Shopify and confirms</b><span>Within 2 business days. If a code name is taken, Phyla adds a digit and tells us.</span></div><span class="who">Phyla</span></div>
+    <div class="step"><span class="wk">Week 2 to 3</span><div><b>Each creator gets their code, before the product arrives</b><span>One message per creator: the code, what it gives followers, and how to use it in the post.</span></div><span class="who">Katie's team</span></div>
+    <div class="step"><span class="wk">Week 6 to 8</span><div><b>Review checks the code in every draft</b><span>Said or shown in the video, written in the caption, spelled exactly as created. A missing code is a fix before posting.</span></div><span class="who">Katie's team, then Phyla</span></div>
+    <div class="step"><span class="wk">30 days after the last post</span><div><b>Results go into the wrap-up</b><span>Phyla shares Shopify's sales-by-discount report, or reads it on the wrap-up call with Katie.</span></div><span class="who">Phyla and Katie</span></div>
+  </div>
+  <div class="two">
+    <div class="box">
+      <h3>The code rules we propose</h3>
+      <ul>
+        <li><b>Format:</b> the creator's first name or handle, then the discount number. Capital letters and digits only, 12 characters at most. <span class="codecard"><span class="mono">MAYA15</span><span>15% off for Maya's followers</span></span></li>
+        <li><b>Discount:</b> Phyla decides. Most creator codes sit at 10 to 20% off. We suggest 15% on the serum.</li>
+        <li><b>One use per customer</b>, and it does not stack with Phyla's other codes.</li>
+        <li><b>No end date at first.</b> Videos keep getting views for weeks, and a dead code in a live video makes the creator look bad. Phyla can switch a code off any time.</li>
+        <li><b>Not a commission.</b> The creator earns nothing per sale on this deal. If that changes, the post disclosure has to say so.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>The line we add to each creator's message</h3>
+      <p style="color:var(--ink2)">"Phyla made you your own code: <b>MAYA15</b> gives your followers 15% off the serum on phyla.com. Please say it or show it in your video and add it to your caption. Our team will double-check it's in your draft."</p>
+      <h3 style="margin-top:18px">What does not change</h3>
+      <ul>
+        <li>The campaign brief Phyla submitted. The code lives in our message to each creator, not in the shared brief.</li>
+        <li>The 5 Target creators. No codes for them.</li>
+        <li>The brand portal and the creator app.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <h2 id="next">Next: a code field in the portal</h2>
+    <p class="lede">The smallest product version. It takes the manual steps above and puts them where brands and creators already look. Benable stores the code text. It does not create the code in Shopify, so the brand's Shopify connection stays as it is.</p>
+  </div>
+  <div class="two">
+    <div class="box">
+      <h3>Brand portal</h3>
+      <ul>
+        <li><b>Setup:</b> one optional switch in the offer step, "Give each creator a discount code for their followers", with the discount (10%, 15%, 20%, other). Off by default.</li>
+        <li><b>After approval:</b> each approved creator's row asks for a code, with our suggestion filled in ("MAYA15"). It is an amber "Add code" action, the same anatomy as "Add tracking", because the ball is in the brand's court.</li>
+        <li><b>Creators table:</b> the code appears in the row drawer and in the order-sheet download, so the brand has one list to create in Shopify.</li>
+        <li><b>Wrap-up:</b> a list of codes per creator, plus where to read sales in Shopify.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Creator app and admin</h3>
+      <ul>
+        <li><b>Brief:</b> a "Your code" card with copy button, the discount, and the instruction to say it or show it and put it in the caption.</li>
+        <li><b>Draft review:</b> the pre-check list gains "Code is in the post" for Katie's team.</li>
+        <li><b>Admin:</b> ops can enter or fix a code for the brand, as Katie does by hand today.</li>
+        <li><b>Data:</b> one nullable <code>creator_code</code> text on the creator's campaign assignment, and <code>creator_codes_enabled</code> plus <code>creator_code_discount_label</code> on the campaign.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="col">
+    <h2 id="later">Later: Benable creates the codes and reports sales</h2>
+    <p class="lede">Worth building once a few brands use the field. This is where the mid-market tools sit today, and it is the version 28 Litsea described in May: "if followers support the creator, they should be able to go through that creator's link and buy."</p>
+  </div>
+  <div class="two">
+    <div class="box">
+      <h3>How it works</h3>
+      <ol>
+        <li><b>Permission.</b> The Shopify app asks for discount access. Existing brands reconnect from Settings, and only the brands that turn codes on need to.</li>
+        <li><b>At launch:</b> Benable creates one discount for the campaign in the brand's Shopify, with the brand's percentage, one use per customer, no stacking.</li>
+        <li><b>At each approval:</b> Benable adds the creator's code to that discount. If the name is taken, it adds a digit.</li>
+        <li><b>Orders:</b> Benable reads new orders, matches their discount codes to creators, and stores order count and sales per code.</li>
+        <li><b>One link that carries the code:</b> the creator's existing <code>benable.com/a/</code> link redirects to Shopify's discount link, which applies the code at checkout, with Benable's UTM tags on the visit.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <h3>How results show up</h3>
+      <ul>
+        <li><b>Tracker row:</b> a quiet line once a code has orders, "3 orders with MAYA15". Nothing before that. A row never shows a zero.</li>
+        <li><b>Wrap-up:</b> orders and sales with creator codes for the whole campaign, and the top code.</li>
+        <li><b>Only what Benable can know:</b> orders that used a code. No estimated revenue, no "influenced" sales.</li>
+        <li><b>A first sales number in a dashboard that has none.</b> Since v37 the tracker shows no link metrics. Sales per creator would be the first, so the threshold rules need a decision (see open questions).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <h2 id="reply">Reply to Gianna</h2>
+    <p class="lede">A draft for Katie, who owns the thread. It leaves Gianna's other question, when the 5 Target creators arrive for approval, for Katie to answer.</p>
+    <div class="email" id="email">
+      <div class="meta">To Gianna · Re: Thank You For Supporting Our Kansas City Creator Event!</div>
+      <p>Hi Gianna,</p>
+      <p>Thank you, the brief looks great! Unique codes for each creator are a great idea. Here's how we'll run them:</p>
+      <ol>
+        <li>As soon as you approve creators, we'll send you a list with a suggested code for each one: their name plus the discount, for example MAYA15.</li>
+        <li>You create the codes in Shopify (Discounts, then Create discount) and let us know when they're live. We suggest 15% off the serum, one use per customer, and no end date for now, since videos keep getting views for weeks after they're posted.</li>
+        <li>We'll send each creator their code before the serum arrives and ask them to say it or show it in their video and add it to their caption. Our team will check it's in every draft.</li>
+        <li>About 30 days after the last post, you'll see each code's orders and sales in Shopify under Analytics, in the sales by discount report. We'll go through them with you in the wrap-up.</li>
+      </ol>
+      <p>One thing to keep in mind: codes only count purchases on phyla.com. Anyone who sees a video and buys the serum at Target won't show up, so the code numbers will undercount what the campaign does, especially with Target as a core message in the videos.</p>
+      <p>[Katie: timing for the 5 Target creators]</p>
+      <p>Best,<br>Katie</p>
+    </div>
+    <button class="copybtn" id="copy-email" type="button">Copy the email text</button>
+
+    <h2 id="open">Open questions</h2>
+    <p class="lede">For Julia and Tony. Each one changes what we tell brands or what we build.</p>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Question</th><th>Proposal</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Do we suggest a discount?</td><td>Yes, 15% as the default suggestion. The brand decides.</td><td>Brands without an influencer program will ask us. A standard number also makes results comparable across brands.</td></tr>
+        <tr><td class="name">How long do codes stay live?</td><td>No end date by default. Brands can switch any code off.</td><td>Expired codes in videos that still get views read as broken to followers and embarrass the creator.</td></tr>
+        <tr><td class="name">Do code sales show in the tracker?</td><td>Wrap-up first, as a campaign total and the top code. Per-creator numbers in the row drawer only once a code has orders.</td><td>It would be the first sales number in a dashboard built to avoid small, discouraging metrics. Nano creators on gifted deals will often show 0 to 3 orders.</td></tr>
+        <tr><td class="name">Is the code a required deliverable?</td><td>Required in the caption, required in the video when the brand turns codes on.</td><td>If it is only a suggestion, half the posts will miss it and the numbers mean nothing. If it is required, review has to enforce it.</td></tr>
+        <tr><td class="name">Do creators ever earn on their code?</td><td>Not on gifted campaigns for now. Revisit with the affiliate program.</td><td>Commission turns a gifted deal into an affiliate deal: payouts, tax forms, a different disclosure. Benable already runs affiliate links for partner brands such as Pair.</td></tr>
+        <tr><td class="name">How do we set expectations on sales?</td><td>Say it before the first number arrives, in the reply and on the wrap-up.</td><td>Tony told Phyla on Sep 30 that micro creators are "not a great direct sales channel" and that Benable is "a content machine". A code count is easy to read as the verdict on the campaign.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
