@@ -563,11 +563,9 @@ export function createMonths(root, opts = {}) {
     const runs = runsOf();
     const r = runs.find((x) => x.id === openId) || runs[0];
     if (!r) return renderOverview();
-    /* prod's h1 is the campaign's title; new = the month pill + "Campaign N" (Julia, Sep 24) */
-    const head = after()
-      ? `<span class="campaign-card__date svelte-1fvpax8 nfm-monthpill"><strong class="svelte-1fvpax8">${esc(tl(r).content_month)} content</strong></span>
-                <h1>Campaign ${r.number}</h1>`
-      : `<h1>${esc(r.title)}</h1>`;
+    /* prod's h1 is the campaign's title; new = "Campaign N". The grey "October content" pill
+       that sat before it (Julia, Sep 24; handoff page E1) was removed by Julia on Oct 6 */
+    const head = after() ? `<h1>Campaign ${r.number}</h1>` : `<h1>${esc(r.title)}</h1>`;
     return `
     <section class="workflow-page nfm-track">
       <div class="workspace-grid">

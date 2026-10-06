@@ -47,7 +47,6 @@
 .nf .nf-months .nfm-track { padding: 60px 0 0; height: auto; min-height: 100%; overflow: visible; }
 .nf .nf-months .nfm-track .workspace-grid { overflow: visible; }
 .nf .nf-months .nfm-track .workflow-header { padding: 12px 20px 0; }
-.nf .nf-months .nfm-monthpill { margin-right: 4px; }
 .nf .nf-months .workflow-header-backlink .icon svg { display: block; }
 
 .nf .nf-months .nfm-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(8px); z-index: 320; background: #111114; color: #e6e6ea; font-size: 13px; padding: 10px 14px; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease; max-width: min(90vw, 520px); }
