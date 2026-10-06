@@ -107,6 +107,17 @@
 .nf .nf-months .nfm-tl__track span.now { background: var(--nfm-accent); }
 .nf .nf-months .nfm-tl__phases { margin-top: 8px; }
 /* the continuous version (Julia, Oct 1): the Sep 24 box's single bar, phases still under it */
+/* the moving card (movingTimeline.js, decided Oct 6): new date, old date small and crossed out,
+   the Early tag in production's Completed-pill green, one grey or amber line under the date */
+.nf .nf-months .nfm-tl--moving .nfm-tl__v { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.nf .nf-months .nfm-tl__was { font-size: 12.5px; font-weight: 500; color: #9a9a9a; text-decoration: line-through; }
+.nf .nf-months .nfm-tl__early { display: inline-flex; align-items: center; align-self: center; min-height: 20px; padding: 0 8px; border-radius: 999px; background: #ebf7ef; color: #167245; font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; }
+.nf .nf-months .campaign-card .nfm-meta .nfm-tl__early { margin-left: 8px; vertical-align: 1px; }
+.nf .nf-months .nfm-tl__why { margin-top: 6px; display: flex; align-items: flex-start; gap: 6px; font-size: 12.5px; font-weight: 500; line-height: 1.4; color: var(--nfm-muted); }
+.nf .nf-months .nfm-tl__why i { width: 6px; height: 6px; margin-top: 6px; flex: none; border-radius: 50%; background: #c2c5c4; }
+.nf .nf-months .nfm-tl__why.is-you { color: #8a4a12; }
+.nf .nf-months .nfm-tl__why.is-you i { background: #e88e2c; }
+.nf .nf-months .nfm-tl .nfm-tl__steps .nfm-tl__started { color: #17663f; font-weight: 500; }
 .nf .nf-months .nfm-tl__line { height: 6px; margin-top: 14px; border-radius: 999px; background: var(--nfm-track); overflow: hidden; }
 .nf .nf-months .nfm-tl__line span { display: block; height: 100%; border-radius: inherit; background: var(--nfm-accent); opacity: .7; }
 /* labels are centered in their slot (Julia, Oct 1: left-aligned in the uneven week grid read as

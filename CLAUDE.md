@@ -57,6 +57,18 @@ backend diff, edge cases and open questions: **`public/months-before-after.html`
   no heading change, no added sentence (Julia, Oct 2: no "Set up Campaign 1", then "remove
   item D", the setup section of the handoff page), only the intro screen before it is skipped,
   launch line "Campaign N | {month} content · {title}", the Sep 24 launch timeline card + tip.
+- **Moving timeline card (Oct 6 2026, every rule decided by Julia):** `src/months/movingTimeline.js`,
+  ported from the timeline tile study (`../timeline-tile-study/`, public timeline-tile-study-1). The
+  first-content date follows the first creator: earlier when an order, draft or post lands early
+  (Early tag, old date crossed out), later ONLY for the brand's own delays (approving creators,
+  shipping its own orders, reviewing its own drafts), held for creator-side delays; one grey or
+  amber line under the date; overlapping phase windows; Now on two phases; completed state. In the
+  new design the second bar carries TILE (Moving, default | Fixed = the 8-week card as it shipped
+  on Oct 5 in beneble_app#747 + benable-ui#430) and CAMPAIGN 1 (On plan | Early | Brand ships late
+  | Brand reviews late | Creators late): a scene other than On plan generates Campaign 1's
+  creators, their stage history days and the rail notes from one set of days, so the table agrees
+  with the card. BAR (Line | Segments) only applies to the Fixed card. The handoff page frames pin
+  `&tile=fixed&scen=plan` so the shipped record does not move. Deep links `?tile= ?scen=`.
 - Deep links: `?rev= ?day=signed|week4|slip|landed ?tl=open ?bar= ?embed=1`.
 - OPEN (see the handoff page): locked tile next to a ready one (cadence change), status
   sentence vs campaign title, week 9 with nothing live, Tony's Sep 8 "Sep 20 launch =

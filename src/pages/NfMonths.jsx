@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { NF_SHELL } from '../data/newFlowHtml.js';
 import { forks } from '../components/pulse/forks.js';
 import NfForkBar from './NfForkBar.jsx';
-import { createMonths, DAYS, REVS } from '../months/monthsEngine.js';
+import { createMonths, DAYS, REVS, SCENES, TILES } from '../months/monthsEngine.js';
 import '../styles/pulse.css';
 import '../styles/months.css';
 
@@ -17,11 +17,14 @@ import '../styles/months.css';
  * intro screen (/nf/step1), the new design goes straight to setup (/nf/step2); NewFlow
  * patches the copy in months mode and its back links return here.
  *
- * Second black bar: PAGE (Overview | Campaign page), VERSION, TODAY IS, and on the campaign
- * page BAR (the timeline card's Line | Segments).
+ * Second black bar: PAGE (Overview | Campaign page), VERSION, TODAY IS, and in the new design
+ * TILE (Moving = the decided Oct 6 timeline card, Fixed = the 8-week card as it shipped Oct 5),
+ * CAMPAIGN 1 (what happens to it: On plan, Early, Brand ships late, Brand reviews late,
+ * Creators late) and, for the fixed card on the campaign page, BAR (Line | Segments).
  * Deep links: ?rev=before|after, ?day=signed|week4|slip|landed, ?tl=open (timeline
- * expanded), ?bar=line|segments (the timeline card's progress bar), ?embed=1 (no black
- * bars, nothing written to storage: the handoff page's frames).
+ * expanded), ?tile=moving|fixed, ?scen=plan|early|brandship|brandreview|creators,
+ * ?bar=line|segments (the fixed card's progress bar), ?embed=1 (no black bars, nothing
+ * written to storage: the handoff page's frames).
  * Engineering handoff with the two versions side by side: public/months-before-after.html
  */
 export default function NfMonths({ screen = 'overview' }) {
@@ -31,6 +34,8 @@ export default function NfMonths({ screen = 'overview' }) {
   const [day, setDayState] = useState('week4');
   const [rev, setRevState] = useState('after');
   const [bar, setBarState] = useState('line');
+  const [tile, setTileState] = useState('moving');
+  const [scen, setScenState] = useState('plan');
   const [params] = useSearchParams();
   const embed = params.has('embed');
 
@@ -40,8 +45,8 @@ export default function NfMonths({ screen = 'overview' }) {
     const el = mountRef.current;
     if (!el) return undefined;
     const engine = createMonths(el, {
-      init: { rev: params.get('rev'), day: params.get('day'), tl: params.get('tl'), bar: params.get('bar'), embed },
-      onRender: (k, _screen, r, b) => { setDayState(k); setRevState(r); setBarState(b); },
+      init: { rev: params.get('rev'), day: params.get('day'), tl: params.get('tl'), bar: params.get('bar'), tile: params.get('tile'), scen: params.get('scen'), embed },
+      onRender: (k, _screen, r, b, tl, sc) => { setDayState(k); setRevState(r); setBarState(b); setTileState(tl); setScenState(sc); },
       onOpen: () => navigate('/nf/months/track'),
       onBack: () => navigate('/nf/months'),
       onPlan: ({ month, todayISO, number, rev: planRev }) => {
@@ -136,7 +141,35 @@ export default function NfMonths({ screen = 'overview' }) {
             {label}
           </button>
         ))}
-        {rev === 'after' && screen === 'track' && (
+        {rev === 'after' && (
+          <>
+            <span className="cp-mode-sep" aria-hidden />
+            <span className="cp-scrub-tag">TILE</span>
+            {TILES.map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={tile === key ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'}
+                onClick={() => engineRef.current?.setTile(key)}
+              >
+                {label}
+              </button>
+            ))}
+            <span className="cp-mode-sep" aria-hidden />
+            <span className="cp-scrub-tag">CAMPAIGN 1</span>
+            {SCENES.map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={scen === key ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'}
+                onClick={() => engineRef.current?.setScen(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </>
+        )}
+        {rev === 'after' && tile === 'fixed' && screen === 'track' && (
           <>
             <span className="cp-mode-sep" aria-hidden />
             <span className="cp-scrub-tag">BAR</span>

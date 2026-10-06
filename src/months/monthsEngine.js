@@ -19,7 +19,19 @@
    at 6 weeks (Julia, Oct 2; replaces the Sep 8 "first content at 8 weeks") · "Campaign 1 | November content" on tiles
    before launch, "Launch now", the standard sentence (Tony, Sep 29) · the name is
    the month of week 7, two campaigns may share a month, no launch-by line on the tile, product
-   campaigns only (Julia, Oct 1). */
+   campaigns only (Julia, Oct 1). The Campaign timeline card now MOVES with the campaign
+   (movingTimeline.js, decided Oct 6): this narrows "no lateness states" to the brand's own delays.
+   TILE switch Moving | Fixed (the 8-week card as shipped Oct 5); CAMPAIGN 1 switch for the scenes. */
+
+import { SCENES, SCENE_EVENTS, clock, computeMoving, creatorDays, movingCardHtml, movingMetaHtml } from './movingTimeline.js';
+
+export { SCENES };
+/* the Campaign timeline card: Moving = the decided Oct 6 design (movingTimeline.js), Fixed =
+   the 8-week card as it shipped on Oct 5 (and as the handoff page frames it) */
+export const TILES = [
+  ['moving', 'Moving'],
+  ['fixed', 'Fixed'],
+];
 
 export const REVS = [
   ['before', 'Prod today'],
@@ -122,8 +134,10 @@ const CREATORS_2 = [
 const FACES_2 = ['review/posters/quinn-2.jpg', 'review/posters/emery-2.jpg', 'creators/jade.jpg', 'creators/amara.jpg', 'creators/nia.jpg', 'creators/lena.jpg', 'creators/sofia.jpg', 'creators/maya.jpg', 'creators/priya.jpg', 'review/posters/jasper-1.jpg'];
 const creator2 = (i, stage, when) => ({ name: CREATORS_2[i][0], handle: CREATORS_2[i][1], stage, when, av: FACES_2[i] });
 
-const RUN = { id: 88, number: 1, title: 'Fall Campaign', launchISO: '2026-09-10' };
-const RUN2 = { id: 89, number: 2, title: 'Holiday Campaign', launchISO: '2026-10-12' };
+/* sc = what happened, in days from launch (movingTimeline.js). Campaign 1's "On plan" matches
+   the hand-written days below; Campaign 2's first orders arrived on day 15, a week early */
+const RUN = { id: 88, number: 1, title: 'Fall Campaign', launchISO: '2026-09-10', sc: SCENE_EVENTS.plan };
+const RUN2 = { id: 89, number: 2, title: 'Holiday Campaign', launchISO: '2026-10-12', sc: { acc: 7, del: 15, draft: 33, posts: [40, 42, 43, 45, 46, 47, 49, 50, 52, 53] } };
 
 /* Tiles carry no hand-typed month or number. A ready tile is named for launching today, a
    locked one for launching the day it unlocks; both are numbered after the running campaigns.
@@ -197,16 +211,16 @@ const DB = {
    prod captures on this repo's pulse.css). Same am-/am2-/tf-/cp- classes. */
 const PULSE_STAGES = ['Sourcing', 'Invited', 'Accepted', 'Order shipped', 'Order delivered', 'Draft approved', 'Content published', 'Thanked'];
 const RAMP = ['#dbeee3', '#b9dfcb', '#8fceae', '#5fb98c', '#2e9e6b', '#1f8f5a', '#17864f', '#124a33'];
-const STAGE_OF = { 'Order shipped': 3, 'Order delivered': 4, 'Draft submitted': 4, 'Draft approved': 5, 'Content published': 6 };
+const STAGE_OF = { Accepted: 2, 'Order shipped': 3, 'Order delivered': 4, 'Draft submitted': 4, 'Draft approved': 5, 'Content published': 6 };
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
 const rowOf = (c) => {
   const stage = STAGE_OF[c.stage] ?? 4;
   const live = c.stage === 'Content published';
   const update = live ? `Post live since ${c.when}`
     : c.stage === 'Order shipped' ? `Order shipped, ${c.when}`
-      : c.stage === 'Draft submitted' ? "Draft in review with Katie's team"
+      : c.stage === 'Draft submitted' ? (c.yours ? 'Draft ready for your review' : "Draft in review with Katie's team")
         : c.stage === 'Draft approved' ? `Draft approved, ${c.when}`
-          : 'Has the product, filming';
+          : c.stage === 'Accepted' ? 'Accepted, order not shipped yet' : 'Has the product, filming';
   return { c, stage, live, update, draft: c.stage === 'Draft submitted' };
 };
 /* production's progress_percent (Dashboard::TrackerQuery): sum of stage slots over cohort x 7, capped at 99 until completed */
@@ -218,12 +232,40 @@ function statusLine(rows) {
   const live = rows.filter((x) => x.live).length;
   const drafts = rows.filter((x) => x.draft || x.stage === 5).length;
   const shipping = rows.filter((x) => x.stage === 3).length;
-  const filming = n - live - drafts - shipping;
+  const accepted = rows.filter((x) => x.stage === 2).length;
+  const filming = n - live - drafts - shipping - accepted;
   if (live === n) return `All ${n} posts are live`;
   if (live) return `${plural(live, 'post')} live, ${n - live} more on the way`;
   if (drafts) return `${plural(drafts, 'draft')} in, ${n - drafts} still filming`;
   if (filming) return shipping ? `${plural(filming, 'creator')} filming, ${plural(shipping, 'order')} on the way` : `All ${n} creators are filming`;
-  return `Product is on its way to ${plural(shipping, 'creator')}`;
+  if (shipping) return `Product is on its way to ${plural(shipping, 'creator')}`;
+  return `${plural(accepted, 'creator')} confirmed`;
+}
+
+/* Recent activity and Up next for a campaign generated from a WHAT HAPPENS scene */
+function notesFor(rows) {
+  const count = (f) => rows.filter(f).length;
+  const live = count((x) => x.live);
+  const approved = count((x) => x.stage === 5);
+  const sub = count((x) => x.draft);
+  const yours = count((x) => x.draft && x.c.yours);
+  const filming = count((x) => x.stage === 4 && !x.draft);
+  const shipping = count((x) => x.stage === 3);
+  const waiting = count((x) => x.stage === 2);
+  const activity = [];
+  if (live) activity.push(['🎉', `${plural(live, 'post')} ${live === 1 ? 'is' : 'are'} live!`, "Katie's team checked every draft against your brief before it went live."]);
+  if (approved) activity.push(['✅', `${plural(approved, 'draft')} approved`, 'They post this week.']);
+  if (sub && activity.length < 2) activity.push(['📝', yours ? `${plural(yours, 'draft')} ready for your review` : `${plural(sub, 'draft')} in review`, yours ? "Katie's team pre-checked each one. Approve it or send feedback." : "Katie's team reviews each one before it goes live."]);
+  if (filming && activity.length < 2) activity.push(['📦', `${plural(filming, 'order')} delivered`, 'Creators film once the product is in hand.']);
+  if (shipping && activity.length < 2) activity.push(['🚚', `${plural(shipping, 'order')} on the way`, 'Creators film once the product arrives.']);
+  if (waiting && activity.length < 2) activity.push(['📦', `${plural(waiting, 'order')} ready to ship`, 'Ship them and add tracking so creators can start filming.']);
+  const next = waiting ? ['📦', 'Ship your orders', 'Creators have about 10 days to film once the product arrives.']
+    : yours ? ['📝', 'Review the drafts that are ready', 'Each post goes live once you approve it.']
+      : live ? ['💌', `Send thank-yous to ${plural(live, 'creator')}`, 'Thoughtful notes help strengthen your creator relationships after their posts went live.']
+        : approved || sub ? ['🚀', 'First posts go live soon', 'We track every post for you once it is live.']
+          : filming ? ['🎬', 'Drafts start arriving', "Katie's team reviews each one before it goes live."]
+            : ['🎬', 'Creators film once the product arrives', 'Drafts follow about 10 days later.'];
+  return { activity, next: [next] };
 }
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -240,6 +282,8 @@ export function createMonths(root, opts = {}) {
   let screen = 'overview';
   let tlOpen = false;
   let bar = 'line'; // the timeline card's progress: 'line' = one continuous bar | 'segments' = eight week segments
+  let tile = 'moving'; // the timeline card: 'moving' (decided Oct 6) | 'fixed' (as shipped Oct 5)
+  let scen = 'plan'; // what happens to Campaign 1 (SCENES)
   let openId = null;
   let toastT;
   const S = () => DB[stateKey];
@@ -250,12 +294,44 @@ export function createMonths(root, opts = {}) {
   try { const s = localStorage.getItem('acState'); if (s && DB[s]) stateKey = s; } catch { /* fresh */ }
   try { if (localStorage.getItem('acRev') === 'before') rev = 'before'; } catch { /* fresh */ }
   try { if (localStorage.getItem('acBar') === 'segments') bar = 'segments'; } catch { /* fresh */ }
+  try { if (localStorage.getItem('acTile') === 'fixed') tile = 'fixed'; } catch { /* fresh */ }
+  try { const v = localStorage.getItem('acScen'); if (v && SCENE_EVENTS[v]) scen = v; } catch { /* fresh */ }
   try { const o = Number(sessionStorage.getItem('acOpen')); if (o) openId = o; } catch { /* fresh */ }
   if (init.day && DB[init.day]) { stateKey = init.day; store('acState', stateKey); }
   if (init.rev === 'before' || init.rev === 'after') { rev = init.rev; store('acRev', rev); }
   if (init.bar === 'line' || init.bar === 'segments') { bar = init.bar; store('acBar', bar); }
   if (init.tl === 'open') tlOpen = true;
+  if (init.tile === 'moving' || init.tile === 'fixed') { tile = init.tile; store('acTile', tile); }
+  if (init.scen && SCENE_EVENTS[init.scen]) { scen = init.scen; store('acScen', scen); }
   const after = () => rev === 'after';
+  const moving = () => after() && tile === 'moving';
+
+  /* Campaign 1 under a WHAT HAPPENS scene other than On plan: the creators, their days and the
+     rail notes are generated from the scene, so the table agrees with the card */
+  function sceneRun(r) {
+    const sc = SCENE_EVENTS[scen];
+    const { fmt, addBiz, dayOf } = clock(r.launchISO);
+    const t = dayOf(S().todayISO);
+    const creators = sc.posts.map((_, i) => {
+      const d = creatorDays(sc, i, r.launchISO);
+      let stage; let when; let yours = false;
+      if (d.post <= t) { stage = 'Content published'; when = fmt(d.post); }
+      else if (d.approve <= t) { stage = 'Draft approved'; when = 'posts this week'; }
+      else if (d.draft <= t) {
+        stage = 'Draft submitted';
+        yours = sc.reviewer === 'brand' && t >= addBiz(d.draft, 3);
+        when = yours ? 'waiting for your review' : `we review by ${fmt(addBiz(d.draft, 3))}`;
+      } else if (d.del <= t) { stage = 'Order delivered'; when = 'filming'; }
+      else if (d.ship <= t) { stage = 'Order shipped'; when = `arrives ${fmt(d.del)}`; }
+      else { stage = 'Accepted'; when = 'order not shipped yet'; }
+      return Object.assign(creator(i, stage, when), { yours, days: d });
+    });
+    const waiting = { drafts: creators.filter((c) => c.yours).length, orders: creators.filter((c) => c.stage === 'Accepted').length };
+    const run = Object.assign({}, r, { sc: Object.assign({}, sc, { waiting }), creators, first_live: sc.posts[0] <= t ? fmt(sc.posts[0]) : undefined });
+    return Object.assign(run, notesFor(creators.map(rowOf)));
+  }
+  const runsOf = () => S().runs.map((r) => (after() && scen !== 'plan' && r.id === RUN.id ? sceneRun(r) : r));
+  const movingOf = (r) => computeMoving(r.sc, clock(r.launchISO).dayOf(S().todayISO), r.launchISO);
 
   const tl = (r) => timeline(r.launchISO, S().todayISO);
   /* Tony, Sep 29: "Campaign 1 | November content" on the tiles, where prod shows the number only */
@@ -281,9 +357,10 @@ export function createMonths(root, opts = {}) {
     const live = rows.filter((x) => x.live).length;
     const n = rows.length;
     /* one quiet line over the bar: the week until the first post, the live count after it */
-    const line = live
-      ? `<b>${live} of ${n} live</b> · first on ${r.first_live}`
-      : `<b>${t.week <= WEEKS ? `Week ${t.week} of ${WEEKS}` : `Week ${t.week}`}</b> · first content expected the week of ${t.first_content}`;
+    const line = moving() ? movingMetaHtml(movingOf(r), r.launchISO)
+      : live
+        ? `<b>${live} of ${n} live</b> · first on ${r.first_live}`
+        : `<b>${t.week <= WEEKS ? `Week ${t.week} of ${WEEKS}` : `Week ${t.week}`}</b> · first content expected the week of ${t.first_content}`;
     const pct = live ? Math.round((live / n) * 100) : t.pct;
     return `
     <a class="campaign-card svelte-1fvpax8" href="#" data-open="${r.id}" aria-label="Open Campaign ${r.number}, ${esc(t.content_month)} content">
@@ -359,7 +436,7 @@ export function createMonths(root, opts = {}) {
         <div class="nfm-plan-line">Today is <b>${s.today}</b></div>
       </div>
       <section class="overview-stack svelte-9w8so5">
-        <section class="campaign-group svelte-9w8so5"><div class="campaign-group__reveal svelte-9w8so5"><div class="campaign-group__cards svelte-9w8so5">${s.runs.map(runCard).join('')}${opps.map(oppCard).join('')}</div></div></section>
+        <section class="campaign-group svelte-9w8so5"><div class="campaign-group__reveal svelte-9w8so5"><div class="campaign-group__cards svelte-9w8so5">${runsOf().map(runCard).join('')}${opps.map(oppCard).join('')}</div></div></section>
       </section>
     </div>`;
   }
@@ -370,6 +447,7 @@ export function createMonths(root, opts = {}) {
      it expands into the full timeline"). Collapsed = the date, one progress bar, five phases.
      Expanded in place = the phases dated from this campaign's launch day, with a Now marker. */
   function timelineCard(r) {
+    if (moving()) return movingCardHtml(movingOf(r), { launchISO: r.launchISO, open: tlOpen, chev: CHEV, note: TIMELINE_NOTE });
     const t = tl(r);
     const live = r.creators.filter((c) => c.stage === 'Content published').length;
     const launch = at(r.launchISO);
@@ -416,12 +494,13 @@ export function createMonths(root, opts = {}) {
   function stageHistory(row, r) {
     const launch = at(r.launchISO);
     const d = (n) => fmt(new Date(launch.getTime() + n * DAY));
+    const own = row.c.days || { ship: 10, del: 17, approve: 38 };
     const steps = [
       ['Invited', d(5), 'Matched to your brief'],
       ['Accepted', d(7), 'Accepted the invite'],
-      ['Order shipped', d(10), row.stage === 3 ? `Product on its way, ${row.c.when}` : 'Product on its way'],
-      ['Order delivered', d(17), row.draft ? "Package arrived. The draft is in review with Katie's team" : 'Package arrived, filming'],
-      ['Draft approved', d(38), "Katie's team checked the draft against your brief"],
+      ['Order shipped', d(own.ship), row.stage === 3 ? `Product on its way, ${row.c.when}` : 'Product on its way'],
+      ['Order delivered', d(own.del), row.draft ? (row.c.yours ? 'Package arrived. The draft is ready for your review' : "Package arrived. The draft is in review with Katie's team") : 'Package arrived, filming'],
+      ['Draft approved', d(own.approve), row.c.yours ? 'You approved the draft' : "Katie's team checked the draft against your brief"],
       ['Live!', row.live ? row.c.when : 'up next', row.live ? 'Post went live' : 'Post goes live, we track how it does for you'],
       ['Thanked', 'up next', 'Your thank-you, right after the post'],
     ];
@@ -481,7 +560,8 @@ export function createMonths(root, opts = {}) {
   }
 
   function renderTracker() {
-    const r = S().runs.find((x) => x.id === openId) || S().runs[0];
+    const runs = runsOf();
+    const r = runs.find((x) => x.id === openId) || runs[0];
     if (!r) return renderOverview();
     /* prod's h1 is the campaign's title; new = the month pill + "Campaign N" (Julia, Sep 24) */
     const head = after()
@@ -517,7 +597,7 @@ export function createMonths(root, opts = {}) {
 
   function render() {
     root.innerHTML = (screen === 'track' ? renderTracker() : renderOverview()) + '<div class="nfm-toast" data-toast role="status"></div>';
-    if (opts.onRender) opts.onRender(stateKey, screen, rev, bar);
+    if (opts.onRender) opts.onRender(stateKey, screen, rev, bar, tile, scen);
   }
   function toast(msg) {
     const t = root.querySelector('[data-toast]'); if (!t) return;
@@ -575,10 +655,14 @@ export function createMonths(root, opts = {}) {
     setDay(key) { if (DB[key] && key !== stateKey) { stateKey = key; store('acState', key); if (!DB[key].runs.length) screen = 'overview'; render(); } },
     setRev(next) { if ((next === 'before' || next === 'after') && next !== rev) { rev = next; store('acRev', rev); render(); } },
     setBar(next) { if ((next === 'line' || next === 'segments') && next !== bar) { bar = next; store('acBar', bar); render(); } },
+    setTile(next) { if ((next === 'moving' || next === 'fixed') && next !== tile) { tile = next; store('acTile', tile); render(); } },
+    setScen(next) { if (SCENE_EVENTS[next] && next !== scen) { scen = next; store('acScen', scen); render(); } },
     setScreen(next) { const want = next === 'track' && S().runs.length ? 'track' : 'overview'; if (want !== screen) { screen = want; render(); } return screen; },
     day: () => stateKey,
     rev: () => rev,
     bar: () => bar,
+    tile: () => tile,
+    scen: () => scen,
     toast,
     destroy() { root.removeEventListener('click', onClick); document.removeEventListener('keydown', onKey); root.innerHTML = ''; },
   };
