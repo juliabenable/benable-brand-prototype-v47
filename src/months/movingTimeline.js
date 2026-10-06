@@ -33,6 +33,7 @@ const REVIEW_AFTER_FILM = 10;   /* review opens 10 days after filming opens */
 const ENDS = [7, 21, 35, 49, 56];   /* when each window closes; Review runs a week into Post */
 const REVIEW_BIZ = 3;           /* Katie's team reviews (or pre-checks) each draft within 3 business days. Internal, never shown */
 const BRAND_CAP = 28;           /* once the brand is 4 weeks past a step, no date (Julia, Oct 6) */
+const BRAND_QUIET = 42;         /* 6 weeks past, the overview card drops the week number too (Julia, Oct 6) */
 const BRAND_REVIEW_BIZ = 3;     /* the brand's own final review gets 3 more business days. Internal, never shown */
 
 export const MOVING_PHASES = [
@@ -148,7 +149,7 @@ export function computeMoving(sc, t, launchISO) {
   const pct = completed || allLive || after ? 100 : Math.round((idx + frac) * 20);
 
   /* what the card says */
-  let label = COPY.expected; let value; let was = ''; let tag = false; let line = null; let capped = false;
+  let label = COPY.expected; let value; let was = ''; let tag = false; let line = null; let capped = false; let quiet = false;
   if (completed) {
     label = ''; value = COPY.completed;   /* no date (Julia, Oct 6) */
     tag = allLive && mondayOf(lastPost) < mondayOf(55);
@@ -174,8 +175,9 @@ export function computeMoving(sc, t, launchISO) {
     } else if (was && !early && brandStep && WHAT[brandStep]) line = ['note', COPY.n_updated(fmt(ev[brandStep]), WHAT[brandStep])];
     /* more than 4 weeks past a brand step: no date, say what first content waits for; the amber line stays */
     if (brandHolds && holdOver > BRAND_CAP) { capped = true; value = COPY.wait[brandHolds]; was = ''; tag = false; }
+    if (brandHolds && holdOver > BRAND_QUIET) quiet = true;
   }
-  return { sc, n, t, ev, posted, live, allLive, completed, lastPost, forecast, firstPost, bd, early, stale, capped, st, en, earlyBy, idx, now, after, pct, week: Math.floor(t / 7) + 1, label, value, was, tag, line };
+  return { sc, n, t, ev, posted, live, allLive, completed, lastPost, forecast, firstPost, bd, early, stale, capped, quiet, st, en, earlyBy, idx, now, after, pct, week: Math.floor(t / 7) + 1, label, value, was, tag, line };
 }
 
 const daysWord = (d) => `${d} day${d === 1 ? '' : 's'}`;
@@ -224,6 +226,7 @@ export function movingMetaHtml(c, launchISO) {
   if (c.posted) return `<b>${c.live} of ${c.n} live</b> · first on ${fmt(c.firstPost)}${tag}`;
   const wk = c.week <= 8 ? `Week ${c.week} of 8` : `Week ${c.week}`;
   /* the week has passed, or no date any more: the card's own line in place of the date (Julia, Oct 6) */
+  if (c.quiet && c.line) return c.line[1].replace(/\.$/, '');   /* 6 weeks past a brand step: no week number either */
   if ((c.stale || c.capped) && c.line) return `<b>${wk}</b> · ${c.line[1].replace(/\.$/, '')}`;
   return `<b>${wk}</b> · first content expected the week of ${fmt(mondayOf(c.forecast))}${tag}`;
 }
