@@ -32,6 +32,7 @@ const FILM_AFTER_SHIP = 6;      /* filming opens 6 days after shipping opens */
 const REVIEW_AFTER_FILM = 10;   /* review opens 10 days after filming opens */
 const ENDS = [7, 21, 35, 49, 56];   /* when each window closes; Review runs a week into Post */
 const REVIEW_BIZ = 3;           /* Katie's team reviews (or pre-checks) each draft within 3 business days. Internal, never shown */
+const BRAND_CAP = 28;           /* once the brand is 4 weeks past a step, no date (Julia, Oct 6) */
 const BRAND_REVIEW_BIZ = 3;     /* the brand's own final review gets 3 more business days. Internal, never shown */
 
 export const MOVING_PHASES = [
@@ -51,6 +52,7 @@ const COPY = {
   n_review: "Katie's team is reviewing the first draft.",
   n_approved: 'First draft approved, posting next.',
   n_filming: 'Your creators are filming.',
+  wait: { accepted: '5 weeks after you approve your creators', delivered: '3 weeks after your orders arrive', post: 'Once you approve the first draft' },
   review_brand: "Katie's team pre-checks each draft, then you approve it or send feedback.",
   n_updated: (date, what) => `Updated ${date}, after ${what}.`,
   n_count: (a, n) => `${a} of ${n} posts live.`,
@@ -100,7 +102,7 @@ export function computeMoving(sc, t, launchISO) {
   const completed = (sc.completed != null && t >= sc.completed) || (allLive && t >= lastPost + 7);
 
   /* 1. days lost while the ball was with the brand */
-  let bd = 0; let brandHolds = null; let brandStep = null;
+  let bd = 0; let brandHolds = null; let brandStep = null; let holdOver = 0;
   const cum = ORDER.map((k, i) => {
     if (ownerOf(sc, k) === 'brand' && (i === 0 || done(ORDER[i - 1]))) {
       const prev = i ? ev[ORDER[i - 1]] : 0;
@@ -110,7 +112,7 @@ export function computeMoving(sc, t, launchISO) {
         const withBrand = addBiz(prev, REVIEW_BIZ);
         over = end > addBiz(prev, REVIEW_BIZ + BRAND_REVIEW_BIZ) ? Math.max(0, end - Math.max(PLAN[k] + bd, withBrand)) : 0;
       } else over = Math.max(0, end - Math.max(PLAN[k] + bd, prev + DUR[k]));
-      if (over) { bd += over; if (done(k)) brandStep = k; else brandHolds = k; }
+      if (over) { bd += over; if (done(k)) brandStep = k; else { brandHolds = k; holdOver = over; } }
     }
     return bd;
   });
@@ -146,7 +148,7 @@ export function computeMoving(sc, t, launchISO) {
   const pct = completed || allLive || after ? 100 : Math.round((idx + frac) * 20);
 
   /* what the card says */
-  let label = COPY.expected; let value; let was = ''; let tag = false; let line = null;
+  let label = COPY.expected; let value; let was = ''; let tag = false; let line = null; let capped = false;
   if (completed) {
     label = ''; value = COPY.completed;   /* no date (Julia, Oct 6) */
     tag = allLive && mondayOf(lastPost) < mondayOf(55);
@@ -170,8 +172,10 @@ export function computeMoving(sc, t, launchISO) {
       line = next === 'post' && checked && sc.reviewer === 'brand' ? ['you', COPY.y_review(w.drafts || 1)]
         : ['note', next === 'accepted' ? COPY.n_match : next === 'delivered' ? COPY.n_ship : next === 'draft' ? COPY.n_filming : checked ? COPY.n_approved : COPY.n_review];
     } else if (was && !early && brandStep && WHAT[brandStep]) line = ['note', COPY.n_updated(fmt(ev[brandStep]), WHAT[brandStep])];
+    /* more than 4 weeks past a brand step: no date, say what first content waits for; the amber line stays */
+    if (brandHolds && holdOver > BRAND_CAP) { capped = true; value = COPY.wait[brandHolds]; was = ''; tag = false; }
   }
-  return { sc, n, t, ev, posted, live, allLive, completed, lastPost, forecast, firstPost, bd, early, st, en, earlyBy, idx, now, after, pct, week: Math.floor(t / 7) + 1, label, value, was, tag, line };
+  return { sc, n, t, ev, posted, live, allLive, completed, lastPost, forecast, firstPost, bd, early, stale, capped, st, en, earlyBy, idx, now, after, pct, week: Math.floor(t / 7) + 1, label, value, was, tag, line };
 }
 
 const daysWord = (d) => `${d} day${d === 1 ? '' : 's'}`;
@@ -218,7 +222,10 @@ export function movingMetaHtml(c, launchISO) {
   if (c.completed) return c.live ? `<b>${c.live} live</b> · campaign complete` : '<b>Campaign complete</b>';
   if (c.allLive) return `<b>${c.n} of ${c.n} live</b> · last on ${fmt(c.lastPost)}${tag}`;
   if (c.posted) return `<b>${c.live} of ${c.n} live</b> · first on ${fmt(c.firstPost)}${tag}`;
-  return `<b>${c.week <= 8 ? `Week ${c.week} of 8` : `Week ${c.week}`}</b> · first content expected the week of ${fmt(mondayOf(c.forecast))}${tag}`;
+  const wk = c.week <= 8 ? `Week ${c.week} of 8` : `Week ${c.week}`;
+  /* the week has passed, or no date any more: the card's own line in place of the date (Julia, Oct 6) */
+  if ((c.stale || c.capped) && c.line) return `<b>${wk}</b> · ${c.line[1].replace(/\.$/, '')}`;
+  return `<b>${wk}</b> · first content expected the week of ${fmt(mondayOf(c.forecast))}${tag}`;
 }
 
 /* ---------- what happens to Campaign 1 (the second black bar) ----------
