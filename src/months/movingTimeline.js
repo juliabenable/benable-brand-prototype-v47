@@ -14,7 +14,9 @@
    - at most one line under the date: grey (where things are) or amber (the brand's move)
    - phase windows overlap; Now can sit on two phases; a closed window loses its Now
    - after the first post: "First content landed", then "All 10 posts are live", then
-     "Campaign completed". Stragglers stay quiet. Counts are out of the creators on the campaign
+     "Campaign complete" with no date. Past week 8 with posts missing, Post stays Now. A campaign
+     completes on its own 7 days after every post is live. Stragglers stay quiet. Counts are out
+     of the creators on the campaign
    - rollout: new product campaigns and Pair (pending: Pecan Moon and Pholk, local campaigns)
 
    Days are counted from the launch day (day 0). */
@@ -42,7 +44,7 @@ export const MOVING_PHASES = [
 
 /* every string on the card */
 const COPY = {
-  expected: 'First content expected', landed: 'First content landed', completed: 'Campaign completed',
+  expected: 'First content expected', landed: 'First content landed', completed: 'Campaign complete',
   allLive: (n) => `All ${n} posts are live`, tag: 'Early',
   n_match: "Katie's team is filling the last spots.",
   n_ship: 'The first order is on its way.',
@@ -94,7 +96,8 @@ export function computeMoving(sc, t, launchISO) {
   const live = sc.posts.filter((d) => d <= t).length;
   const lastPost = Math.max(...sc.posts);
   const allLive = Number.isFinite(lastPost) && lastPost <= t;
-  const completed = sc.completed != null && t >= sc.completed;
+  /* by the team, when every creator is thanked, or on its own 7 days after every post is live (Julia, Oct 6) */
+  const completed = (sc.completed != null && t >= sc.completed) || (allLive && t >= lastPost + 7);
 
   /* 1. days lost while the ball was with the brand */
   let bd = 0; let brandHolds = null; let brandStep = null;
@@ -137,14 +140,15 @@ export function computeMoving(sc, t, launchISO) {
   if (brandHolds) en[idx] = Math.max(en[idx], t + 1);
   const earlyBy = st.map((d, i) => (i && done(ORDER[i - 1]) && open[i] - d >= 2 ? open[i] - d : 0));
   const after = t >= en[4];
-  const now = completed || allLive || after ? [] : [0, 1, 2, 3, 4].filter((i) => i === idx || (i < idx && t < en[i]));
+  /* past week 8 with posts missing, Post stays Now while the campaign is open (Julia, Oct 6) */
+  const now = completed || allLive ? [] : after ? [4] : [0, 1, 2, 3, 4].filter((i) => i === idx || (i < idx && t < en[i]));
   const frac = Math.min(0.9, Math.max(0.1, (t - st[idx]) / Math.max(1, en[idx] - st[idx])));
   const pct = completed || allLive || after ? 100 : Math.round((idx + frac) * 20);
 
   /* what the card says */
   let label = COPY.expected; let value; let was = ''; let tag = false; let line = null;
   if (completed) {
-    label = COPY.completed; value = fmt(sc.completed);
+    label = ''; value = COPY.completed;   /* no date (Julia, Oct 6) */
     tag = allLive && mondayOf(lastPost) < mondayOf(55);
     line = live ? ['note', allLive ? COPY.n_all(n) : COPY.n_live(live)] : null;
   } else if (allLive) {
@@ -211,7 +215,7 @@ export function movingCardHtml(c, { launchISO, open = false, chev = '', note = '
 export function movingMetaHtml(c, launchISO) {
   const { fmt, mondayOf } = clock(launchISO);
   const tag = c.tag ? `<span class="nfm-tl__early">${COPY.tag}</span>` : '';
-  if (c.completed) return c.live ? `<b>${c.live} live</b> · completed ${fmt(c.sc.completed)}` : `<b>Completed ${fmt(c.sc.completed)}</b>`;
+  if (c.completed) return c.live ? `<b>${c.live} live</b> · campaign complete` : '<b>Campaign complete</b>';
   if (c.allLive) return `<b>${c.n} of ${c.n} live</b> · last on ${fmt(c.lastPost)}${tag}`;
   if (c.posted) return `<b>${c.live} of ${c.n} live</b> · first on ${fmt(c.firstPost)}${tag}`;
   return `<b>${c.week <= 8 ? `Week ${c.week} of 8` : `Week ${c.week}`}</b> · first content expected the week of ${fmt(mondayOf(c.forecast))}${tag}`;
