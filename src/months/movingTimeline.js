@@ -52,7 +52,7 @@ const COPY = {
   n_review: "Katie's team is reviewing the first draft.",
   n_approved: 'First draft approved, posting next.',
   n_filming: 'Your creators are filming.',
-  wait: { accepted: '5 weeks after you approve your creators', delivered: '3 weeks after your orders arrive', post: 'Once you approve the first draft' },
+  wait: { accepted: '5 weeks after you approve your creators', delivered: '3 weeks after the first order is delivered', post: 'Once you approve the first draft' },
   review_brand: "Katie's team pre-checks each draft, then you approve it or send feedback.",
   n_updated: (date, what) => `Updated ${date}, after ${what}.`,
   n_count: (a, n) => `${a} of ${n} posts live.`,
