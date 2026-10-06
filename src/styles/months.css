@@ -130,8 +130,13 @@
 .nf .nf-months .nfm-tl__toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 14px; padding: 12px 0 10px; border: 0; border-top: 1px solid #ebebeb; background: transparent; color: var(--nfm-text-2); font-size: 13px; font-weight: 600; text-align: left; }
 .nf .nf-months .nfm-tl__toggle:hover { color: var(--nfm-text); }
 .nf .nf-months .nfm-tl .nfm-tl__toggle { border-radius: 0; box-shadow: none; }
-.nf .nf-months .nfm-tl .nfm-tl__toggle:focus:not(:focus-visible) { outline: none; box-shadow: none; }
-.nf .nf-months .nfm-tl .nfm-tl__toggle:focus-visible { outline: 3px solid var(--nfm-ring); outline-offset: 2px; border-radius: 8px; }
+/* no box on the toggle in any state (Julia, Oct 6): the captured CSS paints a grey square on
+   press (.nf button:active) and the focus ring read as a highlight. Keyboard focus underlines the label */
+.nf .nf-months .nfm-tl .nfm-tl__toggle:hover,
+.nf .nf-months .nfm-tl .nfm-tl__toggle:focus,
+.nf .nf-months .nfm-tl .nfm-tl__toggle:focus-visible,
+.nf .nf-months .nfm-tl .nfm-tl__toggle:active { background: transparent; outline: none; box-shadow: none; border-top-color: #ebebeb; }
+.nf .nf-months .nfm-tl .nfm-tl__toggle:focus-visible span { text-decoration: underline; text-underline-offset: 3px; }
 .nf .nf-months .nfm-tl__toggle svg { transition: transform .2s ease; }
 .nf .nf-months .nfm-tl.is-open .nfm-tl__toggle svg { transform: rotate(180deg); }
 .nf .nf-months .nfm-tl__full { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .26s ease; }
