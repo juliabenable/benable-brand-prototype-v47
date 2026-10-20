@@ -10,7 +10,7 @@
  *
  * Our changes ride on top, never inside his files, so a re-sync is one command:
  * public/invite-fixes/fixes.css (Figma border/shadow fixes + the black/green
- * button version) and the label fixes below.
+ * button version). Styling only: all product copy is his.
  */
 const BASE = import.meta.env.BASE_URL;
 const SRC = `${BASE}invite-creators/index.html`;
@@ -26,19 +26,8 @@ const EMBED_CSS = `
   .modal { top: max(50%, 470px) !important; }
 `;
 
-/* Labels: the right panel's normal-invite group is "Invites" in Amine's design
-   (Figma 15204:68686, 15213:112007), not "Also on your list". */
-function fixLabels(doc) {
-  const title = doc.getElementById('everyoneList')?.closest('.group')?.querySelector('.group-title');
-  if (title) title.textContent = 'Invites';
-  // creator sub-lines in the V2 popup / V3 table come from his mock data
-  const SUBS = [[/^1 campaigns$/, '1 campaign'], [/before her turn/, 'before their turn']];
-  const fixSubs = () => doc.querySelectorAll('.pr-sub').forEach((p) => {
-    SUBS.forEach(([re, to]) => { if (re.test(p.textContent)) p.textContent = p.textContent.replace(re, to); });
-  });
-  fixSubs();
-  new MutationObserver(fixSubs).observe(doc.body, { childList: true, subtree: true });
-}
+/* Copy: every product string comes from Amine's build as synced. Never rewrite
+   his labels here; copy changes go to him. */
 
 /* Button version switch: black Shortlist + soft green Priority (default) | Amine's original */
 const BTN_KEY = 'ic-buttons';
@@ -105,7 +94,6 @@ function open() {
     link.onload = reveal;
     link.onerror = reveal;
     doc.head.appendChild(link);
-    fixLabels(doc);
     buttonSwitch(doc);
     const modal = doc.getElementById('modal');
     new MutationObserver(() => {
