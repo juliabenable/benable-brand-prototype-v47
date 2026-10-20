@@ -10,7 +10,7 @@
  *
  * Our changes ride on top, never inside his files, so a re-sync is one command:
  * public/invite-fixes/fixes.css (Figma border/shadow fixes + the black/green
- * button version). Styling only: all product copy is his.
+ * button version) and the copy changes Julia asked for (fixCopy below).
  */
 const BASE = import.meta.env.BASE_URL;
 const SRC = `${BASE}invite-creators/index.html`;
@@ -26,8 +26,42 @@ const EMBED_CSS = `
   .modal { top: max(50%, 470px) !important; }
 `;
 
-/* Copy: every product string comes from Amine's build as synced. Never rewrite
-   his labels here; copy changes go to him. */
+/* Copy: every product string comes from Amine's build as synced, EXCEPT the
+   changes Julia asks for, which all live here (and go to Amine as a list).
+   Oct 20, Julia: the "creators you know" list also holds creators the brand
+   picked in a past campaign who never got their turn (tag "Missed last time"),
+   so it can't say only "loved working with". Lines from the copywriter, PROPOSED. */
+const KN_SUB_HIS = 'Creators you loved working with are already on your list';
+const KN_SUB_OURS = 'Creators you loved working with or picked last time';
+function fixCopy(doc, win) {
+  // top bar subtitle: his renderKnownBar rewrites it on every change
+  const sub = doc.getElementById('knSub');
+  const swapSub = () => { if (sub.textContent === KN_SUB_HIS) sub.textContent = KN_SUB_OURS; };
+  swapSub();
+  new MutationObserver(swapSub).observe(sub, { childList: true, characterData: true, subtree: true });
+
+  // "We added for you" row: "8 creators: 5 you loved working with, 3 you picked last time"
+  // (a zero part is dropped; "creator" for one). His code keeps updating #waCount.
+  const b = doc.getElementById('waCount')?.parentElement;
+  const tail = b?.nextSibling;
+  let api = null;
+  try { api = win.eval('mockApi'); } catch { /* his data layer moved: leave his line */ }
+  if (!b || !tail || !api) return;
+  const noun = [...b.childNodes].find((n) => n.nodeType === 3);
+  const rest = doc.createElement('span');
+  tail.replaceWith(rest);
+  const render = () => {
+    const added = api.shortlist().filter((c) => c.source === 'known' && c.priority);
+    const loved = added.filter((c) => c.tag !== 'missed').length;
+    const picked = added.length - loved;
+    if (noun) noun.textContent = added.length === 1 ? ' creator' : ' creators';
+    rest.textContent = loved && picked
+      ? `: ${loved} you loved working with, ${picked} you picked last time`
+      : picked ? ' you picked last time' : ' you loved working with';
+  };
+  render();
+  api.onChange(render);
+}
 
 /* Button version switch: black Shortlist + soft green Priority (default) | Amine's original */
 const BTN_KEY = 'ic-buttons';
@@ -94,6 +128,7 @@ function open() {
     link.onload = reveal;
     link.onerror = reveal;
     doc.head.appendChild(link);
+    fixCopy(doc, frame.contentWindow);
     buttonSwitch(doc);
     const modal = doc.getElementById('modal');
     new MutationObserver(() => {
