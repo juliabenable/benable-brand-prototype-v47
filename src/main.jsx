@@ -5,6 +5,7 @@ import App from './App.jsx';
 import './styles/production.css';
 import './styles/overrides.css';
 import './styles/postcard.css';
+import './invite/inviteOverlay.js';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
