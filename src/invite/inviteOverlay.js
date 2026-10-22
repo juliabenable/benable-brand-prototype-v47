@@ -15,9 +15,9 @@
  * Each round keeps its iframe, so choices survive a close and reopen; the page
  * also saves them as the brand goes (sessionStorage).
  */
-import { SPOTS, crewFor } from '../components/pulse/pulseData.js';
+import { SPOTS, CREW, DAYS, crewFor } from '../components/pulse/pulseData.js';
 import { forks } from '../components/pulse/forks.js';
-import { FIRST_ROUND } from './rounds.js';
+import { FIRST_ROUND, MORE_INVITED } from './rounds.js';
 
 const SRC = `${import.meta.env.BASE_URL}invite-creators/index.html`;
 
@@ -78,10 +78,26 @@ function open(round) {
   document.body.appendChild(el);
 }
 
+/* Day 4 lists who was actually sent: the tracker's own six (later days follow
+   them), plus whichever of the other 69 the brand kept, so the count always
+   equals the invites sent. The six stand in for the popup's six people with
+   the same first names; if one of those is removed, one more row drops. */
+const STORY_ROWS = CREW[4].filter((c) => !MORE_INVITED.includes(c));
+function applyFirstRound(names) {
+  const sent = new Set(names);
+  const room = Math.max(0, names.length - STORY_ROWS.length);
+  const kept = MORE_INVITED.filter((c) => sent.has(c.name)).slice(0, room);
+  CREW[4] = [...STORY_ROWS, ...kept];
+  const line = DAYS.find((d) => d.day === 4)?.recap?.items?.[0];
+  if (line) line.bold = `${STORY_ROWS.length + kept.length} invites sent`;
+}
+
 window.addEventListener('message', (e) => {
-  if (e.origin !== location.origin || e.data?.type !== 'invite:closed') return;
+  if (e.origin !== location.origin) return;
   const round = Object.keys(frames).find((k) => frames[k].el.contentWindow === e.source);
   if (!round) return;
+  if (e.data?.type === 'invite:sent' && round === 'first' && Array.isArray(e.data.names)) applyFirstRound(e.data.names);
+  if (e.data?.type !== 'invite:closed') return;
   show(frames[round].el, false);
   if (e.data.sent) goToDay(ROUNDS[round].next);
 });

@@ -368,7 +368,7 @@ function setNotFit(id, on) {
 
 // ---------- Open / close ----------
 // Embedded (the v47 tracker), the page talks to its host with two messages:
-//   out: { type: 'invite:sent', count }   once Send succeeds
+//   out: { type: 'invite:sent', count, names }   once Send succeeds
 //   out: { type: 'invite:closed', sent }  every time the popup closes (sent = invites sent, 0 if none yet)
 //   in:  { type: 'invite:open' }          reopen it
 const host = window.parent !== window ? window.parent : null;
@@ -547,7 +547,7 @@ async function sendInvites(btn) {
     focusPrimary();
     return;
   }
-  tell({ type: 'invite:sent', count: ids.length });
+  tell({ type: 'invite:sent', count: ids.length, names: [...d.prio, ...d.rest].map(c => c.name) });
   // The summary closes and the big popup itself turns into the success screen
   closeSummary();
   setTimeout(() => showSuccess(ids.length), 180);

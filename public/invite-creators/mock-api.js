@@ -32,7 +32,7 @@ const mockApi = (() => {
   const newNames = ['Jordan Blake', 'Eva Thompson', 'Lena Ortiz', 'Priya Shah', 'Mia Laurent', 'Hannah Kim', 'Camila Reyes',
     'Grace Okafor', 'Ella Novak', 'Ruby Castillo', 'Ivy Mitchell', 'Naomi Brooks', 'Sienna Hart', 'Layla Haddad',
     'Aria Bennett', 'Jade Moreno', 'Leah Fischer', 'Tessa Ward', 'Nina Alvarez', 'Clara Dubois', 'Maya Singh',
-    'Willow Grant', 'Iris Nakamura', 'Freya Lund', 'Dahlia Cruz', 'Ruben Vega', 'Amara Okoye', 'Celine Fontaine',
+    'Willow Grant', 'Iris Nakamura', 'Freya Lund', 'Dahlia Cruz', 'Ruben Vega', 'Adaeze Okoye', 'Celine Fontaine',
     'Bianca Rossi', 'Talia Cohen', 'Noor Rahman', 'Paige Sullivan', 'Esme Walker', 'Gia Romano', 'Harper Quinn',
     'Kira Petrova', 'Lila Ahmed', 'Mila Kowalski', 'Nadia Farah', 'Opal Jensen', 'Quinn Harper', 'Rosa Delgado',
     'Sasha Ivanova', 'Thea Morgan', 'Uma Patel', 'Vera Lindqvist', 'Wren Callahan', 'Xena Park', 'Yara Haddad',
@@ -82,11 +82,21 @@ const mockApi = (() => {
     feedback: false,
   });
 
-  // A rematch shows a fresh slice of new creators and nobody from past campaigns
+  // A rematch shows new creators who weren't in the first round, and nobody from past campaigns.
+  // Amara is the creator who takes the open spot in the v47 tracker (Day 13 on).
+  const rematchPeople = [
+    { name: 'Amara Gold', handle: '@amara.gold', avatar: 'amara' },
+    { name: 'Simone Clarke', avatar: 'avatar-6' },
+    { name: 'Keira Dunn', avatar: 'new-2' },
+    { name: 'Ava Morales', avatar: 'approved-3' },
+  ];
+  const pool = mode === 'rematch' ? rematchPeople : newNames.map((name, i) => ({ name, avatar: faces[i % faces.length] }));
   const prevN = Math.min(num('prev', mode === 'rematch' ? 0 : approvedNames.length), approvedNames.length);
-  const newN = Math.min(num('new', mode === 'rematch' ? 4 : newNames.length), newNames.length);
-  const newFrom = mode === 'rematch' ? 20 : 0;
-  const newCreators = newNames.slice(newFrom, newFrom + newN).map((name, k) => profile(name, newFrom + k, 'new', faces[(newFrom + k) % faces.length]));
+  const newN = Math.min(num('new', pool.length), pool.length);
+  const newCreators = pool.slice(0, newN).map((p, k) => {
+    const c = profile(p.name, mode === 'rematch' ? 30 + k : k, 'new', p.avatar);
+    return p.handle ? { ...c, handle: p.handle } : c;
+  });
   const approvedCreators = approvedNames.slice(0, prevN).map((name, i) => ({
     ...profile(name, i + 3, 'approved', approvedFaces[i % approvedFaces.length]),
     id: 'ap' + i,
