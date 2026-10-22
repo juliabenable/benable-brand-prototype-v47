@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { crewFor, PCT, PHOTOS, TIMELINES, CASTING_TIMELINE, STAGE_LABELS, SPOTS } from './pulseData.js';
 import { isReviewRow, rowReviewState, reviewNeeds, getReviewMode } from './review.jsx';
 import LiveStatus from './LiveStatus.jsx';
+import FoundFaces from '../../invite/FoundFaces.jsx';
 
 /* crew stage 0–5 maps straight onto the 7-stage funnel; wrap day = Thanked.
    When the BRAND reviews (demo toggle), a fully-approved submission derives
@@ -251,7 +252,7 @@ export function StayTuned() {
 export function CreatorsFound({ count }) {
   return (
     <div className="am-state am-state--found">
-      <span className="am-state-avatar"><img src={PHOTOS.Maya} alt="" /></span>
+      <FoundFaces />
       <div className="am-state-copy am-state-copy--found">
         <p className="am-found-title">
           We Found <b>{count} {count === 1 ? 'creator' : 'creators'}</b> who are a great fit

@@ -10,8 +10,10 @@ export const SPOTS = 6;
 
 /* campaign completion per demo day */
 export const PCT = { 1: '4%', 3: '12%', 4: '16%', 9: '34%', 10: '38%', 11: '42%', 16: '58%', 22: '80%', 30: '100%' };
+import { FIRST_ROUND_TOTAL, MORE_INVITED, MORE_PHOTOS } from '../../invite/rounds.js';
 const B = import.meta.env.BASE_URL;
 export const PHOTOS = {
+  ...MORE_PHOTOS,   // Day 4's other invited creators (src/invite/rounds.js); the six below win on a shared name
   Maya: `${B}creators/maya.jpg`,
   Nia: `${B}creators/nia.jpg`,
   Sofia: `${B}creators/sofia.jpg`,
@@ -45,6 +47,7 @@ export const CREW = {
     { name: 'Jade', handle: '@jadebythesea', stage: 0, status: { type: 'facts', phrases: ['Invite sent this morning'] } },
     { name: 'Priya', handle: '@priyacreates', stage: 0, status: { type: 'facts', phrases: ['Invite sent this morning'] } },
     { name: 'Lena', handle: '@lena.lately', stage: 0, status: { type: 'facts', phrases: ['Invite sent this morning'] } },
+    ...MORE_INVITED,   // the other 69 invited from the Invite Creators popup: 75 in all
   ],
   9: [
     { name: 'Maya', handle: '@maya.skin', stage: 2, status: { type: 'facts', phrases: ['📦 In transit — arriving Thursday'] } },
@@ -424,7 +427,7 @@ export const DAYS = [
     recap: {
       since: 'since yesterday',
       items: [
-        { emoji: '✉️', bold: '6 invites sent', rest: ' — the moment you approved your picks' },
+        { emoji: '✉️', bold: `${FIRST_ROUND_TOTAL} invites sent`, rest: ' — the moment you approved your picks' },
       ],
       closer: { clear: true, text: 'Nothing needs you — acceptances usually land within 48h' },
     },
@@ -683,3 +686,9 @@ export const DECLINED = {
     { name: 'Lena Ortiz', handle: '@lenaortiz', photo: 'Lena', when: 'Jul 18' },
   ],
 };
+
+/* Day 4's other invited creators (src/invite/rounds.js) read like Lena on the day they're invited */
+MORE_INVITED.forEach((c) => {
+  TIMELINES[c.name] = TIMELINES.Lena;
+  if (LOCAL.timelines?.Lena) LOCAL.timelines[c.name] = LOCAL.timelines.Lena;
+});
