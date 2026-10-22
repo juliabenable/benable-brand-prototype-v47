@@ -17,6 +17,7 @@
  */
 import { SPOTS, crewFor } from '../components/pulse/pulseData.js';
 import { forks } from '../components/pulse/forks.js';
+import { FIRST_ROUND } from './rounds.js';
 
 const SRC = `${import.meta.env.BASE_URL}invite-creators/index.html`;
 
@@ -30,7 +31,7 @@ const collab = () => (forks.get('type') === 'local' ? 'local' : 'product');
 const openSpots = (day) => crewFor(day, collab()).filter((c) => c.mystery && c.found).length || 1;
 
 const ROUNDS = {
-  first: { next: 4, query: () => `?spots=${SPOTS}` },
+  first: { next: 4, query: () => `?spots=${SPOTS}&prev=${FIRST_ROUND.prev}&new=${FIRST_ROUND.fresh}` },
   rematch: { next: 13, query: () => `?mode=rematch&spots=${openSpots(11)}` },
 };
 const frames = {};

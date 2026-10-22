@@ -5,6 +5,7 @@ import { stageOf, AmineProgress2, AmineRail, StayTuned, CreatorsFound } from './
 import FixedTable from './tableFix.jsx';
 import { reviewNeeds, getReviewMode, setReviewMode, setFlagBeat, flagBeat } from './review.jsx';
 import { forks } from './forks.js';
+import { FIRST_ROUND_TOTAL } from '../../invite/rounds.js';
 
 /*
   Campaign Pulse v34 — single experience (v33's C), kept lean for polishing:
@@ -244,7 +245,7 @@ export default function CampaignPulse() {
       {phase === 'sourcing' ? (
         <StayTuned />
       ) : phase === 'review' ? (
-        <CreatorsFound count={crewFor(scene.day, mode).length} />
+        <CreatorsFound count={FIRST_ROUND_TOTAL} />
       ) : (
         <>
           <AmineProgress2 scene={scene} filter={stageFilter} onFilter={setStageFilter} />
