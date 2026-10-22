@@ -257,7 +257,7 @@ export function CreatorsFound({ count }) {
         <p className="am-found-title">
           We Found <b>{count} {count === 1 ? 'creator' : 'creators'}</b> who are a great fit
         </p>
-        <p className="am-found-sub">Review each profile and add the ones you'd like to invite to your campaign.</p>
+        <p className="am-found-sub">They're all on your invite list. Remove anyone who's not a fit, then approve.</p>
       </div>
       <button type="button" className="am-found-btn">Review Creators</button>
     </div>
