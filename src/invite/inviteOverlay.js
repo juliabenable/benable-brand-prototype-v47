@@ -5,8 +5,9 @@
  * "Review Creators" on the Day 3 tracker state (CreatorsFound in amine.jsx)
  * opens it in a full-screen iframe over the page. His background page
  * (sidebar, campaign header, "approved" dashboard card) and his V1 to V4
- * switch are hidden, so our tracker shows through his dim. V1's own
- * "Not a fit: Popup | Inline" option stays (still an open choice).
+ * switch are hidden, so our tracker shows through his dim. Not a fit is
+ * locked to his Inline mode (Julia, Oct 22: "I don't want the popup"): the
+ * card collapses to a row right away; "Tell us why?" on the row stays his.
  * Closing his popup (×, backdrop, Esc, Done) hides the iframe; it stays alive,
  * so choices and the sent state survive a close and reopen until reload.
  *
@@ -19,10 +20,14 @@ const EMBED_CSS = `
   html { overscroll-behavior: none; }
   html, body { background: transparent !important; }
   body { min-width: 0 !important; min-height: 0 !important; }
-  .sidebar, .page-head, .sent-banner, .ver { display: none !important; }
+  .sidebar, .page-head, .sent-banner, .ver, .ver-sub { display: none !important; }
   .overlay, .modal { position: fixed !important; }
-  .ver-sub { left: 16px !important; top: 14px !important; }
 `;
+
+/* His V1 "Not a fit" option, decided: Inline, no popup first */
+function lockInline(win) {
+  try { win.eval('setNotFitMode')('inline'); } catch { /* his switch moved: leave his default */ }
+}
 
 let frame = null;
 let ready = false;
@@ -62,6 +67,7 @@ function open() {
     const st = doc.createElement('style');
     st.textContent = EMBED_CSS;
     doc.head.appendChild(st);
+    lockInline(frame.contentWindow);
     const overlay = doc.getElementById('overlay');
     new MutationObserver(() => {
       if (overlay.classList.contains('hidden')) show(false);
