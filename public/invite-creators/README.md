@@ -30,9 +30,9 @@ In the v47 tracker: Day 3 "Review Creators" (first round) and Day 11 "Review mat
 
 - No invite cap shown to the brand: they approve as many as they want.
 - The Not a Fit reason is Benable only; creators never see it, or that someone was prioritized.
-- Previously approved = creators the brand worked with. OPEN (Julia to confirm, Oct 22): do
-  creators the brand approved last time whose invite never went out (the campaign filled before
-  their turn) also come back here? The demo shows them (3 of 18).
+- Previously approved = creators the brand worked with, plus creators the brand approved last
+  time whose invite never went out because the campaign filled before their turn (DECIDED,
+  Julia, Oct 22). The demo shows both (15 + 3 of 18), each with what happened last time.
 - Acceptance rate stays a fixed 50% assumption.
 
 ## URL options
