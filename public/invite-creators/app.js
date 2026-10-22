@@ -1,11 +1,33 @@
+// Invite Creators: Amine's v2 popup (AmineBenjil/invite-creators-prototype-v2 @2cd968a), V1 layout only,
+// cleaned for engineering (Julia, Oct 22). What changed from his build is listed in README.md.
 const api = mockApi;
 const $ = id => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const first = name => name.split(' ')[0];
 const STACK = 4;   // avatars shown before the "+N" bubble
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const SPOTS = api.campaign.spots;
 
 // ---------- Creator card + its Not a Fit row ----------
+// A profile never shows an empty field: a section with no data is left out (stats one by one).
+const statHtml = (cls, label, value) => value ? `<div class="c-stat ${cls}"><small>${label}</small><b>${value}</b></div>` : '';
+const engHtml = c => c.engagement ? `
+          <div class="c-stat c-eng">
+            <small>Engagement <img src="assets/card-info-12.svg" alt="" width="12" height="12"></small>
+            <b><span class="c-ig12"><img src="assets/card-instagram-12.svg" alt="" width="13" height="13"></span>${c.engagement}</b>
+          </div>` : '';
+const statsHtml = c => {
+  const soc = statHtml('c-fol', 'Followers', c.followers) + engHtml(c);
+  const aud = statHtml('c-loc', 'Location', c.location) + statHtml('c-age', 'Age Range', c.age) + statHtml('c-gender', 'Gender', c.gender);
+  if (!soc && !aud) return '';
+  return `
+    <div class="c-stats">
+      ${soc ? `<div class="c-col c-soc"><p class="c-label">Social Stats</p><div class="c-box">${soc}</div></div>` : ''}
+      ${aud ? `<div class="c-col c-aud"><p class="c-label">Audience</p><div class="c-box">${aud}</div></div>` : ''}
+    </div>`;
+};
+
 const cardHtml = c => `
   <div class="c-main">
     <div class="c-top">
@@ -17,7 +39,7 @@ const cardHtml = c => `
             <span class="c-handle">${c.handle}</span>
             ${c.source === 'new' ? '<span class="c-new">New</span>' : ''}
           </div>
-          <p class="c-bio">${c.bio}</p>
+          ${c.bio ? `<p class="c-bio">${c.bio}</p>` : ''}
         </div>
       </div>
       <div class="c-social">
@@ -25,35 +47,16 @@ const cardHtml = c => `
         <img src="assets/card-tiktok-24.svg" alt="TikTok" width="24" height="24">
       </div>
     </div>
-    ${c.source === 'approved' ? `<div class="c-history"><span class="c-tag">Previously approved</span><p>${c.history}</p></div>` : ''}
-    <div class="c-fit">
+    ${c.source === 'approved' && c.history ? `<div class="c-history"><span class="c-tag">Previously approved</span><p>${c.history}</p></div>` : ''}
+    ${c.fits.length ? `<div class="c-fit">
       <p class="c-fit-head"><img src="assets/card-sparkle-16.svg" alt="" width="16" height="16">Why they fit</p>
       <ul>${c.fits.map(f => `<li><img src="assets/card-bullet-16.svg" alt="" width="16" height="16">${f}</li>`).join('')}</ul>
-    </div>
-    <div class="c-stats">
-      <div class="c-col c-soc">
-        <p class="c-label">Social Stats</p>
-        <div class="c-box">
-          <div class="c-stat c-fol"><small>Followers</small><b>${c.followers}</b></div>
-          <div class="c-stat c-eng">
-            <small>Engagement <img src="assets/card-info-12.svg" alt="" width="12" height="12"></small>
-            <b><span class="c-ig12"><img src="assets/card-instagram-12.svg" alt="" width="13" height="13"></span>${c.engagement}</b>
-          </div>
-        </div>
-      </div>
-      <div class="c-col c-aud">
-        <p class="c-label">Audience</p>
-        <div class="c-box">
-          <div class="c-stat c-loc"><small>Location</small><b>${c.location}</b></div>
-          <div class="c-stat mid c-age"><small>Age Range</small><b>${c.age}</b></div>
-          <div class="c-stat mid c-gender"><small>Gender</small><b>${c.gender}</b></div>
-        </div>
-      </div>
-    </div>
-    <div class="c-recent">
+    </div>` : ''}
+    ${statsHtml(c)}
+    ${c.content.length ? `<div class="c-recent">
       <p class="c-label">Recent content</p>
       <div class="c-thumbs">${c.content.map(img => `<span><img src="assets/${img}.jpg" alt=""></span>`).join('')}</div>
-    </div>
+    </div>` : ''}
   </div>
   <div class="c-foot">
     <button class="c-btn" data-act="notfit">Not a Fit</button>
@@ -65,10 +68,11 @@ const cardHtml = c => `
     </button>
   </div>`;
 
+// Not a Fit collapses the card straight into this row (Inline, Figma 15347:68305; Julia, Oct 22: no popup first)
 const rowHtml = c => `
   <div class="r-who">
     <div class="r-av"><span><img src="assets/${c.avatar}.jpg" alt=""></span></div>
-    <p class="r-text"><span class="r-name">${c.name}</span><span class="r-tag">Not a Fit</span><span class="r-chip">Not a Fit</span>${
+    <p class="r-text"><span class="r-name">${c.name}</span><span class="r-chip">Not a Fit</span>${
       c.feedback ? '<span class="r-sent">Feedback sent</span>' : '<button class="r-why" data-act="why">Tell us why?</button>'}</p>
   </div>
   <button class="r-undo" data-act="undo">Undo</button>`;
@@ -83,7 +87,7 @@ const SWAP_MS = 480;   // keep in step with .nc.anim in styles.css
 const SWAP_EASE = 'cubic-bezier(.4, 0, .2, 1)';
 const AV = '.c-av, .r-av', NAME = '.c-name, .r-name';
 // The parts that only exist on one side: they dissolve in rather than move
-const ADDED = '.c-main > :not(.c-top), .c-foot, .c-social, .c-bio, .c-handle, .c-new, .c-name img, .r-tag, .r-chip, .r-why, .r-sent, .r-undo';
+const ADDED = '.c-main > :not(.c-top), .c-foot, .c-social, .c-bio, .c-handle, .c-new, .c-name img, .r-chip, .r-why, .r-sent, .r-undo';
 
 // The name's text box (the card's name also holds the verified badge)
 function textRect(el) {
@@ -114,8 +118,9 @@ function setItem(el, c) {
     el.innerHTML = c.notFit ? rowHtml(c) : cardHtml(c);
     el.classList.toggle('row', c.notFit);
     el.classList.toggle('card', !c.notFit);
+    syncPrioCap();
   };
-  if (reduceMotion || !el.offsetParent) { swap(); keepInView(el); return; }   // hidden versions just take the new state
+  if (reduceMotion || !el.offsetParent) { swap(); keepInView(el); return; }   // a closed group just takes the new state
 
   // Before: where the avatar and name are now
   const from = el.offsetHeight;
@@ -162,7 +167,7 @@ function setItem(el, c) {
 // scroll so the row lands just below the heading, alongside the height animation
 function keepInView(el) {
   const body = el.closest('.m-body');
-  if (!body || !el.offsetParent) return;   // hidden version: nothing to keep in view
+  if (!body || !el.offsetParent) return;
   const head = el.closest('.group')?.querySelector('.g-head');
   const floor = body.getBoundingClientRect().top + (head ? head.offsetHeight : 0) + 8;
   const top = el.getBoundingClientRect().top;
@@ -232,6 +237,14 @@ function openGroup(group, open) {
 }
 
 // ---------- Groups ----------
+// "Emma" · "Emma and Maya" · "Emma, Maya and 1 other" · "Emma, Maya and 16 others"
+const namesHtml = list => {
+  const [a, b2] = list.map(c => first(c.name)), n = list.length;
+  if (n === 1) return `<b>${a}</b>`;
+  if (n === 2) return `<b>${a} </b>and <b>${b2}</b>`;
+  return `<b>${a}, ${b2} </b>and ${plural(n - 2, 'other', 'others')}`;
+};
+
 const groupHtml = g => {
   const n = g.creators.length;
   const shown = g.creators.slice(0, STACK);
@@ -251,7 +264,7 @@ const groupHtml = g => {
             ${shown.map(c => `<span class="g-av"><img src="assets/${c.avatar}.jpg" alt=""></span>`).join('')}
             ${n > STACK ? `<span class="g-more"><span>+${n - STACK}</span></span>` : ''}
           </span>
-          <span class="g-names"><b>${first(g.creators[0].name)}, ${first(g.creators[1].name)} </b>and ${n - 2} others</span>
+          <span class="g-names">${namesHtml(g.creators)}</span>
         </span>
         <span class="g-chev">
           <img class="down" src="assets/chevron-down-16.svg" alt="" width="16" height="16">
@@ -263,20 +276,46 @@ const groupHtml = g => {
   </section>`;
 };
 
-const MIN_APPROVED = 50;   // about half accept, so 50 approved fills the 25 spots
+const modal = $('modal');
+const approveBtn = $('approve');
+
+// The Approve button counts everyone not marked Not a Fit; at zero it can't be pressed
 const renderCount = () => {
+  if (modal.classList.contains('is-done')) return;
   const n = api.approvedCount();
-  document.querySelectorAll('.js-approve').forEach(el => { el.textContent = n; });
-  document.querySelectorAll('.m-foot').forEach(f => f.classList.toggle('warn', n < MIN_APPROVED));
+  approveBtn.querySelector('.js-approve').textContent = n ? `Approve ${plural(n, 'creator', 'creators')}` : 'Approve creators';
+  approveBtn.disabled = !n;
 };
 
-// V1 and V2 render the same groups; each popup keeps its own open/loaded state
-const groups = api.groups().map(g => ({ ...g, hide: g.id === 'approved' ? 'Hide previously approved' : 'Hide new creators' }));
-document.querySelectorAll('.modal:not(.v3) .groups').forEach(el => { el.innerHTML = groups.map(groupHtml).join(''); });
-document.querySelectorAll('.js-total').forEach(el => { el.textContent = groups.reduce((n, g) => n + g.creators.length, 0); });
-renderCount();
+// Prioritize: at most one creator per spot (Julia, Oct 22). Once that many are prioritized, every other
+// Prioritize button is greyed out with a tooltip saying how to free one up.
+const CAP_TIP = `You've prioritized ${SPOTS}, one per spot. Turn one off to swap.`;
+const PRIO_TIP = 'Prioritized creators get their invite first.';
+function syncPrioCap() {
+  const full = api.prioritizedCount() >= SPOTS;
+  modal.querySelectorAll('.nc.card [data-act=prio]').forEach(b => {
+    const capped = full && !b.classList.contains('prio-on');
+    b.classList.toggle('prio-full', capped);
+    b.setAttribute('aria-disabled', capped);
+    b.querySelector('.tip').textContent = capped ? CAP_TIP : PRIO_TIP;
+  });
+}
 
-document.querySelectorAll('.groups').forEach(list => list.addEventListener('click', e => {
+// Groups with nobody in them are left out (a brand's first campaign has no previously approved creators)
+const groups = api.groups().filter(g => g.creators.length)
+  .map(g => ({ ...g, hide: g.id === 'approved' ? 'Hide previously approved' : 'Hide new creators' }));
+const total = groups.reduce((n, g) => n + g.creators.length, 0);
+modal.querySelector('.groups').innerHTML = groups.map(groupHtml).join('');
+$('headline').textContent = `Great news, we've selected ${plural(total, 'creator', 'creators')} for your campaign.`;
+// When we found 40% or less above the spots, ask for as many as they can approve (Julia, Oct 22)
+if (total <= SPOTS * 1.4) {
+  $('poolNote').textContent = `Approve as many creators as possible to fit your ${plural(SPOTS, 'spot', 'spots')}.`;
+  $('poolNote').hidden = false;
+}
+renderCount();
+syncPrioCap();
+
+modal.querySelector('.groups').addEventListener('click', e => {
   const toggle = e.target.closest('.g-bar, .g-hide');
   if (toggle) {
     const group = toggle.closest('.group');
@@ -288,40 +327,33 @@ document.querySelectorAll('.groups').forEach(list => list.addEventListener('clic
   if (!item) return;
   const id = item.dataset.id;
   const act = btn.dataset.act;
-  // A creator's state is shared, so every version shows the same choice
-  const copies = document.querySelectorAll(`.nc[data-id="${id}"]`);
   if (act === 'prio') {
+    if (btn.classList.contains('prio-full')) return;   // at the cap: the tooltip explains
     const on = !btn.classList.contains('prio-on');
     api.setPriority(id, on);
-    copies.forEach(el => {
-      const b = el.querySelector('[data-act=prio]');
-      if (!b) return;
-      b.classList.toggle('prio-on', on);
-      b.setAttribute('aria-pressed', on);
-    });
+    btn.classList.toggle('prio-on', on);
+    btn.setAttribute('aria-pressed', on);
+    syncPrioCap();
   } else if (act === 'notfit') {
-    // V1 can skip the popup: the card collapses right away and "Tell us why?" asks later
-    if (item.closest('.modal.v1') && notFitMode === 'inline') setNotFit(id, true);
-    else openFit(id);   // ask why first (optional), then collapse
+    setNotFit(id, true);   // collapses right away; "Tell us why?" on the row asks later
   } else if (act === 'why') {
-    openFit(id, true);   // already Not a fit: the popup only collects the reason
+    openFit(id);
   } else {
     setNotFit(id, false);
   }
-}));
+});
 
-// Applies a Not a fit (or its Undo) everywhere the creator is shown
+// Applies a Not a fit (or its Undo)
 function setNotFit(id, on) {
   api.setNotFit(id, on);
-  document.querySelectorAll(`.nc[data-id="${id}"]`).forEach(el => setItem(el, api.get(id)));
+  modal.querySelectorAll(`.nc[data-id="${id}"]`).forEach(el => setItem(el, api.get(id)));
   renderCount();
-  decks.forEach(d => d.sync());
+  syncPrioCap();
 }
 
 // White background + stroke only once a heading is actually pinned to the top
-document.querySelectorAll('.modal').forEach(modal => {
+{
   const body = modal.querySelector('.m-body');
-  if (!body) return;
   const markStuck = () => {
     const top = body.getBoundingClientRect().top;
     modal.querySelectorAll('.group').forEach(g => {
@@ -332,251 +364,32 @@ document.querySelectorAll('.modal').forEach(modal => {
   };
   body.addEventListener('scroll', markStuck, { passive: true });
   body.addEventListener('click', () => setTimeout(markStuck));
-});
-
-// ---------- V3: deck expand ----------
-// Each group is a deck: the bar is the top card, the creator cards sit tucked under it and spread out on open.
-// The bar's avatar pile slides out to the left as the label rolls in; each card keeps its own avatar.
-const EASE = 'cubic-bezier(.32, .72, 0, 1)';
-const deckHtml = g => {
-  const n = g.creators.length;
-  return `
-  <section class="group" data-id="${g.id}">
-    <div class="g-head">
-      <div class="g-text">
-        <p class="g-title">${g.title} <span class="dot">· </span><span class="num">${n}</span></p>
-        <p class="g-sub">${g.sub}</p>
-      </div>
-      <button class="g-collapse" tabindex="-1">Collapse<img src="assets/chevron-up-16.svg" alt="" width="16" height="16"></button>
-    </div>
-    <div class="deck">
-      <button class="known" aria-expanded="false">
-        <span class="g-summary">
-          <span class="g-stack kn-stack">
-            ${g.creators.slice(0, STACK).map(c => `<span class="g-av"><img src="assets/${c.avatar}.jpg" alt=""></span>`).join('')}
-            <span class="g-more"><span></span></span>
-          </span>
-          <span class="kn-text"><span class="l l-closed"></span><span class="l l-open"></span></span>
-        </span>
-        <span class="g-chev"><img src="assets/chevron-down-16.svg" alt="" width="16" height="16"></span>
-      </button>
-      <div class="clip"><div class="list">${g.creators.map(itemHtml).join('')}</div></div>
-    </div>
-  </section>`;
-};
-
-// V3 and V4 share this deck; V4 is the same thing with the stacked card edges turned off
-document.querySelectorAll('.modal.v3 .groups').forEach(el => { el.innerHTML = groups.map(deckHtml).join(''); });
-
-function makeDeck(sec, g, v3Body, stack) {
-  const deck = sec.querySelector('.deck'), bar = deck.querySelector('.known');
-  const clip = deck.querySelector('.clip'), list = deck.querySelector('.list');
-  const head = sec.querySelector('.g-head'), collapseBtn = sec.querySelector('.g-collapse');
-  const D = { open: false, busy: false };
-  const items = () => [...list.children];
-  // The clip's top edge sits INSET px below the bar's top: still hidden behind the bar, but it can't
-  // bleed through the bar's half-pixel edge. Every measure below is from the clip's top.
-  const INSET = 2;
-  const barH = () => bar.offsetHeight - INSET;
-  const closedH = () => barH() + (stack ? 16 : 0);   // +16 leaves room for the two peeking card edges
-  // Extra clip room so card shadows (0 4px 24px) aren't sliced off; a matching negative margin keeps layout unchanged
-  const SHADOW = 28;
-  const clipClosed = () => closedH() + SHADOW;
-
-  function labels() {
-    const left = g.creators.filter(c => !api.get(c.id).notFit);
-    const named = left.slice(0, 2).map(c => first(c.name));
-    const rest = left.length - named.length;
-    bar.querySelector('.l-closed').innerHTML = `<b>${named.join(', ')} </b>${rest > 0 ? `and ${rest} others` : ''}`;
-    bar.querySelector('.l-open').innerHTML = `<b>Showing all ${left.length}</b> · Collapse`;
-    bar.querySelector('.g-more span').textContent = '+' + Math.max(0, left.length - STACK);
-    sec.querySelector('.num').textContent = left.length;
-  }
-
-  // The clip is pulled up behind the bar; the list is pushed down by the same amount plus the card gap
-  function layout() {
-    clip.style.marginTop = -barH() + 'px';
-    clip.style.marginBottom = -SHADOW + 'px';
-    list.style.paddingTop = barH() + 16 + 'px';
-    list.style.paddingBottom = 12 + SHADOW + 'px';
-  }
-
-  // Closed rest pose: bottom-aligned just under the bar, the first two peeking out as stack edges.
-  // Without the stack (V4) every card hides fully behind the bar.
-  function pose(el, i) {
-    const bottom = el.offsetTop + el.offsetHeight;
-    if (!stack) return { transform: `translateY(${barH() - bottom}px) scale(.96)`, opacity: 0 };
-    const edge = i === 0 ? 8 : 15, sc = i === 0 ? .965 : .93;
-    return { transform: `translateY(${barH() + edge - bottom}px) scale(${sc})`, opacity: i < 2 ? 1 : 0 };
-  }
-
-  function restClosed() {
-    layout();
-    clip.style.height = clipClosed() + 'px';
-    const all = items(), n = all.length;
-    all.forEach((el, i) => {
-      el.style.zIndex = n - i;
-      if (i < 2) { const p = pose(el, i); el.style.transform = p.transform; el.style.opacity = p.opacity; }
-      else { el.style.transform = ''; el.style.opacity = 0; }
-    });
-  }
-  function restOpen() {
-    layout();
-    clip.style.height = 'auto';
-    items().forEach((el, i, all) => { el.style.zIndex = all.length - i; el.style.transform = ''; el.style.opacity = ''; });
-  }
-
-  function checkBar() {
-    const off = D.open && bar.getBoundingClientRect().bottom < head.getBoundingClientRect().bottom + 4;
-    sec.classList.toggle('bar-off', off);
-  }
-  function setOpenClasses(o) {
-    D.open = o;
-    deck.classList.toggle('is-open', o);
-    sec.classList.toggle('open', o);
-    bar.setAttribute('aria-expanded', String(o));
-    collapseBtn.tabIndex = o ? 0 : -1;
-    checkBar();
-  }
-  v3Body.addEventListener('scroll', checkBar, { passive: true });
-
-  async function open() {
-    if (D.busy || D.open) return;
-    D.busy = true;
-    if (reduceMotion) {
-      setOpenClasses(true); restOpen();
-      await clip.animate([{ opacity: 0 }, { opacity: 1 }], 160).finished;
-      D.busy = false; return;
-    }
-    const dur = 560, stag = 42;
-    deck.style.setProperty('--d', dur + 'ms');
-    const all = items();
-    const from = all.map((el, i) => pose(el, i));
-    const fullH = list.offsetHeight;
-    // Only animate what can be seen; cards further down just sit in layout
-    const visible = v3Body.getBoundingClientRect().bottom - clip.getBoundingClientRect().top + 40;
-    const target = Math.min(fullH, Math.max(visible, clipClosed()));
-    const moving = all.filter(el => el.offsetTop < target);
-    all.forEach(el => { el.style.transform = ''; el.style.opacity = ''; });
-    setOpenClasses(true);
-    clip.style.height = target + 'px';
-    const anims = [clip.animate([{ height: clipClosed() + 'px' }, { height: target + 'px' }],
-      { duration: Math.min(dur + stag * (moving.length - 1), dur * 1.25), easing: EASE })];
-    moving.forEach((el, i) => anims.push(el.animate([
-      { transform: from[i].transform, opacity: from[i].opacity },
-      { opacity: 1, offset: .3 },
-      { transform: 'none', opacity: 1 }
-    ], { duration: dur, delay: i * stag, easing: EASE, fill: 'backwards' })));
-    await Promise.all(anims.map(a => a.finished));
-    anims.forEach(a => a.cancel());
-    restOpen();
-    D.busy = false;
-    checkBar();
-  }
-
-  async function close() {
-    if (D.busy || !D.open) return;
-    D.busy = true;
-    if (reduceMotion) { setOpenClasses(false); restClosed(); D.busy = false; return; }
-    const br0 = bar.getBoundingClientRect(), bb = v3Body.getBoundingClientRect();
-    const headH = head.offsetHeight;
-    const barAway = br0.top < bb.top + headH - 20 || br0.top > bb.bottom - 120;
-    // V4: collapsing from deep in the list doesn't scroll back up. The cards fade out where they are,
-    // the section snaps closed with its heading kept at the top, and the collapsed bar fades in.
-    if (!stack && barAway) {
-      await list.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease-out', fill: 'forwards' }).finished;
-      deck.style.setProperty('--d', '1ms');   // no bar morph while it's out of sight
-      setOpenClasses(false);
-      restClosed();
-      list.getAnimations().forEach(a => a.cancel());
-      v3Body.scrollTop += sec.getBoundingClientRect().top - v3Body.getBoundingClientRect().top;
-      checkBar();
-      await deck.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
-        { duration: 260, easing: EASE }).finished;
-      deck.style.setProperty('--d', '460ms');
-      D.busy = false;
-      return;
-    }
-    // Bring the bar back into view first, so the cards have somewhere to go
-    if (barAway) {
-      const top = v3Body.scrollTop + br0.top - bb.top - headH - 8;
-      await new Promise(res => {
-        let done = false;
-        const fin = () => { if (!done) { done = true; res(); } };
-        v3Body.addEventListener('scrollend', fin, { once: true });
-        setTimeout(fin, 700);
-        v3Body.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-      });
-    }
-    const dur = 460, stag = 30;
-    deck.style.setProperty('--d', dur + 'ms');
-    const all = items();
-    const cur = Math.min(list.offsetHeight, Math.max(clipClosed(), v3Body.getBoundingClientRect().bottom - clip.getBoundingClientRect().top + 40));
-    const moving = all.filter(el => el.offsetTop < cur);
-    const to = moving.map((el, i) => pose(el, i));
-    const k = moving.length;
-    clip.style.height = cur + 'px';
-    setOpenClasses(false);
-    const anims = [clip.animate([{ height: cur + 'px' }, { height: clipClosed() + 'px' }],
-      { duration: dur + stag * Math.min(k - 1, 4), easing: EASE, fill: 'forwards' })];
-    moving.forEach((el, i) => anims.push(el.animate([   // lowest card goes first
-      { transform: 'none', opacity: 1 },
-      { opacity: 1, offset: .75 },
-      { transform: to[i].transform, opacity: to[i].opacity }
-    ], { duration: dur, delay: (k - 1 - i) * stag, easing: EASE, fill: 'forwards' })));
-    await Promise.all(anims.map(a => a.finished));
-    anims.forEach(a => a.cancel());
-    restClosed();
-    D.busy = false;
-  }
-
-  bar.addEventListener('click', () => (D.open ? close() : open()));
-  collapseBtn.addEventListener('click', close);
-
-  labels();
-  restClosed();
-  let syncT;
-  return {
-    relayout() { if (!D.busy) (D.open ? restOpen() : restClosed()); },
-    // A creator changed (here or in another version): refresh the labels, then re-pose once the row/card swap settles
-    sync() { labels(); clearTimeout(syncT); syncT = setTimeout(() => this.relayout(), SWAP_MS + 120); },
-  };
 }
 
-const decks = [];
-document.querySelectorAll('.modal.v3').forEach(modal => {
-  const body = modal.querySelector('.m-body');
-  const stack = !modal.classList.contains('v4');
-  const own = [...modal.querySelectorAll('.group')].map((sec, i) => makeDeck(sec, groups[i], body, stack));
-  decks.push(...own);
-  let relayoutT;
-  new ResizeObserver(() => { clearTimeout(relayoutT); relayoutT = setTimeout(() => own.forEach(d => d.relayout()), 80); }).observe(body);
-});
-document.fonts && document.fonts.ready.then(() => decks.forEach(d => d.relayout()));
-
-// ---------- Modal open / close (shows the selected version's popup) ----------
+// ---------- Open / close ----------
+// Embedded (the v47 tracker), the page talks to its host with two messages:
+//   out: { type: 'invite:sent', count }   once Send succeeds
+//   out: { type: 'invite:closed', sent }  every time the popup closes (sent = invites sent, 0 if none yet)
+//   in:  { type: 'invite:open' }          reopen it
+const host = window.parent !== window ? window.parent : null;
+const tell = msg => host && host.postMessage(msg, location.origin);
 const overlay = $('overlay');
-const modals = { v1: $('modal-v1'), v2: $('modal-v2'), v3: $('modal-v3'), v4: $('modal-v4') };
-let version = 'v2';
-let isOpen = true;
 const setOpen = open => {
-  isOpen = open;
   overlay.classList.toggle('hidden', !open);
-  Object.entries(modals).forEach(([v, m]) => { m.hidden = !(open && v === version); });
-  // Once invites are sent the popup stays on the success screen. It animates the first time only;
-  // after that it reopens settled, and the dashboard shows the "approved" card.
-  if (!open && document.querySelector('.modal.is-done')) {
-    document.querySelectorAll('.modal.is-done').forEach(m => m.classList.add('done-seen'));
-    $('sentBanner').hidden = false;
-  }
+  modal.hidden = !open;
+  // Once invites are sent the popup stays on the success screen. It animates the first time only.
+  if (!open && modal.classList.contains('is-done')) modal.classList.add('done-seen');
+  if (!open) tell({ type: 'invite:closed', sent: api.sent() });
 };
-document.querySelectorAll('.m-close').forEach(b => b.addEventListener('click', () => setOpen(false)));
+window.addEventListener('message', e => {
+  if (e.origin === location.origin && e.data?.type === 'invite:open') setOpen(true);
+});
+modal.querySelector('.m-close').addEventListener('click', () => setOpen(false));
 overlay.addEventListener('click', () => setOpen(false));
 $('openModal').addEventListener('click', () => setOpen(true));
-document.querySelectorAll('.approve-btn').forEach(b => b.addEventListener('click', () => openSummary(b)));
-// Done on the success screen closes the popup; View on the dashboard card reopens it on that screen
+approveBtn.addEventListener('click', () => openSummary(approveBtn));
+// Done on the success screen closes the popup
 document.addEventListener('click', e => { if (e.target.closest('.m-done .done-btn')) setOpen(false); });
-$('viewList').addEventListener('click', () => setOpen(true));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (fitOpen()) closeFit();
@@ -584,16 +397,14 @@ document.addEventListener('keydown', e => {
   else setOpen(false);
 });
 
-// ---------- Invite summary pop-up ("Ready to send N invites?") ----------
+// ---------- Invite summary pop-up ("Good to go?") ----------
 // Read-only: says who gets invited. Cancel keeps every selection.
 const sum = $('sum');
 const sumDlg = sum.querySelector('.sum-dlg');
 let sumOpener = null;
 let sumCloseT;
 const summaryOpen = () => !sum.hidden;
-const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const invites = n => plural(n, 'invite', 'invites');
-const esc = t => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 function summaryData() {
   const all = api.groups().flatMap(g => g.creators);
@@ -609,7 +420,8 @@ function summaryData() {
 // "We'll invite **73 creators** to this campaign, including **16 previously approved** and **57 new**.
 //  **2 prioritized creators** get the first chance to accept."
 // When everyone left is in one group, name it instead: "We'll invite **56 new creators** to this campaign."
-// The prioritized sentence only shows once they've prioritized someone.
+// The prioritized sentence only shows once they've prioritized someone, and not when everyone is
+// prioritized (then nobody goes first).
 function inviteLine(d) {
   const kept = [...d.prio, ...d.rest];
   const prev = kept.filter(c => c.source === 'approved').length;
@@ -619,7 +431,7 @@ function inviteLine(d) {
     ? `We'll invite <b>${kept.length} ${prev ? 'previously approved' : 'new'} ${who(kept.length).replace(/^\d+ /, '')}</b> to this campaign.`
     : `We'll invite <b>${who(kept.length)}</b> to this campaign, including <b>${prev} previously approved</b> and <b>${fresh} new</b>.`;
   const p = d.prio.length;
-  return p ? `${line} <b>${plural(p, 'prioritized creator', 'prioritized creators')}</b> ${p === 1 ? 'gets' : 'get'} the first chance to accept.` : line;
+  return p && d.rest.length ? `${line} <b>${plural(p, 'prioritized creator', 'prioritized creators')}</b> ${p === 1 ? 'gets' : 'get'} the first chance to accept.` : line;
 }
 
 // Compact confirm (Figma 15372:8161): the sentence carries the breakdown, Send sits above Cancel
@@ -722,7 +534,6 @@ function closeSummary() {
   if (sumOpener && !sumOpener.disabled) sumOpener.focus();
 }
 
-
 async function sendInvites(btn) {
   const d = summaryData();
   const ids = [...d.prio, ...d.rest].map(c => c.id);   // invite order: prioritized first
@@ -736,28 +547,24 @@ async function sendInvites(btn) {
     focusPrimary();
     return;
   }
-  document.querySelectorAll('.approve-btn').forEach(b => {
-    b.disabled = true;
-    b.innerHTML = `<span>${invites(ids.length)} sent</span>`;
-  });
+  tell({ type: 'invite:sent', count: ids.length });
   // The summary closes and the big popup itself turns into the success screen
   closeSummary();
   setTimeout(() => showSuccess(ids.length), 180);
 }
 
-// Success screen inside the Invite Creators popup: the list and footer fade out, the check/confetti/text rise in
-function showSuccess(n) {
-  // Every version turns into the success screen, so switching versions doesn't bring the list back
-  Object.values(modals).forEach(modal => {
-    let done = modal.querySelector('.m-done');
-    if (!done) { done = document.createElement('div'); done.className = 'm-done'; modal.appendChild(done); }
-    done.innerHTML = doneHtml(n);
-    modal.classList.add('is-done');
-    modal.classList.toggle('done-seen', modal !== modals[version]);   // only the one on screen animates
-  });
-  const done = modals[version].querySelector('.m-done');
+// Success screen inside the Invite Creators popup: the list and footer fade out, the check/confetti/text rise in.
+// settled: reopened after a reload, so it's simply there and nothing replays.
+function showSuccess(n, settled = false) {
+  approveBtn.disabled = true;
+  approveBtn.querySelector('.js-approve').textContent = `${invites(n)} sent`;
+  let done = modal.querySelector('.m-done');
+  if (!done) { done = document.createElement('div'); done.className = 'm-done'; modal.appendChild(done); }
+  done.innerHTML = doneHtml(n);
+  modal.classList.add('is-done');
+  modal.classList.toggle('done-seen', settled);
+  if (settled) return;
   done.querySelector('.done-btn').focus({ preventScroll: true });
-  $('sentCount').textContent = plural(n, 'creator', 'creators');
   // Burst from the check as the disc lands
   setTimeout(() => {
     const r = done.querySelector('.done-check').getBoundingClientRect();
@@ -766,7 +573,7 @@ function showSuccess(n) {
 }
 
 sum.addEventListener('click', e => {
-  if (e.target === sum) return closeSummary();   // backdrop = Go back
+  if (e.target === sum) return closeSummary();   // backdrop = Cancel
   const act = e.target.closest('[data-sum]')?.dataset.sum;
   if (act === 'back' || act === 'close') closeSummary();
   else if (act === 'send') sendInvites(e.target.closest('[data-sum]'));
@@ -781,20 +588,18 @@ sum.addEventListener('keydown', e => {
   btns[(i + (e.shiftKey ? -1 : 1) + btns.length) % btns.length].focus();
 });
 
-// ---------- Not a fit feedback modal (Figma 15343:68271) ----------
-// Not a fit asks why first; the reason is optional and the creator is marked Not a fit however the popup closes.
+// ---------- Not a fit feedback (Figma 15343:68271), opened from "Tell us why?" on a Not a Fit row ----------
+// The creator is already Not a Fit; this only collects the optional reason. Benable only, creators never see it.
 const fit = $('fit');
 const fitDlg = fit.querySelector('.fit-dlg');
 const fitInput = $('fitWhy');
 const fitSend = fitDlg.querySelector('[data-fit=send]');
-let fitId = null, fitCloseT, fitReasonOnly = false;
+let fitId = null, fitCloseT;
 const fitOpen = () => !fit.hidden;
 
-// reasonOnly: opened from "Tell us why?" on a row that's already Not a fit (V1 inline)
-function openFit(id, reasonOnly = false) {
+function openFit(id) {
   const c = api.get(id);
   fitId = id;
-  fitReasonOnly = reasonOnly;
   fitDlg.querySelector('.fit-av img').src = `assets/${c.avatar}.jpg`;
   fitDlg.querySelector('.fit-name').textContent = c.name;
   fitDlg.querySelector('.fit-handle').textContent = c.handle;
@@ -807,17 +612,15 @@ function openFit(id, reasonOnly = false) {
   fitInput.focus();
 }
 
-// Every way out (Send, Cancel, ✕, Esc, backdrop) marks the creator Not a fit; Send also keeps the reason.
-// Undo on the collapsed row is the way back.
 function closeFit(sent) {
   if (!fitOpen()) return;
   const id = fitId;
   fit.classList.remove('in');
   clearTimeout(fitCloseT);
   fitCloseT = setTimeout(() => { fit.hidden = true; }, 260);
-  if (sent) api.notFitFeedback(id, fitInput.value.trim());
-  if (!fitReasonOnly) setTimeout(() => setNotFit(id, true), 260);   // collapse the card once the popup is gone
-  else if (sent) document.querySelectorAll(`.nc.row[data-id="${id}"] .r-why`)
+  if (!sent) return;
+  api.notFitFeedback(id, fitInput.value.trim());
+  modal.querySelectorAll(`.nc.row[data-id="${id}"] .r-why`)
     .forEach(b => { b.outerHTML = '<span class="r-sent">Feedback sent</span>'; });
 }
 
@@ -837,32 +640,6 @@ fit.addEventListener('keydown', e => {
   els[(i + (e.shiftKey ? -1 : 1) + els.length) % els.length].focus();
 });
 
-// ---------- V1 option: how Not a fit behaves (Popup asks why first, Inline collapses right away) ----------
-let notFitMode = 'popup';
-try { notFitMode = localStorage.getItem('v1-notfit') || 'popup'; } catch {}
-function setNotFitMode(m) {
-  notFitMode = m;
-  try { localStorage.setItem('v1-notfit', m); } catch {}
-  $('modal-v1').classList.toggle('fit-inline', m === 'inline');
-  const sub = document.querySelector('.ver-sub');
-  sub.dataset.on = m;
-  sub.querySelectorAll('.ver-sub-opt').forEach(b => b.setAttribute('aria-checked', b.dataset.mode === m));
-}
-document.querySelectorAll('.ver-sub-opt').forEach(b => b.addEventListener('click', () => setNotFitMode(b.dataset.mode)));
-setNotFitMode(notFitMode);
-
-// ---------- Prototype version switch (V1 / V2 / V3), remembered per browser ----------
-try { version = localStorage.getItem('invite-version') || 'v2'; } catch {}
-const hashVersion = location.hash.match(/v[1234]/);   // #v1 … #v4 pick a version
-if (hashVersion) version = hashVersion[0];
-function setVersion(v) {
-  version = v;
-  try { localStorage.setItem('invite-version', v); } catch {}
-  document.querySelector('.ver').dataset.on = v;
-  document.querySelector('.ver-sub').classList.toggle('show', v === 'v1');   // the Not a fit option only applies to V1
-  document.querySelectorAll('.ver-opt').forEach(b => b.setAttribute('aria-checked', b.dataset.ver === v));
-  setOpen(isOpen);
-}
-document.querySelectorAll('.ver-opt').forEach(b => b.addEventListener('click', () => setVersion(b.dataset.ver)));
-setVersion(version);
-if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+// ---------- Start ----------
+if (api.sent()) showSuccess(api.sent(), true);   // saved as sent: reopens on the success screen
+setOpen(true);

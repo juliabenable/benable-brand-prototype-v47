@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=95">
+  <link rel="stylesheet" href="styles.css?v=n1">
 </head>
 <body>
   <!-- ===== Background page ===== -->
@@ -56,17 +56,9 @@
     </div>
   </header>
 
-  <!-- Shown on the dashboard once invites are sent -->
-  <div class="sent-banner" id="sentBanner" hidden>
-    <p><b><span id="sentCount">75 creators</span> approved.</b> Invites are going out now.</p>
-    <button class="sent-view" id="viewList">View</button>
-  </div>
-
-  <!-- ===== Modals: one per prototype version ===== -->
+  <!-- ===== Invite Creators (Amine's v2, V1 layout: Figma 15309:22677). V1 only, cleaned for engineering ===== -->
   <div class="overlay" id="overlay"></div>
-
-  <!-- V1: same popup; an open group drops its bar and lists its cards inline (Figma 15309:22677) -->
-  <div class="modal v1" id="modal-v1" role="dialog" aria-label="Invite Creators" hidden>
+  <div class="modal" id="modal" role="dialog" aria-label="Invite Creators" hidden>
     <div class="m-head">
       <p class="m-title">Invite Creators</p>
       <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
@@ -74,78 +66,15 @@
 
     <div class="m-body">
       <div class="m-intro">
-        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
+        <p class="m-headline" id="headline"></p>
         <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
       </div>
       <div class="groups"></div>
     </div>
 
     <div class="m-foot">
-      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
-      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
-    </div>
-  </div>
-
-  <!-- V2: approve the selected creators (Figma 15308:18705) -->
-  <div class="modal v2" id="modal-v2" role="dialog" aria-label="Invite Creators">
-    <div class="m-head">
-      <p class="m-title">Invite Creators</p>
-      <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
-    </div>
-
-    <div class="m-body">
-      <div class="m-intro">
-        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
-        <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
-      </div>
-      <div class="groups"></div>
-    </div>
-
-    <div class="m-foot">
-      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
-      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
-    </div>
-  </div>
-
-  <!-- V3: each group is a deck; the bar is the top card and the creator cards spread out from under it -->
-  <div class="modal v3" id="modal-v3" role="dialog" aria-label="Invite Creators" hidden>
-    <div class="m-head">
-      <p class="m-title">Invite Creators</p>
-      <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
-    </div>
-
-    <div class="m-body">
-      <div class="m-intro">
-        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
-        <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
-      </div>
-      <div class="groups"></div>
-    </div>
-
-    <div class="m-foot">
-      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
-      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
-    </div>
-  </div>
-
-  <!-- V4: V3 without the stacked card edges; opening and closing work exactly the same -->
-  <div class="modal v3 v4" id="modal-v4" role="dialog" aria-label="Invite Creators" hidden>
-    <div class="m-head">
-      <p class="m-title">Invite Creators</p>
-      <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
-    </div>
-
-    <div class="m-body">
-      <div class="m-intro">
-        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
-        <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
-      </div>
-      <div class="groups"></div>
-    </div>
-
-    <div class="m-foot">
-      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
-      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
+      <p class="m-note" id="poolNote" hidden></p>
+      <button class="approve-btn" id="approve"><span class="js-approve"></span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
     </div>
   </div>
 
@@ -179,25 +108,7 @@
     </div>
   </div>
 
-  <!-- ===== Prototype version switch ===== -->
-  <div class="ver" role="radiogroup" aria-label="Prototype version">
-    <span class="ver-thumb"></span>
-    <button class="ver-opt" role="radio" data-ver="v1">V1</button>
-    <button class="ver-opt" role="radio" data-ver="v2">V2</button>
-    <button class="ver-opt" role="radio" data-ver="v3">V3</button>
-    <button class="ver-opt" role="radio" data-ver="v4">V4</button>
-  </div>
-  <!-- V1 only: switch how Not a fit behaves -->
-  <div class="ver-sub" role="radiogroup" aria-label="V1 Not a fit behavior">
-    <span class="ver-sub-label">Not a fit</span>
-    <span class="ver-sub-seg">
-      <span class="ver-sub-thumb"></span>
-      <button class="ver-sub-opt" role="radio" data-mode="popup">Popup</button>
-      <button class="ver-sub-opt" role="radio" data-mode="inline">Inline</button>
-    </span>
-  </div>
-
-  <script src="mock-api.js?v=95"></script>
-  <script src="app.js?v=95"></script>
+  <script src="mock-api.js?v=n1"></script>
+  <script src="app.js?v=n1"></script>
 </body>
 </html>
