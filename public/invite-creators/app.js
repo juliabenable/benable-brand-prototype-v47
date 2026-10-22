@@ -1,674 +1,868 @@
 const api = mockApi;
 const $ = id => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const EASE_OUT = 'cubic-bezier(.22, 1, .36, 1)';    // settles softly
-const EASE_IN_OUT = 'cubic-bezier(.65, 0, .35, 1)';
-const THROW = 'cubic-bezier(.25, .2, .7, .55)';     // moves on the first frame, then accelerates away
 
-const TAGS = {
-  fav:    { label: 'Favorite',         icon: 'tag-favorite.svg' },
-  again:  { label: 'Would work again', icon: 'tag-work-again.svg' },
-  missed: { label: 'Missed last time', icon: 'tag-missed.svg' },
+const first = name => name.split(' ')[0];
+const STACK = 4;   // avatars shown before the "+N" bubble
+
+// ---------- Creator card + its Not a Fit row ----------
+const cardHtml = c => `
+  <div class="c-main">
+    <div class="c-top">
+      <div class="c-who">
+        <div class="c-av"><span><img src="assets/${c.avatar}.jpg" alt=""></span></div>
+        <div class="c-id">
+          <div class="c-line">
+            <span class="c-name">${c.name}<img src="assets/card-verified-16.svg" alt="" width="16" height="16"></span>
+            <span class="c-handle">${c.handle}</span>
+            ${c.source === 'new' ? '<span class="c-new">New</span>' : ''}
+          </div>
+          <p class="c-bio">${c.bio}</p>
+        </div>
+      </div>
+      <div class="c-social">
+        <img src="assets/card-instagram-24.svg" alt="Instagram" width="24" height="24">
+        <img src="assets/card-tiktok-24.svg" alt="TikTok" width="24" height="24">
+      </div>
+    </div>
+    ${c.source === 'approved' ? `<div class="c-history"><span class="c-tag">Previously approved</span><p>${c.history}</p></div>` : ''}
+    <div class="c-fit">
+      <p class="c-fit-head"><img src="assets/card-sparkle-16.svg" alt="" width="16" height="16">Why they fit</p>
+      <ul>${c.fits.map(f => `<li><img src="assets/card-bullet-16.svg" alt="" width="16" height="16">${f}</li>`).join('')}</ul>
+    </div>
+    <div class="c-stats">
+      <div class="c-col c-soc">
+        <p class="c-label">Social Stats</p>
+        <div class="c-box">
+          <div class="c-stat c-fol"><small>Followers</small><b>${c.followers}</b></div>
+          <div class="c-stat c-eng">
+            <small>Engagement <img src="assets/card-info-12.svg" alt="" width="12" height="12"></small>
+            <b><span class="c-ig12"><img src="assets/card-instagram-12.svg" alt="" width="13" height="13"></span>${c.engagement}</b>
+          </div>
+        </div>
+      </div>
+      <div class="c-col c-aud">
+        <p class="c-label">Audience</p>
+        <div class="c-box">
+          <div class="c-stat c-loc"><small>Location</small><b>${c.location}</b></div>
+          <div class="c-stat mid c-age"><small>Age Range</small><b>${c.age}</b></div>
+          <div class="c-stat mid c-gender"><small>Gender</small><b>${c.gender}</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="c-recent">
+      <p class="c-label">Recent content</p>
+      <div class="c-thumbs">${c.content.map(img => `<span><img src="assets/${img}.jpg" alt=""></span>`).join('')}</div>
+    </div>
+  </div>
+  <div class="c-foot">
+    <button class="c-btn" data-act="notfit">Not a Fit</button>
+    <button class="c-btn${c.priority ? ' prio-on' : ''}" data-act="prio" aria-pressed="${c.priority}">
+      <img class="off" src="assets/prioritize-16.svg" alt="" width="16" height="16">
+      <img class="on" src="assets/prioritize-16-purple.svg" alt="" width="16" height="16">
+      <span class="off">Prioritize</span><span class="on">Prioritized</span>
+      <span class="tip" role="tooltip">Prioritized creators get their invite first.</span>
+    </button>
+  </div>`;
+
+const rowHtml = c => `
+  <div class="r-who">
+    <div class="r-av"><span><img src="assets/${c.avatar}.jpg" alt=""></span></div>
+    <p class="r-text"><span class="r-name">${c.name}</span><span class="r-tag">Not a Fit</span><span class="r-chip">Not a Fit</span>${
+      c.feedback ? '<span class="r-sent">Feedback sent</span>' : '<button class="r-why" data-act="why">Tell us why?</button>'}</p>
+  </div>
+  <button class="r-undo" data-act="undo">Undo</button>`;
+
+const itemHtml = (c, i) => `<div class="nc ${c.notFit ? 'row' : 'card'}${c.source === 'approved' ? ' ap' : ''}" data-id="${c.id}" style="--i:${Math.min(i, REVEAL_CAP)}">${c.notFit ? rowHtml(c) : cardHtml(c)}</div>`;
+
+// Swap a card and its row in place as one morph: the avatar and name are the same person in both,
+// so they glide and resize from where they were to where they land (40px avatar to 28px, the name
+// shrinking into the small grey one). Everything else dissolves: the old parts fade out where they
+// are, the new ones fade in, while the slot eases to its new height. Undo plays it in reverse.
+const SWAP_MS = 480;   // keep in step with .nc.anim in styles.css
+const SWAP_EASE = 'cubic-bezier(.4, 0, .2, 1)';
+const AV = '.c-av, .r-av', NAME = '.c-name, .r-name';
+// The parts that only exist on one side: they dissolve in rather than move
+const ADDED = '.c-main > :not(.c-top), .c-foot, .c-social, .c-bio, .c-handle, .c-new, .c-name img, .r-tag, .r-chip, .r-why, .r-sent, .r-undo';
+
+// The name's text box (the card's name also holds the verified badge)
+function textRect(el) {
+  const r = document.createRange();
+  r.selectNodeContents(el.firstChild || el);
+  return r.getBoundingClientRect();
+}
+
+// FLIP: put `el` back where `from` was, then let it travel home. `scale` sizes it from its top-left.
+function morphFrom(el, from, to, scale, extra = {}) {
+  const dx = from.left - (to.left + (to.ox || 0) * scale), dy = from.top - (to.top + (to.oy || 0) * scale);
+  el.style.transformOrigin = '0 0';
+  el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${scale})`, ...extra.from },
+              { transform: 'none', ...extra.to }], { duration: SWAP_MS, easing: SWAP_EASE });
+}
+
+function finishSwap(el) {
+  clearTimeout(el._t);
+  el.querySelectorAll(':scope > .nc-old').forEach(n => n.remove());
+  el.getAnimations({ subtree: true }).forEach(a => a.cancel());
+  el.style.height = '';
+  el.classList.remove('anim', 'morph');
+}
+
+function setItem(el, c) {
+  finishSwap(el);
+  const swap = () => {
+    el.innerHTML = c.notFit ? rowHtml(c) : cardHtml(c);
+    el.classList.toggle('row', c.notFit);
+    el.classList.toggle('card', !c.notFit);
+  };
+  if (reduceMotion || !el.offsetParent) { swap(); keepInView(el); return; }   // hidden versions just take the new state
+
+  // Before: where the avatar and name are now
+  const from = el.offsetHeight;
+  const oAv = el.querySelector(AV), oName = el.querySelector(NAME);
+  const avFrom = oAv.getBoundingClientRect(), nameFrom = textRect(oName);
+  const nameStyle = getComputedStyle(oName), fromSize = parseFloat(nameStyle.fontSize), fromColor = nameStyle.color;
+
+  // The old content stays as a layer that dissolves; its avatar and name hand over to the new ones
+  const old = document.createElement('div');
+  old.className = 'nc-old';
+  old.style.height = from + 'px';
+  old.append(...el.childNodes);
+  old.querySelectorAll(AV + ', ' + NAME).forEach(n => { n.style.visibility = 'hidden'; });
+  swap();
+  const nAv = el.querySelector(AV), nName = el.querySelector(NAME);   // the new ones, before the old layer goes back in
+  el.prepend(old);
+
+  // After: lay the new content out at its final height, then pin the slot back to where it started
+  el.style.height = '';
+  const to = el.offsetHeight;
+  el.style.setProperty('--mid', to / 2 + 'px');   // the row content sits at its final spot while the slot shrinks
+  el.classList.add('morph');
+  el.style.height = from + 'px';
+  keepInView(el);
+
+  const avTo = nAv.getBoundingClientRect();
+  const elTo = nName.getBoundingClientRect(), txtTo = textRect(nName);
+  const toStyle = getComputedStyle(nName);
+  morphFrom(nAv, avFrom, avTo, avFrom.width / avTo.width);
+  morphFrom(nName, nameFrom, { left: elTo.left, top: elTo.top, ox: txtTo.left - elTo.left, oy: txtTo.top - elTo.top },
+    fromSize / parseFloat(toStyle.fontSize), { from: { color: fromColor }, to: { color: toStyle.color } });
+
+  old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease-out', fill: 'forwards' });
+  el.querySelectorAll(ADDED).forEach(n => n.closest('.nc-old') || n.animate([{ opacity: 0 }, { opacity: 1 }],
+    { duration: 260, delay: 180, easing: 'ease-out', fill: 'backwards' }));
+
+  void el.offsetHeight;   // commit the start height before animating
+  el.classList.add('anim');
+  el.style.height = to + 'px';
+  el._t = setTimeout(() => finishSwap(el), SWAP_MS + 80);
+}
+
+// A card collapsing from deep inside it would leave its row above the fold (or under the sticky heading):
+// scroll so the row lands just below the heading, alongside the height animation
+function keepInView(el) {
+  const body = el.closest('.m-body');
+  if (!body || !el.offsetParent) return;   // hidden version: nothing to keep in view
+  const head = el.closest('.group')?.querySelector('.g-head');
+  const floor = body.getBoundingClientRect().top + (head ? head.offsetHeight : 0) + 8;
+  const top = el.getBoundingClientRect().top;
+  if (top >= floor) return;
+  const from = body.scrollTop, to = Math.max(0, from - (floor - top));
+  if (reduceMotion) { body.scrollTop = to; return; }
+  // Tweened by hand: a native smooth scroll gets cancelled when the content shrinks under it
+  cancelAnimationFrame(body._keep);
+  clearTimeout(body._keepT);
+  const t0 = performance.now(), dur = SWAP_MS;   // moves with the collapse, same length and easing
+  const step = now => {
+    const p = Math.min(1, (now - t0) / dur), e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    body.scrollTop = from + (to - from) * e;
+    if (p < 1) body._keep = requestAnimationFrame(step);
+  };
+  body._keep = requestAnimationFrame(step);
+  body._keepT = setTimeout(() => { cancelAnimationFrame(body._keep); body.scrollTop = to; }, dur + 80);   // frames can stall
+}
+
+// ---------- Opening animations ----------
+const LOAD_MS = 500;      // first open: skeletons stand in this long
+const REVEAL_CAP = 5;     // cards past this one share the last delay (they're below the fold anyway)
+const REVEAL_MS = 1400;   // long enough for the last card's parts to settle
+
+const b = (w, h, r = 6, extra = '') => `<b class="sk-b" style="width:${w};height:${h}px;border-radius:${r}px;${extra}"></b>`;
+const skeletonHtml = approved => `
+  <div class="nc card sk${approved ? ' ap' : ''}" aria-hidden="true">
+    <div class="c-main">
+      <div class="sk-row">
+        ${b('40px', 40, 100)}
+        <div class="sk-col">${b('180px', 14)}${b(approved ? '320px' : '260px', 10)}${approved ? '' : b('200px', 10)}</div>
+        <div class="sk-row" style="margin-left:auto; gap:8px">${b('24px', 24, 100)}${b('24px', 24, 100)}</div>
+      </div>
+      ${approved ? `<div class="sk-row">${b('141px', 25, 100)}${b('300px', 10)}</div>` : ''}
+      <div class="sk-col" style="gap:${approved ? 12 : 10}px">${b('90px', 12)}${b('440px', 10)}${b('410px', 10)}${b('380px', 10)}</div>
+      <div class="sk-row" style="gap:${approved ? 20 : 16}px">${b('240px', 52, 12)}${b('auto', 52, 12, 'flex:1')}</div>
+      <div class="sk-col" style="gap:12px">${b('90px', 12)}
+        <div class="sk-row" style="gap:12px">${Array.from({ length: 7 }, () => b('auto', approved ? 108 : 86, 8, 'flex:1')).join('')}</div>
+      </div>
+    </div>
+    <div class="c-foot"><span class="sk-row" style="gap:32px; padding-right:16px">${b('64px', 14)}${b('84px', 14)}</span></div>
+  </div>`;
+
+// Replays the staggered entrance: cards rise one after another, then each card's parts settle in order
+function reveal(panel) {
+  clearTimeout(panel._reveal);
+  panel.classList.remove('reveal');
+  void panel.offsetWidth;   // restart the animations
+  panel.classList.add('reveal');
+  panel._reveal = setTimeout(() => panel.classList.remove('reveal'), REVEAL_MS);
+}
+
+function openGroup(group, open) {
+  const panel = group.querySelector('.g-panel');
+  group.classList.toggle('open', open);
+  group.querySelector('.g-bar').setAttribute('aria-expanded', open);
+  clearTimeout(panel._load);
+  if (!open) { panel.classList.remove('loading', 'reveal'); return; }
+  if (group.dataset.loaded || reduceMotion) { group.dataset.loaded = 1; reveal(panel); return; }
+  // First open: show skeletons briefly, as if the profiles were loading
+  panel.classList.add('loading');
+  panel._load = setTimeout(() => {
+    group.dataset.loaded = 1;
+    panel.classList.remove('loading');
+    reveal(panel);
+  }, LOAD_MS);
+}
+
+// ---------- Groups ----------
+const groupHtml = g => {
+  const n = g.creators.length;
+  const shown = g.creators.slice(0, STACK);
+  return `
+  <section class="group" data-id="${g.id}">
+    <div class="g-head">
+      <div class="g-text">
+        <p class="g-title">${g.title} <span class="dot">· </span><span class="num">${n}</span></p>
+        <p class="g-sub">${g.sub}</p>
+      </div>
+      <button class="g-hide">${g.hide}<img src="assets/chevron-up-12.svg" alt="" width="12" height="12"></button>
+    </div>
+    <div class="g-box">
+      <button class="g-bar" aria-expanded="false">
+        <span class="g-summary">
+          <span class="g-stack">
+            ${shown.map(c => `<span class="g-av"><img src="assets/${c.avatar}.jpg" alt=""></span>`).join('')}
+            ${n > STACK ? `<span class="g-more"><span>+${n - STACK}</span></span>` : ''}
+          </span>
+          <span class="g-names"><b>${first(g.creators[0].name)}, ${first(g.creators[1].name)} </b>and ${n - 2} others</span>
+        </span>
+        <span class="g-chev">
+          <img class="down" src="assets/chevron-down-16.svg" alt="" width="16" height="16">
+          <img class="up" src="assets/chevron-up-16.svg" alt="" width="16" height="16">
+        </span>
+      </button>
+      <div class="g-panel">${[0, 1, 2].map(() => skeletonHtml(g.id === 'approved')).join('')}${g.creators.map(itemHtml).join('')}</div>
+    </div>
+  </section>`;
 };
 
-// ---------- Shared bits ----------
-const avatar = (img, border2 = false, size = '') => `
-  <div class="avatar ${size}"><div class="avatar-in${border2 ? ' b2' : ''}">
-    <img src="assets/${img}.jpg" alt="">
-  </div></div>`;
+const MIN_APPROVED = 50;   // about half accept, so 50 approved fills the 25 spots
+const renderCount = () => {
+  const n = api.approvedCount();
+  document.querySelectorAll('.js-approve').forEach(el => { el.textContent = n; });
+  document.querySelectorAll('.m-foot').forEach(f => f.classList.toggle('warn', n < MIN_APPROVED));
+};
 
-const person = c => `
-  <div class="person">
-    ${avatar(c.avatar, false, 'sm')}
-    <div class="p-info">
-      <div class="p-name"><b>${c.name}</b><img src="assets/verified.svg" alt=""></div>
-      <p class="p-sub">${c.handle}</p>
-    </div>
-  </div>`;
+// V1 and V2 render the same groups; each popup keeps its own open/loaded state
+const groups = api.groups().map(g => ({ ...g, hide: g.id === 'approved' ? 'Hide previously approved' : 'Hide new creators' }));
+document.querySelectorAll('.modal:not(.v3) .groups').forEach(el => { el.innerHTML = groups.map(groupHtml).join(''); });
+document.querySelectorAll('.js-total').forEach(el => { el.textContent = groups.reduce((n, g) => n + g.creators.length, 0); });
+renderCount();
 
-const emo = text => text.replace(/(\p{Extended_Pictographic})/gu, '<i class="emo">$1</i>');
-
-// Creator card body. Suggestions get the "New" pill; creators you know get their "For you" tag.
-const profileHTML = c => `
-  <div class="cc-head">
-    <div class="cc-who">
-      ${avatar(c.avatar, true, 'md')}
-      <div class="cc-info">
-        <div class="cc-name">
-          <span class="cc-n"><b>${c.name}</b><img src="assets/verified-16.svg" alt="" width="16" height="16"></span>
-          <span class="cc-handle">@${c.handle}</span>
-          ${c.source === 'known'
-            ? `<span class="cc-tag ${c.tag}"><img src="assets/${TAGS[c.tag].icon}" alt="">${TAGS[c.tag].label}</span>`
-            : '<span class="cc-new">New</span>'}
-        </div>
-        <p class="cc-bio">${emo(c.bio)}</p>
-      </div>
-    </div>
-    <div class="cc-social">
-      <a><img src="assets/instagram-24.svg" alt="Instagram" width="24" height="24"></a>
-      <a><img src="assets/tiktok-24.svg" alt="TikTok" width="24" height="24"></a>
-    </div>
-  </div>
-
-  <div class="cc-fit">
-    <div class="cc-fit-title"><img src="assets/sparkle-fit.svg" alt="" width="16" height="16">Why they fit</div>
-    <div class="cc-fit-list">
-      ${c.fit.map(f => `<p><img src="assets/bullet-check.svg" alt="" width="16" height="16">${f}</p>`).join('')}
-    </div>
-  </div>
-
-  <div class="cc-stats">
-    <div class="cc-col grow">
-      <p class="cc-label">Social Stats</p>
-      <div class="cc-box">
-        <div class="stat" style="left:15.5px"><span>Followers</span><b>${c.followers}</b></div>
-        <div class="stat" style="left:105px">
-          <span class="stat-row">Engagement<img src="assets/info-12.svg" alt="" width="12" height="12"></span>
-          <b class="stat-row"><span class="ig12"><img src="assets/instagram-12.svg" alt=""></span>${c.engagement}</b>
-        </div>
-      </div>
-    </div>
-    <div class="cc-col" style="width:343px">
-      <p class="cc-label">Audience</p>
-      <div class="cc-box">
-        <div class="stat" style="left:19.5px"><span>Location</span><b>${c.location}</b></div>
-        <div class="stat cx" style="left:calc(50% - 7.5px)"><span>Age Range</span><b>${c.age}</b></div>
-        <div class="stat cx" style="left:calc(50% + 105.5px); top:calc(50% - 0.5px)"><span>Gender</span><b>${c.gender}</b></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="cc-content">
-    <p class="cc-label">Recent content</p>
-    <div class="tiles">${c.content.map(img => `<div class="tile"><img src="assets/${img}.jpg" alt=""></div>`).join('')}</div>
-  </div>`;
-
-// ---------- Card decks ----------
-// One engine drives both decks: the suggestions, and the "creators you know" deck that
-// opens from the collapsed bar. Each deck owns a card element, a list and a position.
-//  'next' : the top card is thrown off to the left (accelerating, arcing from a low pivot)
-//           while the next card dissolves up in its place.
-//  'prev' : the current card dissolves back while the previous one glides back in on top.
-// Moving copies live in the card's own container, so they disappear at its edge.
-// Clicks mid-swipe fast-forward the swipe; rapid clicks queue.
-const DECK = 'translateY(6px) scale(.96)';   // a card waiting just behind the top one
-const OFFSCREEN = 'translate(-1000px, 80px) rotate(-18deg)';
-// Where an added card flies to: from its own centre to the upper middle of the shortlist list
-function intoPanel(el) {
-  const r = el.getBoundingClientRect(), t = document.querySelector('.lists').getBoundingClientRect();
-  return { dx: t.left + t.width / 2 - (r.left + r.width / 2), dy: t.top + 120 - (r.top + r.height / 2) };
-}
-
-// Cards use the 16px plus (Figma 15204 / 15212); Added shows the 12px check
-function setAddIcon(split, added) {
-  split.querySelector('.i-add').classList.toggle('is-check', added);   // [PRIORITY-MORPH] masked icon, takes the text colour
-}
-
-const modalEl = document.getElementById('modal');
-
-function makeDeck({ card, body, list, pager }) {
-  const deck = { card, body, list, pager, index: 0, running: null, queue: Promise.resolve(), pending: null };
-
-  deck.current = () => deck.list()[deck.index];
-
-  // Re-render after a data change, staying on the same creator if they're still in the deck
-  // (e.g. someone removed from the shortlist returns to the deck without moving you)
-  deck.refresh = () => {
-    const i = deck.list().findIndex(x => x.id === deck.curId);
-    if (i >= 0) deck.index = i;
-    deck.render();
-  };
-
-  deck.render = () => {
-    const l = deck.list();
-    deck.index = Math.max(0, Math.min(deck.index, l.length - 1));
-    const c = l[deck.index];
-    deck.curId = c?.id;
-    if (!c) { body.innerHTML = '<p class="sg-done">You’ve gone through every creator.</p>'; return; }
-    body.innerHTML = profileHTML(c);
-    const split = card.querySelector('.split');
-    split.classList.toggle('added', c.shortlisted);
-    split.classList.toggle('prio', c.priority);
-    setAddIcon(split, c.shortlisted);
-    split.querySelector('.l-add').textContent = c.shortlisted ? 'Added' : 'Shortlist';
-    // Tooltips say what a click will do
-    split.querySelector('.split-add').dataset.tip = c.shortlisted ? 'Remove from your shortlist' : 'Add creator to your shortlist';
-    // ⚡ has no tooltip: hovering it already previews "⚡ Priority" [PRIORITY-MORPH]
-    renderPager(deck);
-  };
-
-  // escape: the copy goes straight into the modal (not the card's own container), so a card
-  // inside the expanded edit block can still fly out of it into the shortlist panel
-  const flyingCopy = (escape = false) => {
-    const el = card.cloneNode(true);
-    el.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
-    el.removeAttribute('id');
-    el.classList.add('ghost');
-    el.style.zIndex = 2;
-    if (escape && card.parentElement !== modalEl) {
-      const r = card.getBoundingClientRect(), m = modalEl.getBoundingClientRect();
-      Object.assign(el.style, {
-        left: r.left - m.left - modalEl.clientLeft + 'px', top: r.top - m.top - modalEl.clientTop + 'px',
-        width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto',
-      });
-      modalEl.appendChild(el);
-    } else card.after(el);
-    return el;
-  };
-
-  const finishRunning = () => {
-    if (!deck.running) return;
-    deck.running.anims.forEach(a => a.finish());
-    deck.running.cleanup();
-  };
-
-  // onCopy(copy): optional, runs on the moving copy right after it's made (e.g. to animate its button)
-  deck.swap = (direction, change, onCopy, opts = {}) => {
-    finishRunning();
-    card.classList.add('no-tx');
-    const old = flyingCopy(direction === 'add');
-    onCopy?.(old);
-    change();
-    let anims, incoming;
-    if (reduceMotion) {
-      anims = [
-        old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' }),
-        card.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 }),
-      ];
-    } else if (direction === 'add') {
-      // [PRIORITY-MORPH] "Lift, then throw": the card lifts in place while its button changes
-      // (readable at full size), then slides toward the shortlist panel still near full size and
-      // only shrinks + fades as it reaches the list. ⚡ gets a longer lift than Add.
-      const { dx, dy } = intoPanel(old);
-      const total = opts.prio ? 800 : 700, lift = (opts.prio ? 200 : 160) / total;   // ⚡ was previewed on hover, so a shorter lift
-      old.style.transformOrigin = '50% 50%';
-      anims = [
-        old.animate([
-          { offset: 0, transform: 'none', easing: EASE_OUT },
-          // the slide speeds up into the joint and the final leg leaves at that speed, so no hitch
-          { offset: lift, transform: 'translateY(-4px) scale(1.02)', easing: 'cubic-bezier(.5, 0, .8, .6)' },
-          { offset: lift + (1 - lift) * .4, transform: `translate(${dx * .4}px, ${dy * .4 - 4}px) scale(.9)`, easing: 'cubic-bezier(.2, .55, .3, 1)' },
-          { offset: 1, transform: `translate(${dx}px, ${dy}px) scale(.22)` },
-        ], { duration: total, fill: 'forwards' }),
-        old.animate([
-          { offset: 0, boxShadow: '0 4px 24px rgba(0,0,0,.04)' },
-          { offset: lift, boxShadow: '0 18px 40px rgba(0,0,0,.14)' },
-          { offset: 1, boxShadow: '0 4px 12px rgba(0,0,0,0)' },
-        ], { duration: total, easing: 'linear', fill: 'forwards' }),
-        old.animate([{ opacity: 1 }, { opacity: 1, offset: .72 }, { opacity: 0 }], { duration: total, easing: 'linear', fill: 'forwards' }),
-        card.animate([{ transform: DECK, opacity: 0 }, { transform: 'none', opacity: 1 }],
-          { duration: 440, delay: total * .55, easing: EASE_OUT, fill: 'backwards' }),
-      ];
-    } else if (direction === 'next') {
-      old.style.transformOrigin = '50% 140%';
-      anims = [
-        old.animate([{ transform: 'none' }, { transform: OFFSCREEN }], { duration: 420, easing: THROW, fill: 'forwards' }),
-        card.animate([{ transform: DECK, opacity: 0 }, { transform: 'none', opacity: 1 }],
-          { duration: 420, delay: 60, easing: EASE_OUT, fill: 'backwards' }),
-      ];
-    } else {
-      incoming = flyingCopy();          // sits right after the card, above `old`
-      old.style.zIndex = 1;
-      card.style.opacity = 0;
-      incoming.style.transformOrigin = '50% 140%';
-      anims = [
-        old.animate([{ transform: 'none' }, { transform: DECK }], { duration: 320, easing: EASE_OUT, fill: 'forwards' }),
-        old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'linear', fill: 'forwards' }),
-        incoming.animate([{ transform: OFFSCREEN }, { transform: 'none' }], { duration: 540, easing: EASE_OUT, fill: 'forwards' }),
-      ];
-      anims[2].finished.then(() => { card.style.opacity = ''; incoming.remove(); }, () => {});
-    }
-    const me = {
-      anims,
-      cleanup() {
-        if (deck.running !== me) return;
-        deck.running = null;
-        card.style.opacity = '';
-        incoming?.remove();
-        old.remove();
-        card.classList.remove('no-tx');
-      },
-    };
-    deck.running = me;
-    Promise.all(anims.map(a => a.finished)).then(me.cleanup, me.cleanup);
-  };
-
-  deck.go = delta => {
-    const target = (deck.pending ?? deck.index) + delta;
-    if (target < 0 || target > deck.list().length - 1) return deck.queue;
-    deck.pending = target;
-    deck.queue = deck.queue.then(async () => {
-      await Promise.race([warm(deck.list()[target]), new Promise(r => setTimeout(r, 120))]);
-      deck.swap(delta > 0 ? 'next' : 'prev', () => { deck.index = target; deck.render(); });
-      if (deck.pending === target) deck.pending = null;
-      warmAround(deck);
-    });
-    return deck.queue;
-  };
-
-  // Add / priority advance to the next card after a beat, so the new state is seen first
-  const advanceSoon = () => { if (deck.index < deck.list().length - 1) setTimeout(() => deck.go(1), 350); };
-
-  // A click hides the tooltip until the pointer leaves the button
-  card.querySelectorAll('.split button').forEach(b => {
-    b.addEventListener('pointerdown', () => b.classList.add('tip-off'));
-    b.addEventListener('pointerleave', () => b.classList.remove('tip-off'));
-  });
-
-  card.querySelector('.dc-foot').addEventListener('click', e => {
-    const btn = e.target.closest('[data-act]');
-    const c = deck.current();
-    if (!btn || !c) return;
-    const act = btn.dataset.act;
-    // Add / ⚡ (turning on) sends the card into the shortlist panel. Suggestions then leave
-    // the deck; creators you know stay in it and the deck moves on to the next one.
-    const turningOn = act === 'add' ? !c.shortlisted : act === 'prio' && !c.priority;
-    if (turningOn) {
-      // The card leaves straight away; its button switches to Added / Priority on the way into
-      // the panel, so the state change and the flight play as one motion
-      deck.swap('add', () => {
-        act === 'prio' ? api.setPriority(c.id, true) : api.setShortlisted(c.id, true);
-        if (c.source === 'known' && deck.index < deck.list().length - 1) { deck.index++; deck.render(); }
-      }, copy => {
-        copy.classList.remove('no-tx');   // the copy inherits the card's no-transition flag; let its button animate
-        const split = copy.querySelector('.split'), orig = card.querySelector('.split');
-        // [PRIORITY-MORPH] the copy isn't under the pointer, so carry over the hover look it had
-        if (orig.matches(':has(.split-star:hover)')) split.classList.add('peek');
-        if (orig.matches(':has(.split-add:hover)')) split.classList.add('hov-add');
-        void split.offsetWidth;           // commit the starting look before switching state
-        split.classList.add('added');
-        if (act === 'prio') split.classList.add('prio');   // [PRIORITY-MORPH] morphs into "⚡ Priority" mid-flight
-        setAddIcon(split, true);
-        split.querySelector('.l-add').textContent = 'Added';
-      }, { prio: act === 'prio' });
-      return;
-    }
-    if (act === 'add') api.setShortlisted(c.id, false);   // turning off: stays on this card
-    else if (act === 'prio') api.setPriority(c.id, false);
-    else if (act === 'skip') {
-      // Suggestions: "Not a Fit" drops them from the deck. Creators you know: it takes them
-      // off the list but keeps their card, so they can be added back.
-      if (c.source === 'suggested') deck.swap('next', () => api.dismiss(c.id));
-      else { api.setShortlisted(c.id, false); advanceSoon(); }
-    }
-  });
-
-  pager.querySelector('.pg-prev').addEventListener('click', () => deck.go(-1));
-  pager.querySelector('.pg-next').addEventListener('click', () => deck.go(1));
-  return deck;
-}
-
-// Decode a creator's photos before their card is dealt, so tiles never pop in mid-dissolve
-const warmed = new Set();
-function warm(c) {
-  if (!c || warmed.has(c.id)) return Promise.resolve();
-  warmed.add(c.id);
-  const srcs = [c.avatar, ...c.content].map(n => `assets/${n}.jpg`);
-  return Promise.all(srcs.map(src => { const i = new Image(); i.src = src; return i.decode().catch(() => {}); }));
-}
-const warmAround = d => { const l = d.list(); warm(l[d.index - 1]); warm(l[d.index + 1]); };
-
-const suggestDeck = makeDeck({
-  card: $('suggestCard'), body: $('suggestBody'),
-  list: () => api.suggestions().filter(c => !c.dismissed && !c.shortlisted),   // added creators leave the deck
-  pager: $('suggestPager'),
-});
-const knownDeck = makeDeck({
-  card: $('knownCard'), body: $('knownBody'),
-  list: () => api.known(),
-  pager: $('knownPager'),
-});
-
-// ---------- Pagers: each deck has its own, which moves with it ----------
-function renderPager(deck) {
-  const l = deck.list(), p = deck.pager;
-  p.querySelector('.pg-num').textContent = l.length ? deck.index + 1 : 0;
-  p.querySelector('.pg-total').textContent = l.length;
-  p.querySelector('.pg-prev').disabled = deck.index <= 0;
-  p.querySelector('.pg-next').disabled = deck.index >= l.length - 1;
-}
-
-// ---------- Creators you know: collapsed bar ⇄ expanded deck ----------
-const known = $('known');
-const COLLAPSED = 65, EXPANDED_DECK = 635;   // bar → bar + card + pager (bottom lines up with the shortlist panel); V3's table block is 578
-let knownAnims = [];
-
-function stackHTML(people, max, cls) {
-  const shown = people.slice(0, max);
-  const more = people.length - shown.length;
-  return shown.map(c => `<span class="${cls}-av"><img src="assets/${c.avatar}.jpg" alt=""></span>`).join('')
-    + (more > 0 ? `<span class="${cls}-more">+${more}</span>` : '');
-}
-
-function renderKnownBar() {
-  const on = api.known().filter(c => c.shortlisted);
-  $('knCount').textContent = on.length;
-  $('knStack').innerHTML = stackHTML(on, 4, 'kn');
-  $('knSub').textContent = on.length
-    ? 'Creators you loved working with are already on your list'
-    : 'Add creators you’ve worked with before';
-}
-
-function setKnownOpen(open) {
-  if (known.classList.contains('open') === open) return;
-  knownAnims.forEach(a => a.cancel());   // cancel (not finish) so no held fade lingers into the next toggle
-  known.classList.toggle('open', open);
-  $('modal').classList.toggle('editing', open);
-  $('knEdit').setAttribute('aria-expanded', open);
-  $('knEditLabel').textContent = open ? 'Save' : 'Edit';
-  setAddedOpen(open);
-  const table = version === 'v3';
-  const EXPANDED = table ? 578 : EXPANDED_DECK;
-  known.classList.toggle('as-table', table);
-  if (open) table ? renderKnTable() : knownDeck.render();
-
-  // The suggestion card and its pager travel together; so do the known card and its pager
-  const sugg = [suggestDeck.card, suggestDeck.pager];
-  const kn = table ? [$('knTable')] : [knownDeck.card, knownDeck.pager];
-  const all = (els, frames, opts) => els.map(el => el.animate(frames, opts));
-  const h = (a, b) => [{ height: a + 'px' }, { height: b + 'px' }];
-  known.style.height = (open ? EXPANDED : COLLAPSED) + 'px';
-  if (reduceMotion) { sugg.forEach(el => el.style.visibility = open ? 'hidden' : ''); return; }
-
-  if (open) {
-    sugg.forEach(el => el.style.pointerEvents = 'none');
-    const out = all(sugg, [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(48px) scale(.97)' }],
-      { duration: 280, easing: EASE_IN_OUT, fill: 'forwards' });
-    if (table) $('ktRows').querySelectorAll('.pop-row').forEach((r, i) => r.animate(
-      [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }],
-      { duration: 320, delay: 140 + i * 30, easing: EASE_OUT, fill: 'backwards' }));
-    knownAnims = [
-      known.animate(h(COLLAPSED, EXPANDED), { duration: 480, easing: EASE_OUT }),
-      ...all(kn, [{ opacity: 0, transform: 'translateY(-14px)' }, { opacity: 1, transform: 'none' }],
-        { duration: 380, delay: 110, easing: EASE_OUT, fill: 'backwards' }),
-      ...out,
-    ];
-    out[0].finished.then(() => { if (known.classList.contains('open')) sugg.forEach(el => el.style.visibility = 'hidden'); }, () => {});
-  } else {
-    sugg.forEach(el => el.style.visibility = '');
-    // Save: the block rolls up into the bar (fast start, soft landing) and the suggestion
-    // card slides back up into place beneath it, pager and all
-    const roll = known.animate(h(EXPANDED, COLLAPSED), { duration: 420, easing: EASE_OUT });
-    const fade = all(kn, [{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' });   // stays hidden while the block shrinks
-    const back = all(sugg, [{ opacity: 0, transform: 'translateY(140px)' }, { opacity: 1, transform: 'none' }],
-      { duration: 560, delay: 60, easing: EASE_OUT, fill: 'backwards' });
-    knownAnims = [roll, ...fade, ...back];
-    back[0].finished.then(() => sugg.forEach(el => el.style.pointerEvents = ''), () => {});
-    roll.finished.then(() => fade.forEach(a => a.cancel()), () => {});   // drop the held fade once collapsed
+document.querySelectorAll('.groups').forEach(list => list.addEventListener('click', e => {
+  const toggle = e.target.closest('.g-bar, .g-hide');
+  if (toggle) {
+    const group = toggle.closest('.group');
+    openGroup(group, !group.classList.contains('open'));
+    return;
   }
-}
-
-// V1 / V3 expand the block in place (deck / table); V2 opens the editor popup instead
-const editKnown = () => version === 'v2' ? openPop() : setKnownOpen(!known.classList.contains('open'));
-$('knEdit').addEventListener('click', editKnown);
-$('weAdded').addEventListener('click', () => version === 'v2' ? openPop() : setKnownOpen(true));
-
-// ---------- Right panel: the shortlist ----------
-// ⚡ shows on everyone invited first; tapping it moves them down to a normal invite.
-// [PRIORITY-MORPH] priority ⚡ is green, matching the card's Priority pill (was bolt-20-panel.svg, purple)
-// Normal invites get a grey ⚡ on hover that makes them a priority invite.
-const BOLT = c => c.priority
-  ? `<button class="item-star" title="Remove from first priority" aria-label="Remove ${c.name} from first priority"><img src="assets/bolt-20-green.svg" alt=""></button>`
-  : `<button class="item-bolt" title="Priority invite" aria-label="Make ${c.name} a priority invite"><img class="b-off" src="assets/bolt-20-grey.svg" alt=""><img class="b-on" src="assets/bolt-20-green.svg" alt=""></button>`;
-
-function renderList(el, list) {
-  el.innerHTML = list.map(c => `
-    <div class="item" data-id="${c.id}">
-      ${person(c)}
-      <div class="item-actions">
-        ${BOLT(c)}
-        <button class="item-x" aria-label="Remove ${c.name}"><img src="assets/close-12.svg" alt=""></button>
-      </div>
-    </div>`).join('');
-}
-
-// "We added for you": a summary card normally, the full list while editing. The group
-// eases to its new height and the rows drop in one after another.
-let addedAnim = null;
-function setAddedOpen(open) {
-  const g = $('addedGroup');
-  addedAnim?.cancel();
-  const from = g.offsetHeight;
-  g.classList.toggle('open', open);
-  if (reduceMotion || g.hidden) return;
-  const to = g.offsetHeight;
-  g.style.overflowY = 'clip';   // clip vertically only: the open box hangs 12px past the column on each side
-  addedAnim = g.animate([{ height: from + 'px' }, { height: to + 'px' }], { duration: 460, easing: EASE_OUT });
-  addedAnim.finished.then(() => { g.style.overflowY = ''; }, () => {});
-  const show = open ? g.querySelector('.wa-box') : $('weAdded');
-  show.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'linear' });
-  if (open) g.querySelectorAll('#addedList .item').forEach((el, i) => el.animate(
-    [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'none' }],
-    { duration: 340, delay: 60 + i * 35, easing: EASE_OUT, fill: 'backwards' }));
-}
-
-// Find who just arrived (added, or moved between groups) and show them: after the
-// current burst of changes settles, scroll the first arrival into view and slide + tint it.
-let placed = null;
-let addedBefore = null;
-const arrivals = new Set();
-let arrivalsQueued = false;
-
-function noteArrivals(groups) {
-  const now = new Map();
-  Object.entries(groups).forEach(([g, list]) => list.forEach(c => now.set(c.id, g)));
-  if (placed) now.forEach((g, id) => { if (placed.get(id) !== g) arrivals.add(id); });   // hidden rows are skipped later
-  placed = now;
-  const addedCount = groups.added.length;
-  if (addedBefore !== null && addedCount > addedBefore) arrivals.add('__added');
-  addedBefore = addedCount;
-  if (arrivals.size && !arrivalsQueued) { arrivalsQueued = true; queueMicrotask(showArrivals); }
-}
-
-function showArrivals() {
-  arrivalsQueued = false;
-  const lists = document.querySelector('.lists');
-  const items = [...arrivals]
-    .map(id => id === '__added' ? $('weAdded') : lists.querySelector(`.item[data-id="${id}"]`))
-    .filter(el => el && el.offsetParent);
-  arrivals.clear();
-  if (!items.length) return;
-  const topIn = el => el.getBoundingClientRect().top - lists.getBoundingClientRect().top + lists.scrollTop;
-  items.sort((a, b) => topIn(a) - topIn(b));
-
-  // Bring the first arrival into view (only if it's out of sight): jump, then glide the content (FLIP)
-  const first = items[0], pad = 40, top = topIn(first), bottom = top + first.offsetHeight;
-  if (top < lists.scrollTop + pad || bottom > lists.scrollTop + lists.clientHeight - pad) {
-    const max = lists.scrollHeight - lists.clientHeight;
-    const target = Math.min(max, Math.max(0, top - lists.clientHeight / 2 + first.offsetHeight / 2));
-    const delta = target - lists.scrollTop;
-    lists.scrollTop = target;
-    if (!reduceMotion && delta) [...lists.children].forEach(g => g.animate(
-      [{ transform: `translateY(${delta}px)` }, { transform: 'none' }], { duration: 420, easing: EASE_OUT }));
-  }
-
-  items.forEach((el, i) => {
-    if (!reduceMotion && el.classList.contains('item')) el.animate(
-      [{ opacity: 0, transform: 'translateX(14px)' }, { opacity: 1, transform: 'none' }],
-      { duration: 320, delay: i * 40, easing: EASE_OUT, fill: 'backwards' });
-    el.classList.remove('arrived'); void el.offsetWidth; el.classList.add('arrived');
-  });
-}
-
-function renderShortlist() {
-  const list = api.shortlist();
-  const groups = {
-    added: list.filter(c => c.source === 'known' && c.priority),       // creators you know, invited first by default
-    prio: list.filter(c => c.source === 'suggested' && c.priority),
-    rest: list.filter(c => !c.priority),                                // normal invites, from either source
-  };
-  $('waCount').textContent = groups.added.length;
-  $('waStack').innerHTML = stackHTML(groups.added, 4, 'wa');
-  renderList($('addedList'), groups.added);
-  renderList($('priorityList'), groups.prio);
-  renderList($('everyoneList'), groups.rest);
-  $('addedGroup').hidden = !groups.added.length;
-  $('priorityList').closest('.group').hidden = !groups.prio.length;
-  $('everyoneList').closest('.group').hidden = !groups.rest.length;
-  $('invitesEmpty').hidden = groups.prio.length + groups.rest.length > 0;   // initial state: only "We added for you"
-  $('slEmpty').hidden = list.length > 0;
-  document.querySelector('.lists').hidden = list.length === 0;
-  noteArrivals(groups);
-
-  const n = list.length;
-  $('slCount').textContent = n;
-  $('inviteCount').textContent = n;
-  $('target').textContent = api.TARGET;
-  $('barFill').style.width = Math.min(100, n / api.TARGET * 100) + '%';
-  $('allCount').textContent = api.known().length + api.suggestions().filter(c => !c.dismissed).length;
-}
-
-// A row folds away first, then the change lands (and the creator reappears where they now belong)
-function leave(el) {
-  if (el.dataset.leaving) return null;
-  el.dataset.leaving = 1;
-  el.style.overflow = 'hidden';
-  if (reduceMotion) return Promise.resolve();
-  const anim = el.animate([
-    { opacity: 1, height: el.offsetHeight + 'px', transform: 'none' },
-    { opacity: 0, height: '0px', transform: 'translateX(16px)' },
-  ], { duration: 240, easing: EASE_IN_OUT, fill: 'forwards' });
-  // the change must land even if the tab is in the background and animations are paused
-  return Promise.race([anim.finished, new Promise(r => setTimeout(r, 260))]);
-}
-
-document.querySelector('.right').addEventListener('click', e => {
-  const item = e.target.closest('.item');
+  const btn = e.target.closest('[data-act]');
+  const item = btn && btn.closest('.nc');
   if (!item) return;
   const id = item.dataset.id;
-  const act = e.target.closest('.item-x') ? () => api.setShortlisted(id, false)
-    : e.target.closest('.item-star') ? () => api.setPriority(id, false)
-    : e.target.closest('.item-bolt') ? () => api.setPriority(id, true)
-    : null;
-  if (act) leave(item)?.then(act);
+  const act = btn.dataset.act;
+  // A creator's state is shared, so every version shows the same choice
+  const copies = document.querySelectorAll(`.nc[data-id="${id}"]`);
+  if (act === 'prio') {
+    const on = !btn.classList.contains('prio-on');
+    api.setPriority(id, on);
+    copies.forEach(el => {
+      const b = el.querySelector('[data-act=prio]');
+      if (!b) return;
+      b.classList.toggle('prio-on', on);
+      b.setAttribute('aria-pressed', on);
+    });
+  } else if (act === 'notfit') {
+    // V1 can skip the popup: the card collapses right away and "Tell us why?" asks later
+    if (item.closest('.modal.v1') && notFitMode === 'inline') setNotFit(id, true);
+    else openFit(id);   // ask why first (optional), then collapse
+  } else if (act === 'why') {
+    openFit(id, true);   // already Not a fit: the popup only collects the reason
+  } else {
+    setNotFit(id, false);
+  }
+}));
+
+// Applies a Not a fit (or its Undo) everywhere the creator is shown
+function setNotFit(id, on) {
+  api.setNotFit(id, on);
+  document.querySelectorAll(`.nc[data-id="${id}"]`).forEach(el => setItem(el, api.get(id)));
+  renderCount();
+  decks.forEach(d => d.sync());
+}
+
+// White background + stroke only once a heading is actually pinned to the top
+document.querySelectorAll('.modal').forEach(modal => {
+  const body = modal.querySelector('.m-body');
+  if (!body) return;
+  const markStuck = () => {
+    const top = body.getBoundingClientRect().top;
+    modal.querySelectorAll('.group').forEach(g => {
+      const head = g.querySelector('.g-head');
+      const stuck = g.classList.contains('open') && body.scrollTop > 0 && Math.abs(head.getBoundingClientRect().top - top) < 1;
+      head.classList.toggle('stuck', stuck);
+    });
+  };
+  body.addEventListener('scroll', markStuck, { passive: true });
+  body.addEventListener('click', () => setTimeout(markStuck));
 });
 
-// ---------- Re-render whenever the "backend" changes ----------
-function renderAll() {
-  renderKnownBar();
-  renderShortlist();
-  suggestDeck.refresh();
-  if (known.classList.contains('open')) known.classList.contains('as-table') ? renderKnTable() : knownDeck.render();
-}
-api.onChange(renderAll);
-renderAll();
-warmAround(suggestDeck);
-warm(api.known()[0]);
+// ---------- V3: deck expand ----------
+// Each group is a deck: the bar is the top card, the creator cards sit tucked under it and spread out on open.
+// The bar's avatar pile slides out to the left as the label rolls in; each card keeps its own avatar.
+const EASE = 'cubic-bezier(.32, .72, 0, 1)';
+const deckHtml = g => {
+  const n = g.creators.length;
+  return `
+  <section class="group" data-id="${g.id}">
+    <div class="g-head">
+      <div class="g-text">
+        <p class="g-title">${g.title} <span class="dot">· </span><span class="num">${n}</span></p>
+        <p class="g-sub">${g.sub}</p>
+      </div>
+      <button class="g-collapse" tabindex="-1">Collapse<img src="assets/chevron-up-16.svg" alt="" width="16" height="16"></button>
+    </div>
+    <div class="deck">
+      <button class="known" aria-expanded="false">
+        <span class="g-summary">
+          <span class="g-stack kn-stack">
+            ${g.creators.slice(0, STACK).map(c => `<span class="g-av"><img src="assets/${c.avatar}.jpg" alt=""></span>`).join('')}
+            <span class="g-more"><span></span></span>
+          </span>
+          <span class="kn-text"><span class="l l-closed"></span><span class="l l-open"></span></span>
+        </span>
+        <span class="g-chev"><img src="assets/chevron-down-16.svg" alt="" width="16" height="16"></span>
+      </button>
+      <div class="clip"><div class="list">${g.creators.map(itemHtml).join('')}</div></div>
+    </div>
+  </section>`;
+};
 
-// ---------- Modal open / close ----------
-const modal = $('modal');
+// V3 and V4 share this deck; V4 is the same thing with the stacked card edges turned off
+document.querySelectorAll('.modal.v3 .groups').forEach(el => { el.innerHTML = groups.map(deckHtml).join(''); });
+
+function makeDeck(sec, g, v3Body, stack) {
+  const deck = sec.querySelector('.deck'), bar = deck.querySelector('.known');
+  const clip = deck.querySelector('.clip'), list = deck.querySelector('.list');
+  const head = sec.querySelector('.g-head'), collapseBtn = sec.querySelector('.g-collapse');
+  const D = { open: false, busy: false };
+  const items = () => [...list.children];
+  // The clip's top edge sits INSET px below the bar's top: still hidden behind the bar, but it can't
+  // bleed through the bar's half-pixel edge. Every measure below is from the clip's top.
+  const INSET = 2;
+  const barH = () => bar.offsetHeight - INSET;
+  const closedH = () => barH() + (stack ? 16 : 0);   // +16 leaves room for the two peeking card edges
+  // Extra clip room so card shadows (0 4px 24px) aren't sliced off; a matching negative margin keeps layout unchanged
+  const SHADOW = 28;
+  const clipClosed = () => closedH() + SHADOW;
+
+  function labels() {
+    const left = g.creators.filter(c => !api.get(c.id).notFit);
+    const named = left.slice(0, 2).map(c => first(c.name));
+    const rest = left.length - named.length;
+    bar.querySelector('.l-closed').innerHTML = `<b>${named.join(', ')} </b>${rest > 0 ? `and ${rest} others` : ''}`;
+    bar.querySelector('.l-open').innerHTML = `<b>Showing all ${left.length}</b> · Collapse`;
+    bar.querySelector('.g-more span').textContent = '+' + Math.max(0, left.length - STACK);
+    sec.querySelector('.num').textContent = left.length;
+  }
+
+  // The clip is pulled up behind the bar; the list is pushed down by the same amount plus the card gap
+  function layout() {
+    clip.style.marginTop = -barH() + 'px';
+    clip.style.marginBottom = -SHADOW + 'px';
+    list.style.paddingTop = barH() + 16 + 'px';
+    list.style.paddingBottom = 12 + SHADOW + 'px';
+  }
+
+  // Closed rest pose: bottom-aligned just under the bar, the first two peeking out as stack edges.
+  // Without the stack (V4) every card hides fully behind the bar.
+  function pose(el, i) {
+    const bottom = el.offsetTop + el.offsetHeight;
+    if (!stack) return { transform: `translateY(${barH() - bottom}px) scale(.96)`, opacity: 0 };
+    const edge = i === 0 ? 8 : 15, sc = i === 0 ? .965 : .93;
+    return { transform: `translateY(${barH() + edge - bottom}px) scale(${sc})`, opacity: i < 2 ? 1 : 0 };
+  }
+
+  function restClosed() {
+    layout();
+    clip.style.height = clipClosed() + 'px';
+    const all = items(), n = all.length;
+    all.forEach((el, i) => {
+      el.style.zIndex = n - i;
+      if (i < 2) { const p = pose(el, i); el.style.transform = p.transform; el.style.opacity = p.opacity; }
+      else { el.style.transform = ''; el.style.opacity = 0; }
+    });
+  }
+  function restOpen() {
+    layout();
+    clip.style.height = 'auto';
+    items().forEach((el, i, all) => { el.style.zIndex = all.length - i; el.style.transform = ''; el.style.opacity = ''; });
+  }
+
+  function checkBar() {
+    const off = D.open && bar.getBoundingClientRect().bottom < head.getBoundingClientRect().bottom + 4;
+    sec.classList.toggle('bar-off', off);
+  }
+  function setOpenClasses(o) {
+    D.open = o;
+    deck.classList.toggle('is-open', o);
+    sec.classList.toggle('open', o);
+    bar.setAttribute('aria-expanded', String(o));
+    collapseBtn.tabIndex = o ? 0 : -1;
+    checkBar();
+  }
+  v3Body.addEventListener('scroll', checkBar, { passive: true });
+
+  async function open() {
+    if (D.busy || D.open) return;
+    D.busy = true;
+    if (reduceMotion) {
+      setOpenClasses(true); restOpen();
+      await clip.animate([{ opacity: 0 }, { opacity: 1 }], 160).finished;
+      D.busy = false; return;
+    }
+    const dur = 560, stag = 42;
+    deck.style.setProperty('--d', dur + 'ms');
+    const all = items();
+    const from = all.map((el, i) => pose(el, i));
+    const fullH = list.offsetHeight;
+    // Only animate what can be seen; cards further down just sit in layout
+    const visible = v3Body.getBoundingClientRect().bottom - clip.getBoundingClientRect().top + 40;
+    const target = Math.min(fullH, Math.max(visible, clipClosed()));
+    const moving = all.filter(el => el.offsetTop < target);
+    all.forEach(el => { el.style.transform = ''; el.style.opacity = ''; });
+    setOpenClasses(true);
+    clip.style.height = target + 'px';
+    const anims = [clip.animate([{ height: clipClosed() + 'px' }, { height: target + 'px' }],
+      { duration: Math.min(dur + stag * (moving.length - 1), dur * 1.25), easing: EASE })];
+    moving.forEach((el, i) => anims.push(el.animate([
+      { transform: from[i].transform, opacity: from[i].opacity },
+      { opacity: 1, offset: .3 },
+      { transform: 'none', opacity: 1 }
+    ], { duration: dur, delay: i * stag, easing: EASE, fill: 'backwards' })));
+    await Promise.all(anims.map(a => a.finished));
+    anims.forEach(a => a.cancel());
+    restOpen();
+    D.busy = false;
+    checkBar();
+  }
+
+  async function close() {
+    if (D.busy || !D.open) return;
+    D.busy = true;
+    if (reduceMotion) { setOpenClasses(false); restClosed(); D.busy = false; return; }
+    const br0 = bar.getBoundingClientRect(), bb = v3Body.getBoundingClientRect();
+    const headH = head.offsetHeight;
+    const barAway = br0.top < bb.top + headH - 20 || br0.top > bb.bottom - 120;
+    // V4: collapsing from deep in the list doesn't scroll back up. The cards fade out where they are,
+    // the section snaps closed with its heading kept at the top, and the collapsed bar fades in.
+    if (!stack && barAway) {
+      await list.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease-out', fill: 'forwards' }).finished;
+      deck.style.setProperty('--d', '1ms');   // no bar morph while it's out of sight
+      setOpenClasses(false);
+      restClosed();
+      list.getAnimations().forEach(a => a.cancel());
+      v3Body.scrollTop += sec.getBoundingClientRect().top - v3Body.getBoundingClientRect().top;
+      checkBar();
+      await deck.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 260, easing: EASE }).finished;
+      deck.style.setProperty('--d', '460ms');
+      D.busy = false;
+      return;
+    }
+    // Bring the bar back into view first, so the cards have somewhere to go
+    if (barAway) {
+      const top = v3Body.scrollTop + br0.top - bb.top - headH - 8;
+      await new Promise(res => {
+        let done = false;
+        const fin = () => { if (!done) { done = true; res(); } };
+        v3Body.addEventListener('scrollend', fin, { once: true });
+        setTimeout(fin, 700);
+        v3Body.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    }
+    const dur = 460, stag = 30;
+    deck.style.setProperty('--d', dur + 'ms');
+    const all = items();
+    const cur = Math.min(list.offsetHeight, Math.max(clipClosed(), v3Body.getBoundingClientRect().bottom - clip.getBoundingClientRect().top + 40));
+    const moving = all.filter(el => el.offsetTop < cur);
+    const to = moving.map((el, i) => pose(el, i));
+    const k = moving.length;
+    clip.style.height = cur + 'px';
+    setOpenClasses(false);
+    const anims = [clip.animate([{ height: cur + 'px' }, { height: clipClosed() + 'px' }],
+      { duration: dur + stag * Math.min(k - 1, 4), easing: EASE, fill: 'forwards' })];
+    moving.forEach((el, i) => anims.push(el.animate([   // lowest card goes first
+      { transform: 'none', opacity: 1 },
+      { opacity: 1, offset: .75 },
+      { transform: to[i].transform, opacity: to[i].opacity }
+    ], { duration: dur, delay: (k - 1 - i) * stag, easing: EASE, fill: 'forwards' })));
+    await Promise.all(anims.map(a => a.finished));
+    anims.forEach(a => a.cancel());
+    restClosed();
+    D.busy = false;
+  }
+
+  bar.addEventListener('click', () => (D.open ? close() : open()));
+  collapseBtn.addEventListener('click', close);
+
+  labels();
+  restClosed();
+  let syncT;
+  return {
+    relayout() { if (!D.busy) (D.open ? restOpen() : restClosed()); },
+    // A creator changed (here or in another version): refresh the labels, then re-pose once the row/card swap settles
+    sync() { labels(); clearTimeout(syncT); syncT = setTimeout(() => this.relayout(), SWAP_MS + 120); },
+  };
+}
+
+const decks = [];
+document.querySelectorAll('.modal.v3').forEach(modal => {
+  const body = modal.querySelector('.m-body');
+  const stack = !modal.classList.contains('v4');
+  const own = [...modal.querySelectorAll('.group')].map((sec, i) => makeDeck(sec, groups[i], body, stack));
+  decks.push(...own);
+  let relayoutT;
+  new ResizeObserver(() => { clearTimeout(relayoutT); relayoutT = setTimeout(() => own.forEach(d => d.relayout()), 80); }).observe(body);
+});
+document.fonts && document.fonts.ready.then(() => decks.forEach(d => d.relayout()));
+
+// ---------- Modal open / close (shows the selected version's popup) ----------
 const overlay = $('overlay');
-const setOpen = open => { modal.classList.toggle('hidden', !open); overlay.classList.toggle('hidden', !open); };
-$('closeModal').addEventListener('click', () => setOpen(false));
+const modals = { v1: $('modal-v1'), v2: $('modal-v2'), v3: $('modal-v3'), v4: $('modal-v4') };
+let version = 'v2';
+let isOpen = true;
+const setOpen = open => {
+  isOpen = open;
+  overlay.classList.toggle('hidden', !open);
+  Object.entries(modals).forEach(([v, m]) => { m.hidden = !(open && v === version); });
+  // Once invites are sent the popup stays on the success screen. It animates the first time only;
+  // after that it reopens settled, and the dashboard shows the "approved" card.
+  if (!open && document.querySelector('.modal.is-done')) {
+    document.querySelectorAll('.modal.is-done').forEach(m => m.classList.add('done-seen'));
+    $('sentBanner').hidden = false;
+  }
+};
+document.querySelectorAll('.m-close').forEach(b => b.addEventListener('click', () => setOpen(false)));
 overlay.addEventListener('click', () => setOpen(false));
 $('openModal').addEventListener('click', () => setOpen(true));
-// Esc steps back one level: the popup, then the expanded deck, then the modal
+document.querySelectorAll('.approve-btn').forEach(b => b.addEventListener('click', () => openSummary(b)));
+// Done on the success screen closes the popup; View on the dashboard card reopens it on that screen
+document.addEventListener('click', e => { if (e.target.closest('.m-done .done-btn')) setOpen(false); });
+$('viewList').addEventListener('click', () => setOpen(true));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!$('pop').hidden) closePop();
-  else if (known.classList.contains('open')) setKnownOpen(false);
+  if (fitOpen()) closeFit();
+  else if (summaryOpen()) closeSummary();
   else setOpen(false);
 });
 
-// ---------- V2: "Start with creators you know" popup ----------
-// Edits go into a draft; Save sends them to the backend, Cancel / × / Esc drop them.
-let draft = null;
-let sortDesc = false;
-const TAG_ORDER = ['fav', 'again', 'missed'];
+// ---------- Invite summary pop-up ("Ready to send N invites?") ----------
+// Read-only: says who gets invited. Cancel keeps every selection.
+const sum = $('sum');
+const sumDlg = sum.querySelector('.sum-dlg');
+let sumOpener = null;
+let sumCloseT;
+const summaryOpen = () => !sum.hidden;
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const invites = n => plural(n, 'invite', 'invites');
+const esc = t => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-// One table row for a creator you know: shared by the V2 popup and the V3 inline table
-const knownRowHTML = c => `
-    <div class="pop-row" data-id="${c.id}">
-      <div class="pr-who">
-        ${avatar(c.avatar, false)}
-        <div class="pr-info">
-          <div class="pr-name"><b>${c.name}</b><img src="assets/verified.svg" alt=""></div>
-          <p class="pr-sub">${c.sub}</p>
-        </div>
-      </div>
-      <span class="cc-tag ${c.tag}"><img src="assets/${TAGS[c.tag].icon}" alt="">${TAGS[c.tag].label}</span>
-      <div class="mini${c.shortlisted ? ' added' : ''}${c.priority ? ' prio' : ''}">
-        <button class="mini-add" data-act="add" aria-label="${c.shortlisted ? 'Remove' : 'Add'} ${c.name}">
-          <img src="assets/${c.shortlisted ? 'check-12' : 'plus-12'}.svg" alt="" width="12" height="12">${c.shortlisted ? 'Added' : 'Add'}
-        </button>
-        <button class="mini-star" data-act="prio" aria-label="Priority invite for ${c.name}">
-          <img src="assets/bolt-16${c.priority ? '-white' : ''}.svg" alt="" width="16" height="16">
-        </button>
-      </div>
-    </div>`;
-const byTag = rows => rows.sort((a, b) => (TAG_ORDER.indexOf(a.tag) - TAG_ORDER.indexOf(b.tag)) * (sortDesc ? -1 : 1));
-
-function renderPop() {
-  const rows = byTag(api.known().map(c => ({ ...c, ...draft[c.id] })));
-  $('popCount').textContent = `(${rows.filter(c => c.shortlisted).length})`;
-  $('popRows').innerHTML = rows.map(knownRowHTML).join('');
+function summaryData() {
+  const all = api.groups().flatMap(g => g.creators);
+  const kept = all.filter(c => !c.notFit);
+  const rest = kept.filter(c => !c.priority);
+  return {
+    prio: kept.filter(c => c.priority),   // prioritized and then removed counts only as Not a fit
+    rest,
+    nofit: all.filter(c => c.notFit),
+  };
 }
 
-$('popRows').addEventListener('click', e => {
-  const btn = e.target.closest('[data-act]');
-  if (!btn) return;
-  const d = draft[btn.closest('.pop-row').dataset.id];
-  if (btn.dataset.act === 'add') { d.shortlisted = !d.shortlisted; if (!d.shortlisted) d.priority = false; }
-  else { d.priority = !d.priority; if (d.priority) d.shortlisted = true; }   // same rules as the backend
-  renderPop();
-});
-$('popSort').addEventListener('click', () => { sortDesc = !sortDesc; renderPop(); });
+// "We'll invite **73 creators** to this campaign, including **16 previously approved** and **57 new**.
+//  **2 prioritized creators** get the first chance to accept."
+// When everyone left is in one group, name it instead: "We'll invite **56 new creators** to this campaign."
+// The prioritized sentence only shows once they've prioritized someone.
+function inviteLine(d) {
+  const kept = [...d.prio, ...d.rest];
+  const prev = kept.filter(c => c.source === 'approved').length;
+  const fresh = kept.length - prev;
+  const who = n => plural(n, 'creator', 'creators');
+  const line = !prev || !fresh
+    ? `We'll invite <b>${kept.length} ${prev ? 'previously approved' : 'new'} ${who(kept.length).replace(/^\d+ /, '')}</b> to this campaign.`
+    : `We'll invite <b>${who(kept.length)}</b> to this campaign, including <b>${prev} previously approved</b> and <b>${fresh} new</b>.`;
+  const p = d.prio.length;
+  return p ? `${line} <b>${plural(p, 'prioritized creator', 'prioritized creators')}</b> ${p === 1 ? 'gets' : 'get'} the first chance to accept.` : line;
+}
 
-// ---------- V3: the expanded block is a table; changes apply straight away, like V1 ----------
-function renderKnTable() { $('ktRows').innerHTML = byTag(api.known()).map(knownRowHTML).join(''); }
-$('ktRows').addEventListener('click', e => {
-  const btn = e.target.closest('[data-act]');
-  if (!btn) return;
-  const c = api.get(btn.closest('.pop-row').dataset.id);
-  if (btn.dataset.act === 'add') api.setShortlisted(c.id, !c.shortlisted);
-  else api.setPriority(c.id, !c.priority);
-});
-$('ktSort').addEventListener('click', () => { sortDesc = !sortDesc; renderKnTable(); });
+// Compact confirm (Figma 15372:8161): the sentence carries the breakdown, Send sits above Cancel
+function summaryHtml(d, error) {
+  const n = d.prio.length + d.rest.length;
+  return `
+  <div class="sum-view">
+    <div class="sum-head">
+      <span class="sum-icon" aria-hidden="true"><img src="assets/confirm-send-48.png" alt="" width="40" height="40"></span>
+      <div class="sum-copy">
+        <h2 class="sum-title" id="sumTitle">${n ? 'Good to go?' : 'Nobody to invite yet'}</h2>
+        <p class="sum-sub">${n ? inviteLine(d) : 'You marked everyone as Not a fit. Go back and keep at least one creator.'}</p>
+      </div>
+    </div>
+    ${error ? `<p class="sum-error" role="alert">${error}</p>` : ''}
+    <div class="sum-foot">
+      <button class="sum-send" data-sum="send"${n ? '' : ' disabled'}>${n ? `Send ${invites(n)}` : 'Send invites'}</button>
+      <button class="sum-back" data-sum="back">Cancel</button>
+    </div>
+  </div>`;
+}
 
-function openPop() {
-  draft = Object.fromEntries(api.known().map(c => [c.id, { shortlisted: c.shortlisted, priority: c.priority }]));
-  renderPop();
-  $('popOverlay').hidden = $('pop').hidden = false;
+function doneHtml(n) {
+  return `
+  <div class="sum-view">
+    <div class="sum-done">
+      <span class="done-check" aria-hidden="true">
+        <span class="done-ring"></span>
+        <svg width="64" height="64" viewBox="0 0 64 64"><circle class="done-disc" cx="32" cy="32" r="32"/><path class="done-tick" d="M21 33.5l7.5 7.5L43.5 25" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <h2 class="sum-done-title" id="sumTitle">${plural(n, 'creator', 'creators')} approved</h2>
+      <p class="sum-done-body">Invites are going out now. Most creators answer within a few days, some take up to 3 business days.</p>
+      <button class="done-btn" data-sum="close">Done</button>
+    </div>
+  </div>`;
+}
+
+// A short confetti burst from a point, in brand colors. Canvas-only, removed when the last piece settles.
+function confetti(x, y) {
   if (reduceMotion) return;
-  $('popOverlay').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'linear' });
-  $('pop').animate([{ opacity: 0, transform: 'translateY(12px) scale(.97)' }, { opacity: 1, transform: 'none' }],
-    { duration: 320, easing: EASE_OUT });
+  const cv = document.createElement('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  cv.className = 'confetti';
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  document.body.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const colors = ['#7a5cfa', '#a48bff', '#c9bdfd', '#cdff5a', '#ffb547', '#ff7eb6'];
+  const bits = Array.from({ length: 110 }, () => {
+    const a = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.1;   // mostly upward, fanned out
+    const v = 6 + Math.random() * 9;
+    return {
+      x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+      w: 5 + Math.random() * 5, h: 8 + Math.random() * 6,
+      r: Math.random() * Math.PI, vr: (Math.random() - .5) * .4,
+      flip: Math.random() * Math.PI, vf: .1 + Math.random() * .2,
+      c: colors[(Math.random() * colors.length) | 0], round: Math.random() < .3,
+    };
+  });
+  const start = performance.now(), LIFE = 2200;
+  setTimeout(() => cv.remove(), LIFE + 400);   // safety net if frames are paused (background tab)
+  (function frame(now) {
+    const t = now - start;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - LIFE * .6) / (LIFE * .4));   // fade out over the last 40%
+    bits.forEach(b => {
+      b.vx *= .985; b.vy = b.vy * .985 + .32;   // air drag + gravity
+      b.x += b.vx; b.y += b.vy; b.r += b.vr; b.flip += b.vf;
+      ctx.save();
+      ctx.translate(b.x, b.y); ctx.rotate(b.r); ctx.scale(1, Math.cos(b.flip));   // tumble
+      ctx.fillStyle = b.c;
+      if (b.round) { ctx.beginPath(); ctx.arc(0, 0, b.w / 2, 0, Math.PI * 2); ctx.fill(); }
+      else ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+      ctx.restore();
+    });
+    if (t < LIFE) requestAnimationFrame(frame); else cv.remove();
+  })(start);
 }
 
-function closePop(save = false) {
-  if (save) api.known().forEach(c => {
-    const d = draft[c.id];
-    if (d.shortlisted !== c.shortlisted) api.setShortlisted(c.id, d.shortlisted);
-    if (d.priority !== api.get(c.id).priority) api.setPriority(c.id, d.priority);
-  });
-  const hide = () => { $('popOverlay').hidden = $('pop').hidden = true; };
-  if (reduceMotion) return hide();
-  $('popOverlay').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'linear', fill: 'forwards' });
-  const a = $('pop').animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(8px) scale(.98)' }],
-    { duration: 200, easing: EASE_IN_OUT, fill: 'forwards' });
-  Promise.race([a.finished, new Promise(r => setTimeout(r, 220))]).then(() => {
-    hide(); $('pop').getAnimations().forEach(x => x.cancel()); $('popOverlay').getAnimations().forEach(x => x.cancel());
-  });
+function focusPrimary() {
+  const el = sumDlg.querySelector('.done-btn, .sum-send:not(:disabled)') || sumDlg.querySelector('.sum-back');
+  if (el) el.focus({ preventScroll: true });
 }
-$('popSave').addEventListener('click', () => closePop(true));
-$('popCancel').addEventListener('click', () => closePop());
-$('popClose').addEventListener('click', () => closePop());
-$('popOverlay').addEventListener('click', () => closePop());
 
-// ---------- Prototype version switch (V1 / V2), remembered per browser ----------
-let version = 'v1';
-try { version = localStorage.getItem('invite-version') || 'v1'; } catch {}
-const hashVersion = location.hash.match(/v[123]/);   // #v1 / #v2 / #v3 pick a version
+function openSummary(opener) {
+  clearTimeout(sumCloseT);
+  sumOpener = opener;
+  sumDlg.innerHTML = summaryHtml(summaryData());
+  sum.hidden = false;
+  void sum.offsetWidth;   // start from the hidden pose so the enter transition runs
+  sum.classList.add('in');
+  focusPrimary();
+}
+
+function closeSummary() {
+  if (!summaryOpen()) return;
+  sum.classList.remove('in');
+  clearTimeout(sumCloseT);
+  sumCloseT = setTimeout(() => { sum.hidden = true; sumDlg.innerHTML = ''; }, 260);
+  if (sumOpener && !sumOpener.disabled) sumOpener.focus();
+}
+
+
+async function sendInvites(btn) {
+  const d = summaryData();
+  const ids = [...d.prio, ...d.rest].map(c => c.id);   // invite order: prioritized first
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  try {
+    await api.sendInvites(ids);
+  } catch {
+    // Keep the summary on screen, with a clear error above the footer
+    sumDlg.innerHTML = summaryHtml(d, "We couldn't send the invites. Check your connection and try again.");
+    focusPrimary();
+    return;
+  }
+  document.querySelectorAll('.approve-btn').forEach(b => {
+    b.disabled = true;
+    b.innerHTML = `<span>${invites(ids.length)} sent</span>`;
+  });
+  // The summary closes and the big popup itself turns into the success screen
+  closeSummary();
+  setTimeout(() => showSuccess(ids.length), 180);
+}
+
+// Success screen inside the Invite Creators popup: the list and footer fade out, the check/confetti/text rise in
+function showSuccess(n) {
+  // Every version turns into the success screen, so switching versions doesn't bring the list back
+  Object.values(modals).forEach(modal => {
+    let done = modal.querySelector('.m-done');
+    if (!done) { done = document.createElement('div'); done.className = 'm-done'; modal.appendChild(done); }
+    done.innerHTML = doneHtml(n);
+    modal.classList.add('is-done');
+    modal.classList.toggle('done-seen', modal !== modals[version]);   // only the one on screen animates
+  });
+  const done = modals[version].querySelector('.m-done');
+  done.querySelector('.done-btn').focus({ preventScroll: true });
+  $('sentCount').textContent = plural(n, 'creator', 'creators');
+  // Burst from the check as the disc lands
+  setTimeout(() => {
+    const r = done.querySelector('.done-check').getBoundingClientRect();
+    confetti(r.left + r.width / 2, r.top + r.height / 2);
+  }, 380);
+}
+
+sum.addEventListener('click', e => {
+  if (e.target === sum) return closeSummary();   // backdrop = Go back
+  const act = e.target.closest('[data-sum]')?.dataset.sum;
+  if (act === 'back' || act === 'close') closeSummary();
+  else if (act === 'send') sendInvites(e.target.closest('[data-sum]'));
+});
+// Keep Tab inside the dialog: it only moves between its buttons
+sum.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const btns = [...sumDlg.querySelectorAll('button:not(:disabled)')];
+  if (!btns.length) return;
+  const i = btns.indexOf(document.activeElement);
+  e.preventDefault();
+  btns[(i + (e.shiftKey ? -1 : 1) + btns.length) % btns.length].focus();
+});
+
+// ---------- Not a fit feedback modal (Figma 15343:68271) ----------
+// Not a fit asks why first; the reason is optional and the creator is marked Not a fit however the popup closes.
+const fit = $('fit');
+const fitDlg = fit.querySelector('.fit-dlg');
+const fitInput = $('fitWhy');
+const fitSend = fitDlg.querySelector('[data-fit=send]');
+let fitId = null, fitCloseT, fitReasonOnly = false;
+const fitOpen = () => !fit.hidden;
+
+// reasonOnly: opened from "Tell us why?" on a row that's already Not a fit (V1 inline)
+function openFit(id, reasonOnly = false) {
+  const c = api.get(id);
+  fitId = id;
+  fitReasonOnly = reasonOnly;
+  fitDlg.querySelector('.fit-av img').src = `assets/${c.avatar}.jpg`;
+  fitDlg.querySelector('.fit-name').textContent = c.name;
+  fitDlg.querySelector('.fit-handle').textContent = c.handle;
+  fitInput.value = '';
+  fitSend.disabled = true;
+  clearTimeout(fitCloseT);
+  fit.hidden = false;
+  void fit.offsetWidth;   // start from the hidden pose so the enter transition runs
+  fit.classList.add('in');
+  fitInput.focus();
+}
+
+// Every way out (Send, Cancel, ✕, Esc, backdrop) marks the creator Not a fit; Send also keeps the reason.
+// Undo on the collapsed row is the way back.
+function closeFit(sent) {
+  if (!fitOpen()) return;
+  const id = fitId;
+  fit.classList.remove('in');
+  clearTimeout(fitCloseT);
+  fitCloseT = setTimeout(() => { fit.hidden = true; }, 260);
+  if (sent) api.notFitFeedback(id, fitInput.value.trim());
+  if (!fitReasonOnly) setTimeout(() => setNotFit(id, true), 260);   // collapse the card once the popup is gone
+  else if (sent) document.querySelectorAll(`.nc.row[data-id="${id}"] .r-why`)
+    .forEach(b => { b.outerHTML = '<span class="r-sent">Feedback sent</span>'; });
+}
+
+fitInput.addEventListener('input', () => { fitSend.disabled = !fitInput.value.trim(); });
+fit.addEventListener('click', e => {
+  if (e.target === fit) return closeFit();   // backdrop = Cancel
+  const act = e.target.closest('[data-fit]')?.dataset.fit;
+  if (act === 'cancel') closeFit();
+  else if (act === 'send' && !fitSend.disabled) closeFit(true);
+});
+// Keep Tab inside the dialog
+fit.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const els = [...fitDlg.querySelectorAll('button:not(:disabled), textarea')];
+  const i = els.indexOf(document.activeElement);
+  e.preventDefault();
+  els[(i + (e.shiftKey ? -1 : 1) + els.length) % els.length].focus();
+});
+
+// ---------- V1 option: how Not a fit behaves (Popup asks why first, Inline collapses right away) ----------
+let notFitMode = 'popup';
+try { notFitMode = localStorage.getItem('v1-notfit') || 'popup'; } catch {}
+function setNotFitMode(m) {
+  notFitMode = m;
+  try { localStorage.setItem('v1-notfit', m); } catch {}
+  $('modal-v1').classList.toggle('fit-inline', m === 'inline');
+  const sub = document.querySelector('.ver-sub');
+  sub.dataset.on = m;
+  sub.querySelectorAll('.ver-sub-opt').forEach(b => b.setAttribute('aria-checked', b.dataset.mode === m));
+}
+document.querySelectorAll('.ver-sub-opt').forEach(b => b.addEventListener('click', () => setNotFitMode(b.dataset.mode)));
+setNotFitMode(notFitMode);
+
+// ---------- Prototype version switch (V1 / V2 / V3), remembered per browser ----------
+try { version = localStorage.getItem('invite-version') || 'v2'; } catch {}
+const hashVersion = location.hash.match(/v[1234]/);   // #v1 … #v4 pick a version
 if (hashVersion) version = hashVersion[0];
 function setVersion(v) {
-  if (known.classList.contains('open')) setKnownOpen(false);   // close the current version's editor first
-  if (!$('pop').hidden) closePop();
   version = v;
   try { localStorage.setItem('invite-version', v); } catch {}
   document.querySelector('.ver').dataset.on = v;
+  document.querySelector('.ver-sub').classList.toggle('show', v === 'v1');   // the Not a fit option only applies to V1
   document.querySelectorAll('.ver-opt').forEach(b => b.setAttribute('aria-checked', b.dataset.ver === v));
+  setOpen(isOpen);
 }
 document.querySelectorAll('.ver-opt').forEach(b => b.addEventListener('click', () => setVersion(b.dataset.ver)));
 setVersion(version);
-// Always start with the editor closed, whatever is in the URL
 if (location.hash) history.replaceState(null, '', location.pathname + location.search);

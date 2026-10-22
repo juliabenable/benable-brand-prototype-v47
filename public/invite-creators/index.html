@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=30">
+  <link rel="stylesheet" href="styles.css?v=95">
 </head>
 <body>
   <!-- ===== Background page ===== -->
@@ -56,172 +56,148 @@
     </div>
   </header>
 
-  <!-- ===== Modal (Figma 15204:68686) ===== -->
+  <!-- Shown on the dashboard once invites are sent -->
+  <div class="sent-banner" id="sentBanner" hidden>
+    <p><b><span id="sentCount">75 creators</span> approved.</b> Invites are going out now.</p>
+    <button class="sent-view" id="viewList">View</button>
+  </div>
+
+  <!-- ===== Modals: one per prototype version ===== -->
   <div class="overlay" id="overlay"></div>
-  <div class="modal" id="modal" role="dialog" aria-label="Invite Creators">
-    <!-- Header -->
+
+  <!-- V1: same popup; an open group drops its bar and lists its cards inline (Figma 15309:22677) -->
+  <div class="modal v1" id="modal-v1" role="dialog" aria-label="Invite Creators" hidden>
     <div class="m-head">
       <p class="m-title">Invite Creators</p>
-      <button class="m-close" id="closeModal" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
+      <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
     </div>
 
-    <!-- Suggested creators deck -->
-    <div class="deck-card sg-card" id="suggestCard">
-      <div class="dc-body" id="suggestBody"></div>
-      <div class="dc-foot">
-        <button class="btn-ghost" data-act="skip">Not a Fit</button>
-        <div class="split">
-          <button class="split-add" data-act="add"><span class="i-add"></span><span class="l-add">Shortlist</span></button>
-          <button class="split-star" data-act="prio" aria-label="Priority invite"><span class="i-bolt"></span><span class="l-prio">Priority</span><!-- [PRIORITY-MORPH] --></button>
-        </div>
+    <div class="m-body">
+      <div class="m-intro">
+        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
+        <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
       </div>
+      <div class="groups"></div>
     </div>
 
-    <!-- Creators you know: collapsed bar that expands into its own deck -->
-    <div class="known" id="known">
-      <div class="kn-bar">
-        <div class="kn-stack" id="knStack"></div>
-        <div class="kn-text">
-          <p class="kn-title"><b><span id="knCount">8</span> creators</b> on your list</p>
-          <p class="kn-sub" id="knSub">Creators you loved working with are already on your list</p>
-        </div>
-        <button class="kn-edit" id="knEdit" aria-expanded="false">
-          <span id="knEditLabel">Edit</span>
-        </button>
-      </div>
-      <!-- V3: the expanded block shows a table instead of the card deck (Figma 15214:112853) -->
-      <div class="kn-table" id="knTable">
-        <div class="kt-head">
-          <span class="kt-creator">Creator</span>
-          <button class="kt-foryou" id="ktSort">For you <img src="assets/sort-16.svg" alt="" width="16" height="16"></button>
-          <span class="kt-actions">Shortlist &amp; Prioritize</span>
-        </div>
-        <div class="kt-rows" id="ktRows"></div>
-      </div>
-      <div class="kn-deck">
-        <div class="deck-card kn-card" id="knownCard">
-          <div class="dc-body" id="knownBody"></div>
-          <div class="dc-foot">
-            <button class="btn-ghost" data-act="skip">Not a Fit</button>
-            <div class="split">
-              <button class="split-add" data-act="add"><span class="i-add"></span><span class="l-add">Shortlist</span></button>
-              <button class="split-star" data-act="prio" aria-label="Priority invite"><span class="i-bolt"></span><span class="l-prio">Priority</span><!-- [PRIORITY-MORPH] --></button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="pager" id="knownPager">
-        <button class="pager-btn pg-prev" aria-label="Previous"><img src="assets/chevron-left-16-pager.svg" alt="" width="16" height="16"></button>
-        <p class="pager-text"><b class="pg-num">1</b> <span>of <span class="pg-total">8</span></span></p>
-        <button class="pager-btn pg-next" aria-label="Next"><img src="assets/chevron-right-16.svg" alt="" width="16" height="16"></button>
-      </div>
-    </div>
-
-    <!-- Pager for the suggestion deck (moves with its card) -->
-    <div class="pager" id="suggestPager">
-      <button class="pager-btn pg-prev" aria-label="Previous"><img src="assets/chevron-left-16-pager.svg" alt="" width="16" height="16"></button>
-      <p class="pager-text"><b class="pg-num">1</b> <span>of <span class="pg-total">25</span></span></p>
-      <button class="pager-btn pg-next" aria-label="Next"><img src="assets/chevron-right-16.svg" alt="" width="16" height="16"></button>
-    </div>
-
-    <!-- Right panel: the shortlist -->
-    <div class="right">
-      <button class="cta" id="inviteAll">
-        <span class="cta-left">
-          <span class="cta-icon"><img src="assets/send-20.svg" alt="" width="20" height="20"></span>
-          <span class="cta-text">
-            <span class="cta-title">Invite all <span>(<span id="allCount">40</span>)</span></span>
-            <span class="cta-sub">Review the list before it goes out</span>
-          </span>
-        </span>
-        <img src="assets/chevron-right-16.svg" alt="" width="16" height="16">
-      </button>
-
-      <div class="or-row">
-        <div class="or-line"><img src="assets/line-or-2.svg" alt=""></div>
-        <span>Or</span>
-        <div class="or-line"><img src="assets/line-or-2.svg" alt=""></div>
-      </div>
-
-      <div class="sl-empty" id="slEmpty" hidden>
-        <span class="sl-empty-icon"><span class="ico16"><span class="vec" style="inset:8.35% 12.5% 8.32% 12.5%"><img src="assets/user-add.svg" alt=""></span></span></span>
-        <div class="sl-empty-text">
-          <p class="sl-empty-title">Start your shortlist</p>
-          <p class="sl-empty-body">Add the creators you’d love to work with. Tap ⚡ on your top picks and they’re invited first.</p>
-        </div>
-      </div>
-
-      <div class="lists">
-        <div class="group" id="addedGroup">
-          <p class="group-title">We added for you</p>
-          <button class="we-added" id="weAdded">
-            <span class="wa-stack" id="waStack"></span>
-            <span class="wa-text"><b><span id="waCount">8</span> creators</b> on your list you loved working with</span>
-          </button>
-          <!-- Expanded while editing: every creator we added, each with ⚡ (invite first) and × -->
-          <div class="wa-box">
-            <div class="list" id="addedList"></div>
-          </div>
-        </div>
-        <!-- Nobody new invited yet (Figma 15213:112007) -->
-        <div class="group invites-empty" id="invitesEmpty">
-          <p class="group-title">Invites</p>
-          <div class="ie-body">
-            <img src="assets/user-add-20.svg" alt="" width="20" height="20">
-            <p>Add new creators to shortlist</p>
-          </div>
-        </div>
-        <div class="group">
-          <p class="group-title">Priority</p>
-          <div class="list" id="priorityList"></div>
-        </div>
-        <div class="group">
-          <p class="group-title">Invites</p>
-          <div class="list" id="everyoneList"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
     <div class="m-foot">
-      <div class="progress">
-        <div class="progress-head"><b><span id="slCount">0</span> shortlisted</b><span>Invite at least <span id="target">25</span> to fill your 10 spots</span></div>
-        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
-      </div>
-      <button class="next-btn" id="reviewBtn"><span>Review and invite (<span id="inviteCount">0</span>)</span> <img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
+      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
+      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
     </div>
   </div>
 
-  <!-- ===== V2: "creators you know" editor popup (Figma 15184:65980) ===== -->
-  <div class="pop-overlay" id="popOverlay" hidden></div>
-  <div class="pop" id="pop" role="dialog" aria-label="Start with creators you know" hidden>
-    <div class="pop-head">
-      <p class="pop-title">Start with creators you know <span id="popCount">(8)</span></p>
-      <button class="pop-close" id="popClose" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
+  <!-- V2: approve the selected creators (Figma 15308:18705) -->
+  <div class="modal v2" id="modal-v2" role="dialog" aria-label="Invite Creators">
+    <div class="m-head">
+      <p class="m-title">Invite Creators</p>
+      <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
     </div>
-    <div class="pop-body">
-      <div class="pop-th">
-        <span class="th-creator">Creator</span>
-        <button class="th-foryou" id="popSort">For you <img src="assets/sort-16.svg" alt="" width="16" height="16"></button>
-        <span class="th-actions">Shortlist &amp; Prioritize</span>
+
+    <div class="m-body">
+      <div class="m-intro">
+        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
+        <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
       </div>
-      <div class="pop-rows" id="popRows"></div>
+      <div class="groups"></div>
     </div>
-    <div class="pop-foot">
-      <button class="pop-cancel" id="popCancel">Cancel</button>
-      <button class="pop-save" id="popSave">Save</button>
+
+    <div class="m-foot">
+      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
+      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
     </div>
   </div>
 
-  <!-- ===== Prototype version switch (A/B) ===== -->
+  <!-- V3: each group is a deck; the bar is the top card and the creator cards spread out from under it -->
+  <div class="modal v3" id="modal-v3" role="dialog" aria-label="Invite Creators" hidden>
+    <div class="m-head">
+      <p class="m-title">Invite Creators</p>
+      <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
+    </div>
+
+    <div class="m-body">
+      <div class="m-intro">
+        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
+        <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
+      </div>
+      <div class="groups"></div>
+    </div>
+
+    <div class="m-foot">
+      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
+      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
+    </div>
+  </div>
+
+  <!-- V4: V3 without the stacked card edges; opening and closing work exactly the same -->
+  <div class="modal v3 v4" id="modal-v4" role="dialog" aria-label="Invite Creators" hidden>
+    <div class="m-head">
+      <p class="m-title">Invite Creators</p>
+      <button class="m-close" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
+    </div>
+
+    <div class="m-body">
+      <div class="m-intro">
+        <p class="m-headline">Great news, we've selected <span class="js-total">75</span> creators for your campaign.</p>
+        <p class="m-lede">Remove anyone who isn't a fit, or prioritize who gets invited first. The more creators you approve, the better we can fill your campaign.</p>
+      </div>
+      <div class="groups"></div>
+    </div>
+
+    <div class="m-foot">
+      <p class="m-warn" role="status">Approve at least 50 creators for your 25 spots, since about 50% accept invites.</p>
+      <button class="approve-btn"><span>Approve <span class="js-approve">75</span> creators</span><img src="assets/arrow-right-16.svg" alt="" width="16" height="16"></button>
+    </div>
+  </div>
+
+  <!-- ===== Invite summary pop-up (Figma 15341:25253, read-only) ===== -->
+  <div class="sum" id="sum" hidden>
+    <div class="sum-dlg" role="dialog" aria-modal="true" aria-labelledby="sumTitle"></div>
+  </div>
+
+  <!-- ===== Not a fit feedback (Figma 15343:68271) ===== -->
+  <div class="sum fit" id="fit" hidden>
+    <div class="fit-dlg" role="dialog" aria-modal="true" aria-labelledby="fitTitle">
+      <button class="fit-close" data-fit="cancel" aria-label="Close"><img src="assets/close-16.svg" alt="" width="16" height="16"></button>
+      <div class="fit-body">
+        <div class="fit-who">
+          <span class="fit-av"><img src="" alt=""></span>
+          <div class="fit-id">
+            <p class="fit-name-row"><span class="fit-spacer"></span><span class="fit-name"></span><img src="assets/card-verified-16.svg" alt="" width="16" height="16"></p>
+            <p class="fit-handle"></p>
+          </div>
+        </div>
+        <div class="fit-text">
+          <h2 class="fit-title" id="fitTitle">Help us improve your matches</h2>
+          <p class="fit-sub">Your feedback trains our recommendations so we surface better creators for you.</p>
+        </div>
+        <textarea class="fit-input" id="fitWhy" placeholder="Tell us why..." aria-label="Why isn't this creator a fit?"></textarea>
+      </div>
+      <div class="fit-foot">
+        <button class="fit-send" data-fit="send" disabled>Send</button>
+        <button class="fit-cancel" data-fit="cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Prototype version switch ===== -->
   <div class="ver" role="radiogroup" aria-label="Prototype version">
     <span class="ver-thumb"></span>
-    <button class="ver-opt" role="radio" data-ver="v1">V1 <small>Inline edit</small></button>
-    <button class="ver-opt" role="radio" data-ver="v2">V2 <small>Edit popup</small></button>
-    <button class="ver-opt" role="radio" data-ver="v3">V3 <small>Inline table</small></button>
+    <button class="ver-opt" role="radio" data-ver="v1">V1</button>
+    <button class="ver-opt" role="radio" data-ver="v2">V2</button>
+    <button class="ver-opt" role="radio" data-ver="v3">V3</button>
+    <button class="ver-opt" role="radio" data-ver="v4">V4</button>
+  </div>
+  <!-- V1 only: switch how Not a fit behaves -->
+  <div class="ver-sub" role="radiogroup" aria-label="V1 Not a fit behavior">
+    <span class="ver-sub-label">Not a fit</span>
+    <span class="ver-sub-seg">
+      <span class="ver-sub-thumb"></span>
+      <button class="ver-sub-opt" role="radio" data-mode="popup">Popup</button>
+      <button class="ver-sub-opt" role="radio" data-mode="inline">Inline</button>
+    </span>
   </div>
 
-  <script src="mock-api.js?v=30"></script>
-  <script src="app.js?v=30"></script>
+  <script src="mock-api.js?v=95"></script>
+  <script src="app.js?v=95"></script>
 </body>
 </html>
