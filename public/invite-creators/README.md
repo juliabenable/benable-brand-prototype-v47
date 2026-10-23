@@ -36,6 +36,10 @@ In the v47 tracker: Day 3 "Review Creators" (first round) and Day 11 "Review mat
 - Previously approved order (DECIDED, Julia, Oct 22): creators tagged Favorite or Would work again
   first, then those approved last time but never invited (the campaign filled), then creators the
   brand worked with before whom Katie's team picked by hand. Each card's line says which.
+  OPEN for Nisarg (copywriter, Oct 22): the third tier must leave out creators the brand marked
+  "one and done"; the second tier only holds for invites that expired when the campaign filled
+  (not ones ops revoked by hand) and for the most recent campaign; a creator with both a Favorite
+  and a Would work again answer shows the Favorite line.
 - Acceptance rate stays a fixed 50% assumption.
 
 ## URL options

@@ -39,10 +39,10 @@ const mockApi = (() => {
   // What happened last time, shown next to the "Previously approved" tag (copywriter, PROPOSED)
   const together = n => `${n} campaign${n === 1 ? '' : 's'}`;
   const HISTORY = {
-    fav: n => `You tagged them a favorite after ${together(n)} together.`,
-    again: n => `You said you'd work with them again after ${together(n)}.`,
+    fav: n => `You've done ${together(n)} together and added them to your favorites.`,
+    again: n => `You've done ${together(n)} together and said you'd work with them again.`,
     missed: () => 'You approved them last time, but the campaign filled before their turn.',
-    picked: n => `You've done ${together(n)} together. Katie's team picked them again.`,
+    picked: n => `You've done ${together(n)} together. Katie's team picked them for this one.`,
   };
   const history = (name, i) => HISTORY[kindOf(name)](1 + (i % 3));
 
