@@ -5,7 +5,7 @@ import { stageOf, AmineProgress2, AmineRail, StayTuned, CreatorsFound } from './
 import FixedTable from './tableFix.jsx';
 import { reviewNeeds, getReviewMode, setReviewMode, setFlagBeat, flagBeat } from './review.jsx';
 import { forks } from './forks.js';
-import { FIRST_ROUND_TOTAL } from '../../invite/rounds.js';
+import { poolTotal, POOL_CASES, pool, setPool, OPEN_SPOT_CASES, openSpot, setOpenSpot, resetInvites } from '../../invite/openSpot.js';
 
 /*
   Campaign Pulse v34 — single experience (v33's C), kept lean for polishing:
@@ -221,6 +221,31 @@ export default function CampaignPulse() {
         <button type="button" className={showDeclined ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'} onClick={() => setShowDeclined(true)}>
           Shown
         </button>
+        {/* FOUND (Julia, Oct 22): we found 75 creators for the 6 spots, or only 7 */}
+        <span className="cp-mode-sep" aria-hidden />
+        <span className="cp-scrub-tag">FOUND</span>
+        {POOL_CASES.map(([v, label]) => (
+          <button key={v} type="button" className={pool() === v ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'} onClick={() => { setPool(v); pulse(); }}>
+            {label}
+          </button>
+        ))}
+        <button type="button" className="cp-scrub-day" title="Forget every choice and invite sent in the Invite Creators popups" onClick={() => { resetInvites(); pulse(); }}>
+          ↺ Reset invites
+        </button>
+        {/* OPEN SPOT (Julia, Oct 22), Days 9 to 11: how the declined creator's spot gets
+            filled. New matches = Katie's team sources, the brand reviews on Day 11;
+            From invites = one of the open invites takes it (src/invite/openSpot.js) */}
+        {[9, 10, 11].includes(scene.day) && (
+          <>
+            <span className="cp-mode-sep" aria-hidden />
+            <span className="cp-scrub-tag">OPEN SPOT</span>
+            {OPEN_SPOT_CASES.map(([v, label]) => (
+              <button key={v} type="button" className={openSpot() === v ? 'cp-scrub-day cp-scrub-day--active' : 'cp-scrub-day'} onClick={() => { setOpenSpot(v); pulse(); }}>
+                {label}
+              </button>
+            ))}
+          </>
+        )}
         {/* FLAG DEMO — steps every flagged asset through the resolution
             beats (Julia, Aug 18: fix agreed → resolved, no re-review; she
             publishes directly). Appears once something is flagged. */}
@@ -245,7 +270,7 @@ export default function CampaignPulse() {
       {phase === 'sourcing' ? (
         <StayTuned />
       ) : phase === 'review' ? (
-        <CreatorsFound count={FIRST_ROUND_TOTAL} />
+        <CreatorsFound count={poolTotal()} />
       ) : (
         <>
           <AmineProgress2 scene={scene} filter={stageFilter} onFilter={setStageFilter} />

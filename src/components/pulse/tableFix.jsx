@@ -4,6 +4,7 @@ import { stageOf, stagesFor, AM_FILTER_LABEL, ActionModal } from './amine.jsx';
 import { reviewAutoOpenDue, dismissReviewAutoOpen, firstPendingCreator, assetsOf, isReviewRow, reviewRowFace, reviewNeeds, rowReviewState } from './review.jsx';
 import { ReviewModal } from './reviewModal.jsx';
 import LiveStatus from './LiveStatus.jsx';
+import InviteFold from '../../invite/InviteFold.jsx';
 
 /* F · Table fixes — the creators-table study's picks, worn together
    (creators-table-study/, Jul 28) + Julia's Jul 28 review round:
@@ -585,6 +586,9 @@ export default function FixedTable({ scene, rows, filter, onFilter, openCrew, to
           </div>
         </>
       )}
+
+      {/* the other invites, under one line (Julia, Oct 22): waiting on a reply, or closed once the spots fill */}
+      <InviteFold scene={scene} filtered={filtered} />
 
       {modal?.kind === 'review' ? (
         <ReviewModal scene={scene} rows={crewAll} initial={modal.name} onClose={() => setModal(null)} onDecide={() => { bump(); onReviewChange?.(); }} />

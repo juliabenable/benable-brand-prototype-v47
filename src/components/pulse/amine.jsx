@@ -533,7 +533,7 @@ export function AmineRail({ scene, railVar = 'a' }) {
               <p className="am-card-title">Up next</p>
             </div>
             {scene.upNext.map((u, i) => (
-              <NoteRow key={u.text} emoji={u.emoji} strong={u.text} rest={` — ${u.eta}`} last={i === scene.upNext.length - 1} />
+              <NoteRow key={u.text} emoji={u.emoji} strong={u.text} rest={`${u.sep ?? ' — '}${u.eta}`} last={i === scene.upNext.length - 1} />
             ))}
           </>
         )}
@@ -543,7 +543,7 @@ export function AmineRail({ scene, railVar = 'a' }) {
       {!merged && (
         <RailCard icon={AIC.invites} title="Up next">
           {scene.upNext.map((u, i) => (
-            <NoteRow key={u.text} emoji={u.emoji} strong={u.text} rest={` — ${u.eta}`} last={i === scene.upNext.length - 1} />
+            <NoteRow key={u.text} emoji={u.emoji} strong={u.text} rest={`${u.sep ?? ' — '}${u.eta}`} last={i === scene.upNext.length - 1} />
           ))}
         </RailCard>
       )}

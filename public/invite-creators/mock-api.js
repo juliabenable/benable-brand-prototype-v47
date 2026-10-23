@@ -3,7 +3,9 @@
 //
 // URL options, all optional (the v47 tracker passes spots and mode):
 //   ?spots=25          the campaign's spots (default 25; a rematch defaults to 1)
-//   ?mode=rematch      a second round to refill open spots: new creators only (default 4)
+//   ?mode=rematch      a second round to refill open spots: 4 new creators (default 1 spot)
+//   ?pool=7            we only found 7: the tracker's six plus one
+//   ?amara=1           Amara is on the first-round list (she takes the open spot from the invites)
 //   ?prev=18&new=57    how many previously approved / new creators we selected (try 0, 1, 2)
 //   ?notfit=26         start with that many new creators marked Not a Fit
 //   ?sparse=1          the first new creator has gaps in their profile (no bio, fits, stats, content)
@@ -31,7 +33,7 @@ const mockApi = (() => {
   // ---------- New creators: hand-selected profiles ----------
   const newNames = ['Jordan Blake', 'Eva Thompson', 'Lena Ortiz', 'Priya Shah', 'Mia Laurent', 'Hannah Kim', 'Camila Reyes',
     'Grace Okafor', 'Ella Novak', 'Ruby Castillo', 'Ivy Mitchell', 'Naomi Brooks', 'Sienna Hart', 'Layla Haddad',
-    'Aria Bennett', 'Jade Moreno', 'Leah Fischer', 'Tessa Ward', 'Nina Alvarez', 'Clara Dubois', 'Maya Singh',
+    'Aria Bennett', 'Jade Moreno', 'Leah Fischer', 'Tessa Ward', 'Nina Alvarez', 'Clara Dubois', 'Nia Singh',
     'Willow Grant', 'Iris Nakamura', 'Freya Lund', 'Dahlia Cruz', 'Ruben Vega', 'Adaeze Okoye', 'Celine Fontaine',
     'Bianca Rossi', 'Talia Cohen', 'Noor Rahman', 'Paige Sullivan', 'Esme Walker', 'Gia Romano', 'Harper Quinn',
     'Kira Petrova', 'Lila Ahmed', 'Mila Kowalski', 'Nadia Farah', 'Opal Jensen', 'Quinn Harper', 'Rosa Delgado',
@@ -82,26 +84,38 @@ const mockApi = (() => {
     feedback: false,
   });
 
-  // A rematch shows new creators who weren't in the first round, and nobody from past campaigns.
-  // Amara is the creator who takes the open spot in the v47 tracker (Day 13 on).
-  const rematchPeople = [
-    { name: 'Amara Gold', handle: '@amara.gold', avatar: 'amara' },
+  // The v47 tracker follows six creators (Maya, Nia, Sofia, Jade, Priya, Lena): in this list they keep
+  // their names but wear the tracker's handles and photos, so the popup and the tracker are the same people.
+  const story = {
+    'Maya Brooks': ['@maya.skin', 'story-maya'], 'Sofia Patel': ['@sofia.films', 'story-sofia'],
+    'Lena Ortiz': ['@lena.lately', 'story-lena'], 'Priya Shah': ['@priyacreates', 'story-priya'],
+    'Jade Moreno': ['@jadebythesea', 'story-jade'], 'Nia Singh': ['@niaglow', 'story-nia'],
+  };
+  // Amara (@amara.gold) takes the open spot in the tracker from Day 11 on: ?amara=1 puts her on this
+  // first-round list (in place of Adaeze Okoye); otherwise she's one of the rematch's new creators.
+  const amara = { name: 'Amara Gold', handle: '@amara.gold', avatar: 'amara' };
+  const rematchPeople = [amara,
     { name: 'Simone Clarke', avatar: 'avatar-6' },
     { name: 'Keira Dunn', avatar: 'new-2' },
     { name: 'Ava Morales', avatar: 'approved-3' },
   ];
-  const pool = mode === 'rematch' ? rematchPeople : newNames.map((name, i) => ({ name, avatar: faces[i % faces.length] }));
-  const prevN = Math.min(num('prev', mode === 'rematch' ? 0 : approvedNames.length), approvedNames.length);
-  const newN = Math.min(num('new', pool.length), pool.length);
-  const newCreators = pool.slice(0, newN).map((p, k) => {
-    const c = profile(p.name, mode === 'rematch' ? 30 + k : k, 'new', p.avatar);
+  const person = (name, avatar) => (story[name] ? { name, handle: story[name][0], avatar: story[name][1] }
+    : q.get('amara') && name === 'Adaeze Okoye' ? amara : { name, avatar });
+  let prevPeople = approvedNames.map((name, i) => person(name, approvedFaces[i % approvedFaces.length]));
+  let newPeople = mode === 'rematch' ? rematchPeople : newNames.map((name, i) => person(name, faces[i % faces.length]));
+  // ?pool=7: we only found 7, the tracker's six plus one (Emma Wilson, or Amara with ?amara=1)
+  if (mode !== 'rematch' && num('pool', 0) === 7) {
+    prevPeople = prevPeople.filter(p => story[p.name] || (!q.get('amara') && p.name === 'Emma Wilson'));
+    newPeople = [...newPeople.filter(p => story[p.name]), ...(q.get('amara') ? [amara] : [])];
+  }
+  const prevN = Math.min(num('prev', mode === 'rematch' ? 0 : prevPeople.length), prevPeople.length);
+  const newN = Math.min(num('new', newPeople.length), newPeople.length);
+  const build = (p, k, source) => {
+    const c = profile(p.name, (mode === 'rematch' ? 30 : source === 'approved' ? 3 : 0) + k, source, p.avatar);
     return p.handle ? { ...c, handle: p.handle } : c;
-  });
-  const approvedCreators = approvedNames.slice(0, prevN).map((name, i) => ({
-    ...profile(name, i + 3, 'approved', approvedFaces[i % approvedFaces.length]),
-    id: 'ap' + i,
-    history: history(i),
-  }));
+  };
+  const newCreators = newPeople.slice(0, newN).map((p, k) => build(p, k, 'new'));
+  const approvedCreators = prevPeople.slice(0, prevN).map((p, i) => ({ ...build(p, i, 'approved'), id: 'ap' + i, history: history(i) }));
   if (q.get('sparse') && newCreators[0]) Object.assign(newCreators[0], { bio: '', fits: [], followers: '', engagement: '', content: [] });
 
   const groups = [
@@ -122,7 +136,7 @@ const mockApi = (() => {
   const find = id => all().find(c => c.id === id);
 
   // ---------- Save as you go ----------
-  const KEY = `invite-creators:${mode}:${campaign.spots}:${prevN}:${newN}`;
+  const KEY = `invite-creators:${mode}:${campaign.spots}:${prevN}:${newN}:${num('pool', 0)}:${q.get('amara') ? 1 : 0}`;
   let sent = 0;
   const save = () => {
     const choices = {};

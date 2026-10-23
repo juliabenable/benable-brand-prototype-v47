@@ -15,7 +15,7 @@ const PREV_FACES = ['avatar-1', 'approved-1', 'approved-2', 'approved-3', 'avata
   'avatar-2', 'avatar-3', 'avatar-4', 'avatar-6', 'jordan', 'avatar-7', 'avatar-0', 'new-1', 'new-2', 'new-3', 'new-0'];
 const NEW = ['Jordan Blake', 'Eva Thompson', 'Lena Ortiz', 'Priya Shah', 'Mia Laurent', 'Hannah Kim', 'Camila Reyes',
   'Grace Okafor', 'Ella Novak', 'Ruby Castillo', 'Ivy Mitchell', 'Naomi Brooks', 'Sienna Hart', 'Layla Haddad',
-  'Aria Bennett', 'Jade Moreno', 'Leah Fischer', 'Tessa Ward', 'Nina Alvarez', 'Clara Dubois', 'Maya Singh',
+  'Aria Bennett', 'Jade Moreno', 'Leah Fischer', 'Tessa Ward', 'Nina Alvarez', 'Clara Dubois', 'Nia Singh',
   'Willow Grant', 'Iris Nakamura', 'Freya Lund', 'Dahlia Cruz', 'Ruben Vega', 'Adaeze Okoye', 'Celine Fontaine',
   'Bianca Rossi', 'Talia Cohen', 'Noor Rahman', 'Paige Sullivan', 'Esme Walker', 'Gia Romano', 'Harper Quinn',
   'Kira Petrova', 'Lila Ahmed', 'Mila Kowalski', 'Nadia Farah', 'Opal Jensen', 'Quinn Harper', 'Rosa Delgado',
@@ -25,14 +25,19 @@ const NEW = ['Jordan Blake', 'Eva Thompson', 'Lena Ortiz', 'Priya Shah', 'Mia La
 const NEW_FACES = ['new-0', 'new-1', 'new-2', 'new-3', 'jordan', 'avatar-0', 'avatar-2', 'avatar-3', 'avatar-4',
   'avatar-5', 'avatar-6', 'avatar-7', 'avatar-8', 'avatar-9', 'approved-1', 'approved-2', 'approved-3', 'avatar-1'];
 
+/* The tracker's six wear their tracker photos in the popup too (mock-api.js does the same) */
+const STORY_FACE = { 'Maya Brooks': 'story-maya', 'Sofia Patel': 'story-sofia', 'Lena Ortiz': 'story-lena',
+  'Priya Shah': 'story-priya', 'Jade Moreno': 'story-jade', 'Nia Singh': 'story-nia' };
 const all = [
-  ...PREV.map((n, i) => ({ full: n, face: PREV_FACES[i % PREV_FACES.length] })),
-  ...NEW.map((n, i) => ({ full: n, face: NEW_FACES[i % NEW_FACES.length] })),
+  ...PREV.map((n, i) => ({ full: n, face: STORY_FACE[n] || PREV_FACES[i % PREV_FACES.length] })),
+  ...NEW.map((n, i) => ({ full: n, face: STORY_FACE[n] || NEW_FACES[i % NEW_FACES.length] })),
 ];
 const firstName = (full) => full.split(' ')[0];
 
-/* Day 3 card: the first four faces of the popup's Previously approved bar, blurred */
+/* Day 3 card: the first four faces of the popup's list, blurred. All 75: Emma, Maya, Chloe, Zoe.
+   Only 7 (the tracker's six plus one): Maya, Sofia, then the new ones. */
 export const FOUND_FACES = all.slice(0, 4).map((c) => face(c.face));
+export const FOUND_FACES_7 = all.filter((c) => STORY_FACE[c.full]).slice(0, 4).map((c) => face(c.face));
 
 /* Day 4: the tracker follows its own six creators (Maya, Nia, Sofia, Jade, Priya,
    Lena); the popup list has six people with those first names, so they stand in
@@ -48,3 +53,18 @@ export const MORE_INVITED = others.map((c) => ({
   status: { type: 'facts', phrases: ['Invite sent this morning'] },
 }));
 export const MORE_PHOTOS = Object.fromEntries(others.map((c) => [c.full, face(c.face)]));
+
+/* Amara (@amara.gold) takes the open spot from Day 11 on. Under the OPEN SPOT
+   switch she is either one of the first round's invites ("From invites": she
+   stands in for Adaeze Okoye on the popup list and Day 4) or a new match the
+   brand reviews on Day 11 ("New matches", with three others). */
+const row = (name, handle) => ({ name, handle, stage: 0, status: { type: 'facts', phrases: ['Invite sent this morning'] } });
+export const AMARA_INVITE = row('Amara Gold', '@amara.gold');
+export const SWAPPED_FOR_AMARA = 'Adaeze Okoye';
+export const REMATCH_OTHERS = [row('Simone Clarke', '@Simone_Clarke'), row('Keira Dunn', '@Keira_Dunn'), row('Ava Morales', '@Ava_Morales')];
+Object.assign(MORE_PHOTOS, {
+  'Amara Gold': face('amara'),
+  'Simone Clarke': face('avatar-6'),
+  'Keira Dunn': face('new-2'),
+  'Ava Morales': face('approved-3'),
+});

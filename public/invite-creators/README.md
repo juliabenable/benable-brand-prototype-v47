@@ -37,7 +37,12 @@ In the v47 tracker: Day 3 "Review Creators" (first round) and Day 11 "Review mat
 
 ## URL options
 
-`?spots=25` · `?mode=rematch` (4 new creators who weren't in the first round, 1 spot) · `?prev=18&new=57`
+Six creators on the list wear the v47 tracker's handles and photos (Maya, Nia, Sofia, Jade, Priya, Lena),
+so the popup and the tracker show the same people.
+
+
+`?spots=25` · `?mode=rematch` (4 new creators who weren't in the first round, 1 spot) · `?pool=7` (we only
+found 7: the v47 tracker's six plus one) · `?amara=1` (Amara is on the first-round list) · `?prev=18&new=57`
 (try 0, 1, 2) · `?notfit=26` · `?sparse=1` (gaps in the first new profile) · `?sendfail=1` ·
 `?fresh=1` (forget saved choices).
 

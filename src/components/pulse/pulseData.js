@@ -11,6 +11,7 @@ export const SPOTS = 6;
 /* campaign completion per demo day */
 export const PCT = { 1: '4%', 3: '12%', 4: '16%', 9: '34%', 10: '38%', 11: '42%', 16: '58%', 22: '80%', 30: '100%' };
 import { FIRST_ROUND_TOTAL, MORE_INVITED, MORE_PHOTOS } from '../../invite/rounds.js';
+import { openSpotCrew, installOpenSpot } from '../../invite/openSpot.js';
 const B = import.meta.env.BASE_URL;
 export const PHOTOS = {
   ...MORE_PHOTOS,   // Day 4's other invited creators (src/invite/rounds.js); the six below win on a shared name
@@ -375,7 +376,7 @@ export const LOCAL = {
 };
 
 /* crew rows for a day, honoring the collab type */
-export const crewFor = (day, mode) => (mode === 'local' && LOCAL.crew[day]) || CREW[day] || [];
+export const crewFor = (day, mode) => openSpotCrew(day, mode, CREW, LOCAL) || (mode === 'local' && LOCAL.crew[day]) || CREW[day] || [];
 
 export const DAYS = [
   {
@@ -692,3 +693,7 @@ MORE_INVITED.forEach((c) => {
   TIMELINES[c.name] = TIMELINES.Lena;
   if (LOCAL.timelines?.Lena) LOCAL.timelines[c.name] = LOCAL.timelines.Lena;
 });
+
+/* After the Invite Creators popup: 75 (or 7) invites for 6 spots. Counts follow the
+   invites sent, and the OPEN SPOT switch rewrites Days 9 to 11 (src/invite/openSpot.js) */
+installOpenSpot({ CREW, DAYS, LOCAL, TIMELINES, SPOTS });
