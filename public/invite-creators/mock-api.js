@@ -25,10 +25,26 @@ const mockApi = (() => {
   // Placeholder faces; the first four match the collapsed bar's avatar stack
   const approvedFaces = ['avatar-1', 'approved-1', 'approved-2', 'approved-3', 'avatar-5', 'avatar-9', 'avatar-8',
     'avatar-2', 'avatar-3', 'avatar-4', 'avatar-6', 'jordan', 'avatar-7', 'avatar-0', 'new-1', 'new-2', 'new-3', 'new-0'];
-  // What happened last time, shown next to the "Previously approved" tag
-  const history = i => i % 6 === 5
-    ? 'You approved them last time, but the campaign filled before their turn.'
-    : `You've done ${1 + (i % 3)} campaign${i % 3 ? 's' : ''} together and loved working with them.`;
+  // Why each one is back (Julia, Oct 22), which also sets the group's order:
+  //   fav / again  the brand tagged them Favorite or Would work again after a campaign
+  //   missed       approved last time, but the campaign filled before their turn (never invited)
+  //   picked       worked together before, no tag; Katie's team picked them for this campaign
+  const kinds = {
+    'Emma Wilson': 'fav', 'Maya Brooks': 'fav', 'Chloe Martin': 'fav', 'Audrey Cole': 'fav',
+    'Sofia Patel': 'again', 'Zoe Parker': 'again', 'Nora Bennett': 'again', 'Elena Ruiz': 'again',
+    'Olivia Chen': 'missed', 'Isabel Rivera': 'missed', 'Stella Price': 'missed',
+  };
+  const kindOf = name => kinds[name] || 'picked';
+  const KIND_ORDER = ['fav', 'again', 'missed', 'picked'];
+  // What happened last time, shown next to the "Previously approved" tag (copywriter, PROPOSED)
+  const together = n => `${n} campaign${n === 1 ? '' : 's'}`;
+  const HISTORY = {
+    fav: n => `You tagged them a favorite after ${together(n)} together.`,
+    again: n => `You said you'd work with them again after ${together(n)}.`,
+    missed: () => 'You approved them last time, but the campaign filled before their turn.',
+    picked: n => `You've done ${together(n)} together. Katie's team picked them again.`,
+  };
+  const history = (name, i) => HISTORY[kindOf(name)](1 + (i % 3));
 
   // ---------- New creators: hand-selected profiles ----------
   const newNames = ['Jordan Blake', 'Eva Thompson', 'Lena Ortiz', 'Priya Shah', 'Mia Laurent', 'Hannah Kim', 'Camila Reyes',
@@ -115,7 +131,10 @@ const mockApi = (() => {
     return p.handle ? { ...c, handle: p.handle } : c;
   };
   const newCreators = newPeople.slice(0, newN).map((p, k) => build(p, k, 'new'));
-  const approvedCreators = prevPeople.slice(0, prevN).map((p, i) => ({ ...build(p, i, 'approved'), id: 'ap' + i, history: history(i) }));
+  const approvedCreators = prevPeople.slice(0, prevN)
+    .map((p, i) => ({ ...build(p, i, 'approved'), id: 'ap' + i, kind: kindOf(p.name), history: history(p.name, i) }))
+    // Favorite and Would work again first, then approved-but-never-invited, then the team's picks
+    .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind));
   if (q.get('sparse') && newCreators[0]) Object.assign(newCreators[0], { bio: '', fits: [], followers: '', engagement: '', content: [] });
 
   const groups = [

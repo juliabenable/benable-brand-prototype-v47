@@ -28,8 +28,14 @@ const NEW_FACES = ['new-0', 'new-1', 'new-2', 'new-3', 'jordan', 'avatar-0', 'av
 /* The tracker's six wear their tracker photos in the popup too (mock-api.js does the same) */
 const STORY_FACE = { 'Maya Brooks': 'story-maya', 'Sofia Patel': 'story-sofia', 'Lena Ortiz': 'story-lena',
   'Priya Shah': 'story-priya', 'Jade Moreno': 'story-jade', 'Nia Singh': 'story-nia' };
+/* Previously approved in the popup's order (Julia, Oct 22): Favorite and Would work again first,
+   then approved-but-never-invited, then Katie's team's picks (same tiers as mock-api.js) */
+const KIND = { 'Emma Wilson': 0, 'Maya Brooks': 0, 'Chloe Martin': 0, 'Audrey Cole': 0, 'Sofia Patel': 1, 'Zoe Parker': 1,
+  'Nora Bennett': 1, 'Elena Ruiz': 1, 'Olivia Chen': 2, 'Isabel Rivera': 2, 'Stella Price': 2 };
+const tier = (n) => KIND[n] ?? 3;
 const all = [
-  ...PREV.map((n, i) => ({ full: n, face: STORY_FACE[n] || PREV_FACES[i % PREV_FACES.length] })),
+  ...PREV.map((n, i) => ({ full: n, face: STORY_FACE[n] || PREV_FACES[i % PREV_FACES.length] }))
+    .sort((a, b) => tier(a.full) - tier(b.full)),
   ...NEW.map((n, i) => ({ full: n, face: STORY_FACE[n] || NEW_FACES[i % NEW_FACES.length] })),
 ];
 const firstName = (full) => full.split(' ')[0];

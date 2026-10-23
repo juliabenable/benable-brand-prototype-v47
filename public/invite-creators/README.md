@@ -33,6 +33,9 @@ In the v47 tracker: Day 3 "Review Creators" (first round) and Day 11 "Review mat
 - Previously approved = creators the brand worked with, plus creators the brand approved last
   time whose invite never went out because the campaign filled before their turn (DECIDED,
   Julia, Oct 22). The demo shows both (15 + 3 of 18), each with what happened last time.
+- Previously approved order (DECIDED, Julia, Oct 22): creators tagged Favorite or Would work again
+  first, then those approved last time but never invited (the campaign filled), then creators the
+  brand worked with before whom Katie's team picked by hand. Each card's line says which.
 - Acceptance rate stays a fixed 50% assumption.
 
 ## URL options
